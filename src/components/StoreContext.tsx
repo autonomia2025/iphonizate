@@ -6,8 +6,8 @@ type Ctx = { store: Store; setStoreId: (id: string) => void; stores: Store[] };
 const StoreCtx = createContext<Ctx | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [storeId, setStoreId] = useState(STORES[0].id);
-  const store = useMemo(() => STORES.find((s) => s.id === storeId) ?? STORES[0], [storeId]);
+  const [storeId, setStoreId] = useState(STORES[0]!.id);
+  const store = useMemo(() => STORES.find((s) => s.id === storeId) ?? STORES[0]!, [storeId]);
 
   return (
     <StoreCtx.Provider value={{ store, setStoreId, stores: STORES }}>
