@@ -1,10 +1,19 @@
 import { useState, type ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronsUpDown, Check } from "lucide-react";
+import { Link, useRouterState, useRouter } from "@tanstack/react-router";
+import { ChevronsUpDown, Check, LogOut } from "lucide-react";
 import { useStore } from "@/components/StoreContext";
-import { NAV, tituloDeRuta } from "@/lib/nav";
+import { useAuth } from "@/components/AuthContext";
+import { navParaRol, ROL_ETIQUETA, tituloDeRuta } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const iniciales = (nombre: string) =>
+  nombre
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("");
 
 const FECHA = new Intl.DateTimeFormat("es-CL", {
   weekday: "long",
@@ -64,10 +73,11 @@ function SelectorTienda() {
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { store } = useStore();
+  const { usuario } = useAuth();
 
   return (
     <>
-      {NAV.map((item) => {
+      {navParaRol(usuario?.rol).map((item) => {
         const on = pathname === item.to;
         return (
           <Link
@@ -99,8 +109,15 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { store } = useStore();
+  const { usuario, salir } = useAuth();
+  const router = useRouter();
   const [navAbierto, setNavAbierto] = useState(false);
   const titulo = tituloDeRuta(pathname);
+
+  const cerrarSesion = async () => {
+    await salir();
+    await router.navigate({ to: "/auth", replace: true });
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -126,12 +143,21 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SelectorTienda />
           <div className="glass flex items-center gap-3 p-2.5">
             <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 font-display text-[11px]">
-              CM
+              {iniciales(usuario?.nombre ?? "")}
             </span>
-            <span className="min-w-0">
-              <span className="block truncate text-[13px]">Camila Muñoz</span>
-              <span className="block text-[11px] text-muted-foreground">Administradora</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px]">{usuario?.nombre}</span>
+              <span className="block text-[11px] text-muted-foreground">
+                {usuario ? ROL_ETIQUETA[usuario.rol] : ""}
+              </span>
             </span>
+            <button
+              onClick={() => void cerrarSesion()}
+              aria-label="Cerrar sesión"
+              className="rounded-lg p-1.5 text-muted-foreground transition-colors duration-200 hover:bg-white/[0.07] hover:text-foreground"
+            >
+              <LogOut className="size-4" />
+            </button>
           </div>
         </div>
       </aside>
@@ -172,7 +198,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         )}
         <div className="grid grid-cols-5 items-center gap-1 px-2 py-2">
-          {NAV.slice(0, 4).map((item) => {
+          {navParaRol(usuario?.rol)
+            .slice(0, 4)
+            .map((item) => {
             const on = pathname === item.to;
             return (
               <Link

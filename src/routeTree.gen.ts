@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccesoriosRouteImport } from './routes/accesorios'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CajaRouteImport } from './routes/caja'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as GarantiasRouteImport } from './routes/garantias'
@@ -40,6 +41,11 @@ const AccesoriosRoute = AccesoriosRouteImport.update({
 const AuditoriaRoute = AuditoriaRouteImport.update({
   id: '/auditoria',
   path: '/auditoria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CajaRoute = CajaRouteImport.update({
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accesorios': typeof AccesoriosRoute
   '/auditoria': typeof AuditoriaRoute
+  '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
   '/garantias': typeof GarantiasRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accesorios': typeof AccesoriosRoute
   '/auditoria': typeof AuditoriaRoute
+  '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
   '/garantias': typeof GarantiasRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/accesorios': typeof AccesoriosRoute
   '/auditoria': typeof AuditoriaRoute
+  '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
   '/garantias': typeof GarantiasRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accesorios'
     | '/auditoria'
+    | '/auth'
     | '/caja'
     | '/clientes'
     | '/garantias'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accesorios'
     | '/auditoria'
+    | '/auth'
     | '/caja'
     | '/clientes'
     | '/garantias'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accesorios'
     | '/auditoria'
+    | '/auth'
     | '/caja'
     | '/clientes'
     | '/garantias'
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccesoriosRoute: typeof AccesoriosRoute
   AuditoriaRoute: typeof AuditoriaRoute
+  AuthRoute: typeof AuthRoute
   CajaRoute: typeof CajaRoute
   ClientesRoute: typeof ClientesRoute
   GarantiasRoute: typeof GarantiasRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/auditoria'
       fullPath: '/auditoria'
       preLoaderRoute: typeof AuditoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/caja': {
@@ -379,6 +399,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccesoriosRoute: AccesoriosRoute,
   AuditoriaRoute: AuditoriaRoute,
+  AuthRoute: AuthRoute,
   CajaRoute: CajaRoute,
   ClientesRoute: ClientesRoute,
   GarantiasRoute: GarantiasRoute,

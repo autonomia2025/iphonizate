@@ -14,16 +14,1345 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accesorios: {
+        Row: {
+          categoria: Database["public"]["Enums"]["categoria_accesorio"]
+          costo: number
+          created_at: string
+          id: string
+          minimo: number
+          modelo: string | null
+          nombre: string
+          precio: number
+          tipo: string | null
+        }
+        Insert: {
+          categoria?: Database["public"]["Enums"]["categoria_accesorio"]
+          costo?: number
+          created_at?: string
+          id?: string
+          minimo?: number
+          modelo?: string | null
+          nombre: string
+          precio?: number
+          tipo?: string | null
+        }
+        Update: {
+          categoria?: Database["public"]["Enums"]["categoria_accesorio"]
+          costo?: number
+          created_at?: string
+          id?: string
+          minimo?: number
+          modelo?: string | null
+          nombre?: string
+          precio?: number
+          tipo?: string | null
+        }
+        Relationships: []
+      }
+      accesorios_stock: {
+        Row: {
+          accesorio_id: string
+          cantidad: number
+          id: string
+          tienda_id: string
+        }
+        Insert: {
+          accesorio_id: string
+          cantidad?: number
+          id?: string
+          tienda_id: string
+        }
+        Update: {
+          accesorio_id?: string
+          cantidad?: number
+          id?: string
+          tienda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accesorios_stock_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "accesorios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accesorios_stock_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auditoria: {
+        Row: {
+          accion: string
+          detalle: Json | null
+          fecha: string
+          id: string
+          rol: string | null
+          tienda_id: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          accion: string
+          detalle?: Json | null
+          fecha?: string
+          id?: string
+          rol?: string | null
+          tienda_id?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          accion?: string
+          detalle?: Json | null
+          fecha?: string
+          id?: string
+          rol?: string | null
+          tienda_id?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditoria_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auditoria_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cierres_caja: {
+        Row: {
+          contado_credito: number
+          contado_efectivo: number
+          contado_parte_pago: number
+          contado_transferencia: number
+          equipos_contados: number
+          equipos_esperados: number
+          esperado_credito: number
+          esperado_efectivo: number
+          esperado_parte_pago: number
+          esperado_transferencia: number
+          fecha: string
+          fondo_inicial: number
+          id: string
+          imeis_faltantes: string[]
+          tienda_id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          contado_credito?: number
+          contado_efectivo?: number
+          contado_parte_pago?: number
+          contado_transferencia?: number
+          equipos_contados?: number
+          equipos_esperados?: number
+          esperado_credito?: number
+          esperado_efectivo?: number
+          esperado_parte_pago?: number
+          esperado_transferencia?: number
+          fecha?: string
+          fondo_inicial?: number
+          id?: string
+          imeis_faltantes?: string[]
+          tienda_id: string
+          usuario_id?: string | null
+        }
+        Update: {
+          contado_credito?: number
+          contado_efectivo?: number
+          contado_parte_pago?: number
+          contado_transferencia?: number
+          equipos_contados?: number
+          equipos_esperados?: number
+          esperado_credito?: number
+          esperado_efectivo?: number
+          esperado_parte_pago?: number
+          esperado_transferencia?: number
+          fecha?: string
+          fondo_inicial?: number
+          id?: string
+          imeis_faltantes?: string[]
+          tienda_id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cierres_caja_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cierres_caja_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clientes: {
+        Row: {
+          correo: string | null
+          created_at: string
+          id: string
+          instagram: string | null
+          nombre: string
+          telefono: string | null
+        }
+        Insert: {
+          correo?: string | null
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          nombre: string
+          telefono?: string | null
+        }
+        Update: {
+          correo?: string | null
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          nombre?: string
+          telefono?: string | null
+        }
+        Relationships: []
+      }
+      equipos: {
+        Row: {
+          bateria: number | null
+          categoria: Database["public"]["Enums"]["categoria_equipo"]
+          color: string | null
+          costo: number
+          email_vinculado: string | null
+          estado: Database["public"]["Enums"]["equipo_estado"]
+          fecha_ingreso: string
+          gb: number | null
+          id: string
+          imei: string
+          lote: string | null
+          modelo: string
+          notas: string | null
+          proveedor: string | null
+          serie: string | null
+          ubicacion_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          bateria?: number | null
+          categoria?: Database["public"]["Enums"]["categoria_equipo"]
+          color?: string | null
+          costo?: number
+          email_vinculado?: string | null
+          estado?: Database["public"]["Enums"]["equipo_estado"]
+          fecha_ingreso?: string
+          gb?: number | null
+          id?: string
+          imei: string
+          lote?: string | null
+          modelo: string
+          notas?: string | null
+          proveedor?: string | null
+          serie?: string | null
+          ubicacion_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bateria?: number | null
+          categoria?: Database["public"]["Enums"]["categoria_equipo"]
+          color?: string | null
+          costo?: number
+          email_vinculado?: string | null
+          estado?: Database["public"]["Enums"]["equipo_estado"]
+          fecha_ingreso?: string
+          gb?: number | null
+          id?: string
+          imei?: string
+          lote?: string | null
+          modelo?: string
+          notas?: string | null
+          proveedor?: string | null
+          serie?: string | null
+          ubicacion_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipos_ubicacion_id_fkey"
+            columns: ["ubicacion_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipos_historial: {
+        Row: {
+          equipo_id: string
+          evento: string
+          fecha: string
+          id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          equipo_id: string
+          evento: string
+          fecha?: string
+          id?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          equipo_id?: string
+          evento?: string
+          fecha?: string
+          id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipos_historial_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_historial_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_historial_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_historial_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garantias: {
+        Row: {
+          cliente_nombre: string
+          cliente_telefono: string | null
+          diferencia: number
+          equipo_id: string | null
+          estado: string
+          falla: string
+          fecha: string
+          fecha_cierre: string | null
+          id: string
+          imei: string
+          imei_entregado: string | null
+          notas: string | null
+          recibio_id: string | null
+          resolucion: string | null
+          tienda_id: string
+        }
+        Insert: {
+          cliente_nombre: string
+          cliente_telefono?: string | null
+          diferencia?: number
+          equipo_id?: string | null
+          estado?: string
+          falla: string
+          fecha?: string
+          fecha_cierre?: string | null
+          id?: string
+          imei: string
+          imei_entregado?: string | null
+          notas?: string | null
+          recibio_id?: string | null
+          resolucion?: string | null
+          tienda_id: string
+        }
+        Update: {
+          cliente_nombre?: string
+          cliente_telefono?: string | null
+          diferencia?: number
+          equipo_id?: string | null
+          estado?: string
+          falla?: string
+          fecha?: string
+          fecha_cierre?: string | null
+          id?: string
+          imei?: string
+          imei_entregado?: string | null
+          notas?: string | null
+          recibio_id?: string | null
+          resolucion?: string | null
+          tienda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garantias_recibio_id_fkey"
+            columns: ["recibio_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garantias_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gastos: {
+        Row: {
+          categoria: string
+          descripcion: string | null
+          fecha: string
+          id: string
+          monto: number
+          tienda_id: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          categoria: string
+          descripcion?: string | null
+          fecha: string
+          id?: string
+          monto: number
+          tienda_id?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          categoria?: string
+          descripcion?: string | null
+          fecha?: string
+          id?: string
+          monto?: number
+          tienda_id?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gastos_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gastos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metas: {
+        Row: {
+          equipos_objetivo: number
+          ganancia_objetivo: number
+          id: string
+          periodo: string
+          tienda_id: string
+        }
+        Insert: {
+          equipos_objetivo?: number
+          ganancia_objetivo?: number
+          id?: string
+          periodo: string
+          tienda_id: string
+        }
+        Update: {
+          equipos_objetivo?: number
+          ganancia_objetivo?: number
+          id?: string
+          periodo?: string
+          tienda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimientos: {
+        Row: {
+          desde_id: string | null
+          equipo_id: string
+          fecha: string
+          hacia_id: string | null
+          id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          desde_id?: string | null
+          equipo_id: string
+          fecha?: string
+          hacia_id?: string | null
+          id?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          desde_id?: string | null
+          equipo_id?: string
+          fecha?: string
+          hacia_id?: string | null
+          id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimientos_desde_id_fkey"
+            columns: ["desde_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_hacia_id_fkey"
+            columns: ["hacia_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagos: {
+        Row: {
+          fecha: string
+          id: string
+          metodo: Database["public"]["Enums"]["metodo_pago"]
+          monto: number
+          nombre_pagador: string | null
+          reserva_id: string | null
+          venta_id: string | null
+        }
+        Insert: {
+          fecha?: string
+          id?: string
+          metodo: Database["public"]["Enums"]["metodo_pago"]
+          monto?: number
+          nombre_pagador?: string | null
+          reserva_id?: string | null
+          venta_id?: string | null
+        }
+        Update: {
+          fecha?: string
+          id?: string
+          metodo?: Database["public"]["Enums"]["metodo_pago"]
+          monto?: number
+          nombre_pagador?: string | null
+          reserva_id?: string | null
+          venta_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_ventas_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      precios: {
+        Row: {
+          gb: number
+          id: string
+          modelo: string
+          precio: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          gb: number
+          id?: string
+          modelo: string
+          precio: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          gb?: number
+          id?: string
+          modelo?: string
+          precio?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precios_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reserva_items: {
+        Row: {
+          accesorio_id: string | null
+          costo_snapshot: number
+          equipo_id: string | null
+          id: string
+          precio: number
+          reserva_id: string
+        }
+        Insert: {
+          accesorio_id?: string | null
+          costo_snapshot?: number
+          equipo_id?: string | null
+          id?: string
+          precio?: number
+          reserva_id: string
+        }
+        Update: {
+          accesorio_id?: string | null
+          costo_snapshot?: number
+          equipo_id?: string | null
+          id?: string
+          precio?: number
+          reserva_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reserva_items_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "accesorios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reserva_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reserva_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reserva_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reserva_items_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reservas: {
+        Row: {
+          abono: number
+          cliente_id: string | null
+          destino_abono: string | null
+          estado: string
+          fecha: string
+          id: string
+          saldo: number
+          tienda_id: string
+          total: number
+          vendedor_id: string | null
+        }
+        Insert: {
+          abono?: number
+          cliente_id?: string | null
+          destino_abono?: string | null
+          estado?: string
+          fecha?: string
+          id?: string
+          saldo?: number
+          tienda_id: string
+          total?: number
+          vendedor_id?: string | null
+        }
+        Update: {
+          abono?: number
+          cliente_id?: string | null
+          destino_abono?: string | null
+          estado?: string
+          fecha?: string
+          id?: string
+          saldo?: number
+          tienda_id?: string
+          total?: number
+          vendedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservas_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      servicios_equipo: {
+        Row: {
+          asignado_at: string | null
+          costo: number
+          created_at: string
+          equipo_id: string
+          estado: string
+          id: string
+          listo_at: string | null
+          tecnico_id: string | null
+          tipo: Database["public"]["Enums"]["tipo_servicio"]
+        }
+        Insert: {
+          asignado_at?: string | null
+          costo?: number
+          created_at?: string
+          equipo_id: string
+          estado?: string
+          id?: string
+          listo_at?: string | null
+          tecnico_id?: string | null
+          tipo: Database["public"]["Enums"]["tipo_servicio"]
+        }
+        Update: {
+          asignado_at?: string | null
+          costo?: number
+          created_at?: string
+          equipo_id?: string
+          estado?: string
+          id?: string
+          listo_at?: string | null
+          tecnico_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_servicio"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tareas: {
+        Row: {
+          asignado_id: string | null
+          created_by: string | null
+          descripcion: string | null
+          fecha: string
+          hecha: boolean
+          id: string
+          tipo: string | null
+          titulo: string
+          urgencia: string
+        }
+        Insert: {
+          asignado_id?: string | null
+          created_by?: string | null
+          descripcion?: string | null
+          fecha?: string
+          hecha?: boolean
+          id?: string
+          tipo?: string | null
+          titulo: string
+          urgencia?: string
+        }
+        Update: {
+          asignado_id?: string | null
+          created_by?: string | null
+          descripcion?: string | null
+          fecha?: string
+          hecha?: boolean
+          id?: string
+          tipo?: string | null
+          titulo?: string
+          urgencia?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tareas_asignado_id_fkey"
+            columns: ["asignado_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tareas_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tecnicos: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      tiendas: {
+        Row: {
+          color_acento: string
+          created_at: string
+          es_bodega: boolean
+          id: string
+          nombre: string
+          slug: string
+        }
+        Insert: {
+          color_acento: string
+          created_at?: string
+          es_bodega?: boolean
+          id?: string
+          nombre: string
+          slug: string
+        }
+        Update: {
+          color_acento?: string
+          created_at?: string
+          es_bodega?: boolean
+          id?: string
+          nombre?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      usuarios: {
+        Row: {
+          activo: boolean
+          auth_user_id: string | null
+          bloqueado_hasta: string | null
+          created_at: string
+          debe_cambiar_pin: boolean
+          email_interno: string
+          id: string
+          intentos_fallidos: number
+          nombre: string
+          pin_hash: string
+          rol: Database["public"]["Enums"]["app_rol"]
+          tienda_id: string | null
+          usuario: string
+        }
+        Insert: {
+          activo?: boolean
+          auth_user_id?: string | null
+          bloqueado_hasta?: string | null
+          created_at?: string
+          debe_cambiar_pin?: boolean
+          email_interno: string
+          id?: string
+          intentos_fallidos?: number
+          nombre: string
+          pin_hash: string
+          rol: Database["public"]["Enums"]["app_rol"]
+          tienda_id?: string | null
+          usuario: string
+        }
+        Update: {
+          activo?: boolean
+          auth_user_id?: string | null
+          bloqueado_hasta?: string | null
+          created_at?: string
+          debe_cambiar_pin?: boolean
+          email_interno?: string
+          id?: string
+          intentos_fallidos?: number
+          nombre?: string
+          pin_hash?: string
+          rol?: Database["public"]["Enums"]["app_rol"]
+          tienda_id?: string | null
+          usuario?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venta_items: {
+        Row: {
+          accesorio_id: string | null
+          costo_snapshot: number
+          equipo_id: string | null
+          id: string
+          precio: number
+          venta_id: string
+        }
+        Insert: {
+          accesorio_id?: string | null
+          costo_snapshot?: number
+          equipo_id?: string | null
+          id?: string
+          precio?: number
+          venta_id: string
+        }
+        Update: {
+          accesorio_id?: string | null
+          costo_snapshot?: number
+          equipo_id?: string | null
+          id?: string
+          precio?: number
+          venta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venta_items_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "accesorios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_ventas_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ventas: {
+        Row: {
+          anulada: boolean
+          cliente_id: string | null
+          con_boleta: boolean
+          fecha: string
+          fecha_anulacion: string | null
+          ganancia: number
+          id: string
+          recargo_boleta: number
+          reserva_id: string | null
+          revision: string | null
+          tienda_id: string
+          total: number
+          vendedor_id: string | null
+        }
+        Insert: {
+          anulada?: boolean
+          cliente_id?: string | null
+          con_boleta?: boolean
+          fecha?: string
+          fecha_anulacion?: string | null
+          ganancia?: number
+          id?: string
+          recargo_boleta?: number
+          reserva_id?: string | null
+          revision?: string | null
+          tienda_id: string
+          total?: number
+          vendedor_id?: string | null
+        }
+        Update: {
+          anulada?: boolean
+          cliente_id?: string | null
+          con_boleta?: boolean
+          fecha?: string
+          fecha_anulacion?: string | null
+          ganancia?: number
+          id?: string
+          recargo_boleta?: number
+          reserva_id?: string | null
+          revision?: string | null
+          tienda_id?: string
+          total?: number
+          vendedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      v_equipos_full: {
+        Row: {
+          bateria: number | null
+          categoria: Database["public"]["Enums"]["categoria_equipo"] | null
+          color: string | null
+          costo: number | null
+          email_vinculado: string | null
+          estado: Database["public"]["Enums"]["equipo_estado"] | null
+          fecha_ingreso: string | null
+          gb: number | null
+          id: string | null
+          imei: string | null
+          lote: string | null
+          modelo: string | null
+          notas: string | null
+          proveedor: string | null
+          serie: string | null
+          tienda: string | null
+          ubicacion_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipos_ubicacion_id_fkey"
+            columns: ["ubicacion_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_stock: {
+        Row: {
+          bateria: number | null
+          categoria: Database["public"]["Enums"]["categoria_equipo"] | null
+          color: string | null
+          estado: Database["public"]["Enums"]["equipo_estado"] | null
+          fecha_ingreso: string | null
+          gb: number | null
+          id: string | null
+          imei: string | null
+          modelo: string | null
+          tienda: string | null
+          ubicacion_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipos_ubicacion_id_fkey"
+            columns: ["ubicacion_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_ventas_full: {
+        Row: {
+          anulada: boolean | null
+          cliente_id: string | null
+          con_boleta: boolean | null
+          fecha: string | null
+          fecha_anulacion: string | null
+          ganancia: number | null
+          id: string | null
+          recargo_boleta: number | null
+          reserva_id: string | null
+          revision: string | null
+          tienda_id: string | null
+          total: number | null
+          vendedor_id: string | null
+        }
+        Insert: {
+          anulada?: boolean | null
+          cliente_id?: string | null
+          con_boleta?: boolean | null
+          fecha?: string | null
+          fecha_anulacion?: string | null
+          ganancia?: number | null
+          id?: string | null
+          recargo_boleta?: number | null
+          reserva_id?: string | null
+          revision?: string | null
+          tienda_id?: string | null
+          total?: number | null
+          vendedor_id?: string | null
+        }
+        Update: {
+          anulada?: boolean | null
+          cliente_id?: string | null
+          con_boleta?: boolean | null
+          fecha?: string | null
+          fecha_anulacion?: string | null
+          ganancia?: number | null
+          id?: string | null
+          recargo_boleta?: number | null
+          reserva_id?: string | null
+          revision?: string | null
+          tienda_id?: string | null
+          total?: number | null
+          vendedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      cambiar_pin: { Args: { _pin_nuevo: string }; Returns: undefined }
+      fn_sin_sensibles: { Args: { _fila: Json }; Returns: Json }
+      login_lookup: {
+        Args: { _pin: string; _usuario: string }
+        Returns: {
+          debe_cambiar_pin: boolean
+          email_interno: string
+        }[]
+      }
+      mi_rol: { Args: never; Returns: Database["public"]["Enums"]["app_rol"] }
+      mi_tienda: { Args: never; Returns: string }
+      mi_usuario_id: { Args: never; Returns: string }
+      puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
+      ve_costos: { Args: { _tienda?: string }; Returns: boolean }
+      ve_ganancias: { Args: { _tienda?: string }; Returns: boolean }
+      ve_todas_tiendas: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_rol:
+        | "direccion"
+        | "jefe_tienda"
+        | "administracion"
+        | "operaciones"
+        | "vendedor"
+      categoria_accesorio:
+        | "cargador"
+        | "carcasa"
+        | "mica"
+        | "audifonos"
+        | "otro"
+      categoria_equipo: "sellado" | "openbox" | "seminuevo" | "reacondicionado"
+      equipo_estado:
+        | "POR_REVISAR"
+        | "EN_TECNICO"
+        | "DISPONIBLE"
+        | "RESERVADO"
+        | "VENDIDO"
+        | "ENTREGADO"
+        | "GARANTIA"
+      metodo_pago: "efectivo" | "transferencia" | "credito" | "partePago"
+      tipo_servicio:
+        | "bateria"
+        | "pantalla"
+        | "chasis"
+        | "camara"
+        | "parlante"
+        | "faceid"
+        | "puerto_carga"
+        | "limpieza"
+        | "homologacion"
+        | "otro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +1479,38 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_rol: [
+        "direccion",
+        "jefe_tienda",
+        "administracion",
+        "operaciones",
+        "vendedor",
+      ],
+      categoria_accesorio: ["cargador", "carcasa", "mica", "audifonos", "otro"],
+      categoria_equipo: ["sellado", "openbox", "seminuevo", "reacondicionado"],
+      equipo_estado: [
+        "POR_REVISAR",
+        "EN_TECNICO",
+        "DISPONIBLE",
+        "RESERVADO",
+        "VENDIDO",
+        "ENTREGADO",
+        "GARANTIA",
+      ],
+      metodo_pago: ["efectivo", "transferencia", "credito", "partePago"],
+      tipo_servicio: [
+        "bateria",
+        "pantalla",
+        "chasis",
+        "camara",
+        "parlante",
+        "faceid",
+        "puerto_carga",
+        "limpieza",
+        "homologacion",
+        "otro",
+      ],
+    },
   },
 } as const
