@@ -10,33 +10,245 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccesoriosRouteImport } from './routes/accesorios'
+import { Route as AuditoriaRouteImport } from './routes/auditoria'
+import { Route as CajaRouteImport } from './routes/caja'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as GarantiasRouteImport } from './routes/garantias'
+import { Route as GastosRouteImport } from './routes/gastos'
+import { Route as InventarioRouteImport } from './routes/inventario'
+import { Route as MetasRouteImport } from './routes/metas'
+import { Route as MovimientosRouteImport } from './routes/movimientos'
+import { Route as PreciosRouteImport } from './routes/precios'
+import { Route as ReportesRouteImport } from './routes/reportes'
+import { Route as ReservasRouteImport } from './routes/reservas'
+import { Route as StockRouteImport } from './routes/stock'
+import { Route as TareasRouteImport } from './routes/tareas'
+import { Route as TecnicoRouteImport } from './routes/tecnico'
+import { Route as VenderRouteImport } from './routes/vender'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccesoriosRoute = AccesoriosRouteImport.update({
+  id: '/accesorios',
+  path: '/accesorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditoriaRoute = AuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CajaRoute = CajaRouteImport.update({
+  id: '/caja',
+  path: '/caja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GarantiasRoute = GarantiasRouteImport.update({
+  id: '/garantias',
+  path: '/garantias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GastosRoute = GastosRouteImport.update({
+  id: '/gastos',
+  path: '/gastos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventarioRoute = InventarioRouteImport.update({
+  id: '/inventario',
+  path: '/inventario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetasRoute = MetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MovimientosRoute = MovimientosRouteImport.update({
+  id: '/movimientos',
+  path: '/movimientos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreciosRoute = PreciosRouteImport.update({
+  id: '/precios',
+  path: '/precios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportesRoute = ReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReservasRoute = ReservasRouteImport.update({
+  id: '/reservas',
+  path: '/reservas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockRoute = StockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TareasRoute = TareasRouteImport.update({
+  id: '/tareas',
+  path: '/tareas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TecnicoRoute = TecnicoRouteImport.update({
+  id: '/tecnico',
+  path: '/tecnico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VenderRoute = VenderRouteImport.update({
+  id: '/vender',
+  path: '/vender',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accesorios': typeof AccesoriosRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/caja': typeof CajaRoute
+  '/clientes': typeof ClientesRoute
+  '/garantias': typeof GarantiasRoute
+  '/gastos': typeof GastosRoute
+  '/inventario': typeof InventarioRoute
+  '/metas': typeof MetasRoute
+  '/movimientos': typeof MovimientosRoute
+  '/precios': typeof PreciosRoute
+  '/reportes': typeof ReportesRoute
+  '/reservas': typeof ReservasRoute
+  '/stock': typeof StockRoute
+  '/tareas': typeof TareasRoute
+  '/tecnico': typeof TecnicoRoute
+  '/vender': typeof VenderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accesorios': typeof AccesoriosRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/caja': typeof CajaRoute
+  '/clientes': typeof ClientesRoute
+  '/garantias': typeof GarantiasRoute
+  '/gastos': typeof GastosRoute
+  '/inventario': typeof InventarioRoute
+  '/metas': typeof MetasRoute
+  '/movimientos': typeof MovimientosRoute
+  '/precios': typeof PreciosRoute
+  '/reportes': typeof ReportesRoute
+  '/reservas': typeof ReservasRoute
+  '/stock': typeof StockRoute
+  '/tareas': typeof TareasRoute
+  '/tecnico': typeof TecnicoRoute
+  '/vender': typeof VenderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accesorios': typeof AccesoriosRoute
+  '/auditoria': typeof AuditoriaRoute
+  '/caja': typeof CajaRoute
+  '/clientes': typeof ClientesRoute
+  '/garantias': typeof GarantiasRoute
+  '/gastos': typeof GastosRoute
+  '/inventario': typeof InventarioRoute
+  '/metas': typeof MetasRoute
+  '/movimientos': typeof MovimientosRoute
+  '/precios': typeof PreciosRoute
+  '/reportes': typeof ReportesRoute
+  '/reservas': typeof ReservasRoute
+  '/stock': typeof StockRoute
+  '/tareas': typeof TareasRoute
+  '/tecnico': typeof TecnicoRoute
+  '/vender': typeof VenderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/accesorios'
+    | '/auditoria'
+    | '/caja'
+    | '/clientes'
+    | '/garantias'
+    | '/gastos'
+    | '/inventario'
+    | '/metas'
+    | '/movimientos'
+    | '/precios'
+    | '/reportes'
+    | '/reservas'
+    | '/stock'
+    | '/tareas'
+    | '/tecnico'
+    | '/vender'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/accesorios'
+    | '/auditoria'
+    | '/caja'
+    | '/clientes'
+    | '/garantias'
+    | '/gastos'
+    | '/inventario'
+    | '/metas'
+    | '/movimientos'
+    | '/precios'
+    | '/reportes'
+    | '/reservas'
+    | '/stock'
+    | '/tareas'
+    | '/tecnico'
+    | '/vender'
+  id:
+    | '__root__'
+    | '/'
+    | '/accesorios'
+    | '/auditoria'
+    | '/caja'
+    | '/clientes'
+    | '/garantias'
+    | '/gastos'
+    | '/inventario'
+    | '/metas'
+    | '/movimientos'
+    | '/precios'
+    | '/reportes'
+    | '/reservas'
+    | '/stock'
+    | '/tareas'
+    | '/tecnico'
+    | '/vender'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccesoriosRoute: typeof AccesoriosRoute
+  AuditoriaRoute: typeof AuditoriaRoute
+  CajaRoute: typeof CajaRoute
+  ClientesRoute: typeof ClientesRoute
+  GarantiasRoute: typeof GarantiasRoute
+  GastosRoute: typeof GastosRoute
+  InventarioRoute: typeof InventarioRoute
+  MetasRoute: typeof MetasRoute
+  MovimientosRoute: typeof MovimientosRoute
+  PreciosRoute: typeof PreciosRoute
+  ReportesRoute: typeof ReportesRoute
+  ReservasRoute: typeof ReservasRoute
+  StockRoute: typeof StockRoute
+  TareasRoute: typeof TareasRoute
+  TecnicoRoute: typeof TecnicoRoute
+  VenderRoute: typeof VenderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +260,139 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/accesorios': {
+      id: '/accesorios'
+      path: '/accesorios'
+      fullPath: '/accesorios'
+      preLoaderRoute: typeof AccesoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auditoria': {
+      id: '/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuditoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/caja': {
+      id: '/caja'
+      path: '/caja'
+      fullPath: '/caja'
+      preLoaderRoute: typeof CajaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/garantias': {
+      id: '/garantias'
+      path: '/garantias'
+      fullPath: '/garantias'
+      preLoaderRoute: typeof GarantiasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gastos': {
+      id: '/gastos'
+      path: '/gastos'
+      fullPath: '/gastos'
+      preLoaderRoute: typeof GastosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventario': {
+      id: '/inventario'
+      path: '/inventario'
+      fullPath: '/inventario'
+      preLoaderRoute: typeof InventarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/metas': {
+      id: '/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof MetasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/movimientos': {
+      id: '/movimientos'
+      path: '/movimientos'
+      fullPath: '/movimientos'
+      preLoaderRoute: typeof MovimientosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precios': {
+      id: '/precios'
+      path: '/precios'
+      fullPath: '/precios'
+      preLoaderRoute: typeof PreciosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reportes': {
+      id: '/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof ReportesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reservas': {
+      id: '/reservas'
+      path: '/reservas'
+      fullPath: '/reservas'
+      preLoaderRoute: typeof ReservasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock': {
+      id: '/stock'
+      path: '/stock'
+      fullPath: '/stock'
+      preLoaderRoute: typeof StockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tareas': {
+      id: '/tareas'
+      path: '/tareas'
+      fullPath: '/tareas'
+      preLoaderRoute: typeof TareasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tecnico': {
+      id: '/tecnico'
+      path: '/tecnico'
+      fullPath: '/tecnico'
+      preLoaderRoute: typeof TecnicoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vender': {
+      id: '/vender'
+      path: '/vender'
+      fullPath: '/vender'
+      preLoaderRoute: typeof VenderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccesoriosRoute: AccesoriosRoute,
+  AuditoriaRoute: AuditoriaRoute,
+  CajaRoute: CajaRoute,
+  ClientesRoute: ClientesRoute,
+  GarantiasRoute: GarantiasRoute,
+  GastosRoute: GastosRoute,
+  InventarioRoute: InventarioRoute,
+  MetasRoute: MetasRoute,
+  MovimientosRoute: MovimientosRoute,
+  PreciosRoute: PreciosRoute,
+  ReportesRoute: ReportesRoute,
+  ReservasRoute: ReservasRoute,
+  StockRoute: StockRoute,
+  TareasRoute: TareasRoute,
+  TecnicoRoute: TecnicoRoute,
+  VenderRoute: VenderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
