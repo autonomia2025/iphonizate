@@ -1,10 +1,19 @@
 import { useState, type ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronsUpDown, Check } from "lucide-react";
+import { Link, useRouterState, useRouter } from "@tanstack/react-router";
+import { ChevronsUpDown, Check, LogOut } from "lucide-react";
 import { useStore } from "@/components/StoreContext";
-import { NAV, tituloDeRuta } from "@/lib/nav";
+import { useAuth } from "@/components/AuthContext";
+import { navParaRol, ROL_ETIQUETA, tituloDeRuta } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const iniciales = (nombre: string) =>
+  nombre
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("");
 
 const FECHA = new Intl.DateTimeFormat("es-CL", {
   weekday: "long",
