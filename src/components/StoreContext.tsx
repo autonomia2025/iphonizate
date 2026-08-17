@@ -12,6 +12,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <StoreCtx.Provider value={{ store, setStoreId, stores: STORES }}>
       <div
+        className="contents"
         style={
           {
             "--accent-store": store.accent,
