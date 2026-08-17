@@ -73,10 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const cambiarPin = async (pinNuevo: string) => {
     if (!/^\d{6}$/.test(pinNuevo)) throw new Error("El PIN debe tener 6 dígitos");
+    const { error: errAuth } = await supabase.auth.updateUser({ password: pinNuevo });
+    if (errAuth && !/different from the old password/i.test(errAuth.message)) {
+      throw new Error(
+        /weak|password/i.test(errAuth.message)
+          ? "Ese PIN no es válido, prueba otra combinación"
+          : errAuth.message,
+      );
+    }
     const { error } = await supabase.rpc("cambiar_pin", { _pin_nuevo: pinNuevo });
     if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
-    const { error: errAuth } = await supabase.auth.updateUser({ password: pinNuevo });
-    if (errAuth) throw new Error(errAuth.message);
     await refrescar();
   };
 
