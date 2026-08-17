@@ -109,8 +109,15 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { store } = useStore();
+  const { usuario, salir } = useAuth();
+  const router = useRouter();
   const [navAbierto, setNavAbierto] = useState(false);
   const titulo = tituloDeRuta(pathname);
+
+  const cerrarSesion = async () => {
+    await salir();
+    await router.navigate({ to: "/auth", replace: true });
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
