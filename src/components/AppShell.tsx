@@ -143,12 +143,21 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SelectorTienda />
           <div className="glass flex items-center gap-3 p-2.5">
             <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 font-display text-[11px]">
-              CM
+              {iniciales(usuario?.nombre ?? "")}
             </span>
-            <span className="min-w-0">
-              <span className="block truncate text-[13px]">Camila Muñoz</span>
-              <span className="block text-[11px] text-muted-foreground">Administradora</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px]">{usuario?.nombre}</span>
+              <span className="block text-[11px] text-muted-foreground">
+                {usuario ? ROL_ETIQUETA[usuario.rol] : ""}
+              </span>
             </span>
+            <button
+              onClick={() => void cerrarSesion()}
+              aria-label="Cerrar sesión"
+              className="rounded-lg p-1.5 text-muted-foreground transition-colors duration-200 hover:bg-white/[0.07] hover:text-foreground"
+            >
+              <LogOut className="size-4" />
+            </button>
           </div>
         </div>
       </aside>
