@@ -73,10 +73,11 @@ function SelectorTienda() {
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { store } = useStore();
+  const { usuario } = useAuth();
 
   return (
     <>
-      {NAV.map((item) => {
+      {navParaRol(usuario?.rol).map((item) => {
         const on = pathname === item.to;
         return (
           <Link
