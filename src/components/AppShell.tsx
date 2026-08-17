@@ -182,7 +182,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         )}
         <div className="grid grid-cols-5 items-center gap-1 px-2 py-2">
-          {NAV.slice(0, 4).map((item) => {
+          {navParaRol(usuario?.rol)
+            .slice(0, 4)
+            .map((item) => {
             const on = pathname === item.to;
             return (
               <Link
