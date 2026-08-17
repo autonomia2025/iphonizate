@@ -119,17 +119,45 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function Guardia({ children }: { children: ReactNode }) {
+  const { usuario, cargando } = useAuth();
+  const router = useRouter();
+  const pathname = router.state.location.pathname;
+  const enIngreso = pathname === "/auth";
+
+  useEffect(() => {
+    if (cargando || enIngreso) return;
+    if (!usuario || usuario.debe_cambiar_pin) {
+      void router.navigate({ to: "/auth", replace: true });
+    }
+  }, [cargando, enIngreso, usuario, router]);
+
+  if (enIngreso) return <>{children}</>;
+
+  if (cargando || !usuario || usuario.debe_cambiar_pin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="glass px-6 py-4 text-sm text-muted-foreground">Cargando…</div>
+      </div>
+    );
+  }
+
+  return <AppShell>{children}</AppShell>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <StoreProvider>
-        <AppShell>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </AppShell>
-      </StoreProvider>
+      <AuthProvider>
+        <StoreProvider>
+          <Guardia>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </Guardia>
+        </StoreProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
