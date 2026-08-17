@@ -1,33 +1,19 @@
 import { useState, type ReactNode } from "react";
-import {
-  LayoutDashboard,
-  Receipt,
-  Package,
-  Users,
-  Wrench,
-  BarChart3,
-  Search,
-  Bell,
-  ChevronDown,
-} from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { ChevronsUpDown, Check } from "lucide-react";
 import { useStore } from "@/components/StoreContext";
+import { NAV, tituloDeRuta } from "@/lib/nav";
 import { cn } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const NAV = [
-  { id: "resumen", label: "Resumen", icon: LayoutDashboard },
-  { id: "ventas", label: "Ventas", icon: Receipt },
-  { id: "inventario", label: "Inventario", icon: Package },
-  { id: "servicios", label: "Servicio técnico", icon: Wrench },
-  { id: "clientes", label: "Clientes", icon: Users },
-  { id: "reportes", label: "Reportes", icon: BarChart3 },
-];
+const FECHA = new Intl.DateTimeFormat("es-CL", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
-function StoreSwitcher() {
+function SelectorTienda() {
   const { store, stores, setStoreId } = useStore();
   const [open, setOpen] = useState(false);
 
@@ -37,18 +23,21 @@ function StoreSwitcher() {
         <button className="glass flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-white/[0.08]">
           <span
             className="size-2.5 shrink-0 rounded-full"
-            style={{ background: store.accent, boxShadow: `0 0 12px ${store.hex}` }}
+            style={{ background: store.accent, boxShadow: `0 0 10px ${store.hex}` }}
           />
           <span className="min-w-0 flex-1">
+            <span className="block text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              Tienda activa
+            </span>
             <span className="block truncate font-display text-sm font-medium">{store.nombre}</span>
-            <span className="block text-[11px] text-muted-foreground">Tienda activa</span>
           </span>
-          <ChevronDown className="size-4 text-muted-foreground" />
+          <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="glass w-[15rem] border-0 bg-transparent p-1.5 text-foreground"
+        side="top"
+        className="glass w-[14.5rem] border-0 bg-transparent p-1.5 text-foreground"
       >
         {stores.map((s) => (
           <button
@@ -63,7 +52,8 @@ function StoreSwitcher() {
             )}
           >
             <span className="size-2.5 rounded-full" style={{ background: s.accent }} />
-            <span className="truncate">{s.nombre}</span>
+            <span className="min-w-0 flex-1 truncate text-left">{s.nombre}</span>
+            {s.id === store.id && <Check className="size-3.5" style={{ color: s.accent }} />}
           </button>
         ))}
       </PopoverContent>
@@ -71,110 +61,140 @@ function StoreSwitcher() {
   );
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
-  const [activo, setActivo] = useState("resumen");
+function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { store } = useStore();
 
   return (
-    <div className="min-h-screen">
-      {/* Sidebar escritorio */}
-      <aside className="glass fixed left-0 top-0 z-30 hidden h-screen w-[16.5rem] flex-col gap-6 rounded-none border-y-0 border-l-0 p-4 min-[900px]:flex">
-        <div className="flex items-center gap-2.5 px-1 pt-1">
-          <span
-            className="grid size-8 place-items-center rounded-xl font-display text-sm font-semibold text-background"
-            style={{ background: store.accent }}
+    <>
+      {NAV.map((item) => {
+        const on = pathname === item.to;
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            onClick={onNavigate}
+            className={cn(
+              "relative flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] transition-colors",
+              on
+                ? "bg-white/[0.07] text-foreground accent-glow"
+                : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
+            )}
           >
-            N
+            {on && (
+              <span
+                className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full"
+                style={{ background: store.accent }}
+              />
+            )}
+            <item.icon className="size-4 shrink-0" style={on ? { color: store.accent } : undefined} />
+            {item.label}
+          </Link>
+        );
+      })}
+    </>
+  );
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { store } = useStore();
+  const [navAbierto, setNavAbierto] = useState(false);
+  const titulo = tituloDeRuta(pathname);
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar fijo de vidrio */}
+      <aside className="glass hidden h-screen w-[15.5rem] shrink-0 flex-col rounded-none border-y-0 border-l-0 p-3.5 min-[900px]:flex">
+        <div className="flex items-center gap-2.5 px-1 py-2">
+          <span
+            className="grid size-8 shrink-0 place-items-center rounded-xl font-display text-sm font-bold text-background"
+            style={{ background: store.accent, boxShadow: `0 0 22px -6px ${store.hex}` }}
+          >
+            r
           </span>
-          <span className="font-display text-base font-semibold tracking-tight">Nexus Retail</span>
+          <span className="font-display text-[15px] font-semibold leading-tight tracking-tight">
+            riff store <span style={{ color: store.accent }}>OS</span>
+          </span>
         </div>
 
-        <StoreSwitcher />
-
-        <nav className="flex flex-1 flex-col gap-1">
-          {NAV.map((item) => {
-            const on = item.id === activo;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActivo(item.id)}
-                className={cn(
-                  "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
-                  on
-                    ? "bg-white/[0.07] text-foreground accent-glow"
-                    : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
-                )}
-              >
-                {on && (
-                  <span
-                    className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full"
-                    style={{ background: store.accent }}
-                  />
-                )}
-                <item.icon
-                  className="size-4"
-                  style={on ? { color: store.accent } : undefined}
-                />
-                {item.label}
-              </button>
-            );
-          })}
+        <nav className="mt-3 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pr-1">
+          <NavItems />
         </nav>
 
-        <div className="glass flex items-center gap-3 p-3">
-          <span className="grid size-8 place-items-center rounded-full bg-white/10 font-display text-xs">
-            CM
-          </span>
-          <span className="min-w-0">
-            <span className="block truncate text-sm">Camila Muñoz</span>
-            <span className="block text-[11px] text-muted-foreground">Administradora</span>
-          </span>
+        <div className="mt-3 space-y-2">
+          <SelectorTienda />
+          <div className="glass flex items-center gap-3 p-2.5">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 font-display text-[11px]">
+              CM
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-[13px]">Camila Muñoz</span>
+              <span className="block text-[11px] text-muted-foreground">Administradora</span>
+            </span>
+          </div>
         </div>
       </aside>
 
-      <div className="min-[900px]:pl-[16.5rem]">
-        {/* Barra superior */}
-        <header className="glass sticky top-0 z-20 flex items-center gap-3 rounded-none border-x-0 border-t-0 px-4 py-3 min-[900px]:px-7">
-          <div className="relative hidden flex-1 max-w-md sm:block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              placeholder="Buscar boleta, cliente o IMEI…"
-              className="h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-[var(--accent-store)] focus:ring-2 focus:ring-[var(--accent-store-soft)]"
-            />
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Barra superior de vidrio */}
+        <header className="glass z-20 flex shrink-0 items-center gap-3 rounded-none border-x-0 border-t-0 px-4 py-3 min-[900px]:px-7">
+          <div className="min-w-0">
+            <h2 className="truncate font-display text-[15px] font-semibold leading-tight">
+              {titulo}
+            </h2>
+            <p className="text-[11px] capitalize text-muted-foreground">{FECHA.format(new Date())}</p>
           </div>
-          <span className="flex-1 font-display text-sm font-medium sm:hidden">Resumen</span>
-          <div className="ml-auto flex items-center gap-2">
-            <span
-              className="hidden rounded-full border border-white/[0.08] px-3 py-1.5 text-xs sm:block"
-              style={{ color: store.accent }}
-            >
-              {store.nombre}
-            </span>
-            <button className="grid size-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08]">
-              <Bell className="size-4" />
-            </button>
-          </div>
+          <span
+            className="ml-auto hidden rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs sm:block"
+            style={{ color: store.accent }}
+          >
+            {store.nombre}
+          </span>
         </header>
 
-        <main className="px-4 pb-28 pt-6 min-[900px]:px-7 min-[900px]:pb-10">{children}</main>
+        {/* Área de contenido con scroll propio */}
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-6 min-[900px]:px-7 min-[900px]:pb-10">
+          {children}
+        </main>
       </div>
 
-      {/* Nav inferior móvil */}
-      <nav className="glass fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 rounded-none border-x-0 border-b-0 px-2 py-2 min-[900px]:hidden">
-        {NAV.slice(0, 5).map((item) => {
-          const on = item.id === activo;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActivo(item.id)}
-              className="flex flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] transition-colors"
-              style={on ? { color: store.accent } : undefined}
-            >
-              <item.icon className={cn("size-5", !on && "text-muted-foreground")} />
-              <span className={cn(!on && "text-muted-foreground")}>{item.label}</span>
-            </button>
-          );
-        })}
+      {/* Nav inferior en móvil */}
+      <nav className="glass fixed inset-x-0 bottom-0 z-30 rounded-none border-x-0 border-b-0 min-[900px]:hidden">
+        {navAbierto && (
+          <div className="max-h-[60vh] overflow-y-auto border-b border-white/[0.08] p-2">
+            <div className="flex flex-col gap-0.5">
+              <NavItems onNavigate={() => setNavAbierto(false)} />
+            </div>
+            <div className="mt-2">
+              <SelectorTienda />
+            </div>
+          </div>
+        )}
+        <div className="grid grid-cols-5 items-center gap-1 px-2 py-2">
+          {NAV.slice(0, 4).map((item) => {
+            const on = pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setNavAbierto(false)}
+                className="flex flex-col items-center gap-1 rounded-xl py-1 text-[10px]"
+                style={on ? { color: store.accent } : undefined}
+              >
+                <item.icon className={cn("size-5", !on && "text-muted-foreground")} />
+                <span className={cn(!on && "text-muted-foreground")}>{item.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => setNavAbierto((v) => !v)}
+            className="flex flex-col items-center gap-1 rounded-xl py-1 text-[10px] text-muted-foreground"
+          >
+            <ChevronsUpDown className="size-5" />
+            Más
+          </button>
+        </div>
       </nav>
     </div>
   );
