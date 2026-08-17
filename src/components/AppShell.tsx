@@ -143,7 +143,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <h2 className="truncate font-display text-[15px] font-semibold leading-tight">
               {titulo}
             </h2>
-            <p className="text-[11px] capitalize text-muted-foreground">{FECHA.format(new Date())}</p>
+            <p className="text-[11px] text-muted-foreground first-letter:uppercase">{FECHA.format(new Date())}</p>
           </div>
           <span
             className="ml-auto hidden rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs sm:block"
