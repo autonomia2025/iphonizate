@@ -254,9 +254,9 @@ function InventarioPage() {
             <tbody>
               {filas.map((e) => (
                 <tr
-                  key={e.id}
+                  key={`${e.id}-${destellos[e.id] ?? 0}`}
                   onClick={() => setSeleccionado(e)}
-                  className="cursor-pointer border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035]"
+                  className={`cursor-pointer border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035] ${destellos[e.id] ? "destello" : ""}`}
                 >
                   <td className="num px-4 py-2.5 tracking-[0.04em]">{e.imei}</td>
                   <td className="px-4 py-2.5">{e.modelo}</td>
