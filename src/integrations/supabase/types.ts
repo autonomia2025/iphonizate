@@ -1489,6 +1489,7 @@ export type Database = {
         }
         Returns: number
       }
+      anular_venta: { Args: { _venta: string }; Returns: undefined }
       asignar_equipos_tecnico: {
         Args: { _imeis: string[]; _tecnico: string }
         Returns: number
@@ -1507,6 +1508,16 @@ export type Database = {
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
+      registrar_venta: {
+        Args: {
+          _cliente: string
+          _con_boleta: boolean
+          _items: Json
+          _pagos: Json
+          _tienda: string
+        }
+        Returns: string
+      }
       servicio_listo: { Args: { _servicio_id: string }; Returns: string }
       trasladar_equipos: {
         Args: { _destino: string; _imeis: string[]; _origen: string }
