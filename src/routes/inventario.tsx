@@ -8,6 +8,7 @@ import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { IngresarEquipoModal } from "@/components/inventario/IngresarEquipoModal";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
+import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 import { formatCLP } from "@/lib/stores";
 import {
   CATEGORIA_ETIQUETA,
