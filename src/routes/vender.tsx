@@ -9,19 +9,16 @@ import { useAuth } from "@/components/AuthContext";
 import { useStore } from "@/components/StoreContext";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { NuevoClienteModal, type ClienteBasico } from "@/components/vender/NuevoClienteModal";
+import { PagoModal } from "@/components/vender/PagoModal";
+import { VentaExito, type VentaResumen } from "@/components/vender/VentaExito";
 import { formatCLP } from "@/lib/stores";
 import { ESTADO_ETIQUETA, puedeVerCostos, type EquipoEstado } from "@/lib/inventario";
 import {
   RECARGO_BOLETA,
   aNumero,
   claveModelo,
+  puedeAnularVentas,
   puedeVerGanancias,
   type ItemAccesorio,
   type ItemCarrito,
@@ -60,6 +57,8 @@ function VenderPage() {
   const [clienteQ, setClienteQ] = useState("");
   const [cliente, setCliente] = useState<ClienteBasico | null>(null);
   const [modalCliente, setModalCliente] = useState(false);
+  const [modalPago, setModalPago] = useState(false);
+  const [venta, setVenta] = useState<VentaResumen | null>(null);
   const buscadorRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -324,6 +323,23 @@ function VenderPage() {
 
   const todosConPrecio = itemsEquipo.every((i) => aNumero(i.precio) > 0);
   const puedeContinuar = carrito.length > 0 && todosConPrecio;
+
+  const nuevaVenta = () => {
+    setVenta(null);
+    setCarrito([]);
+    setCliente(null);
+    setClienteQ("");
+    setConBoleta(false);
+    setBusqueda("");
+    setPestana("equipos");
+    setTimeout(() => buscadorRef.current?.focus(), 50);
+  };
+
+  if (venta) {
+    return (
+      <VentaExito venta={venta} puedeAnular={puedeAnularVentas(rol)} onNuevaVenta={nuevaVenta} />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-[92rem]">
