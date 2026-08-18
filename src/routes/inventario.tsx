@@ -8,6 +8,7 @@ import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { IngresarEquipoModal } from "@/components/inventario/IngresarEquipoModal";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
+import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 import { formatCLP } from "@/lib/stores";
 import {
   CATEGORIA_ETIQUETA,
@@ -154,6 +155,11 @@ function InventarioPage() {
       });
   }, [stock.data, extras, busqueda, ubicacion, estado]);
 
+  const { enVivo, destellos } = useEquiposEnVivo(() => {
+    void stock.refetch();
+    if (conCostos) void full.refetch();
+  });
+
   const estadosPresentes = useMemo(
     () => ESTADOS.filter((s) => (stock.data ?? []).some((e) => e.estado === s)),
     [stock.data],
@@ -217,6 +223,18 @@ function InventarioPage() {
       </div>
 
       <div className="solid-panel mt-6 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/8 px-4 py-2.5">
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            Equipos de la cadena
+          </span>
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span
+              aria-hidden
+              className={`size-2 rounded-full ${enVivo ? "punto-vivo bg-emerald-400" : "bg-white/25"}`}
+            />
+            {enVivo ? "En vivo" : "Conectando…"}
+          </span>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -236,9 +254,9 @@ function InventarioPage() {
             <tbody>
               {filas.map((e) => (
                 <tr
-                  key={e.id}
+                  key={`${e.id}-${destellos[e.id] ?? 0}`}
                   onClick={() => setSeleccionado(e)}
-                  className="cursor-pointer border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035]"
+                  className={`cursor-pointer border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035] ${destellos[e.id] ? "destello" : ""}`}
                 >
                   <td className="num px-4 py-2.5 tracking-[0.04em]">{e.imei}</td>
                   <td className="px-4 py-2.5">{e.modelo}</td>

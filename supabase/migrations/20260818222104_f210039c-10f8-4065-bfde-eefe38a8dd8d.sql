@@ -1,0 +1,1 @@
+revoke execute on function public.trasladar_equipos(text[], uuid, uuid) from anon;
