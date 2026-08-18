@@ -708,21 +708,13 @@ function VenderPage() {
             )}
           </div>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="mt-5 block">
-                  <Button
-                    disabled={!puedeContinuar}
-                    className="accent-glow h-12 w-full bg-[var(--accent-store)] text-base text-white hover:bg-[var(--accent-store)]/90 disabled:opacity-40"
-                  >
-                    Continuar al pago
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Pagos en el siguiente paso</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Button
+            disabled={!puedeContinuar}
+            onClick={() => setModalPago(true)}
+            className="accent-glow mt-5 h-12 w-full bg-[var(--accent-store)] text-base text-white hover:bg-[var(--accent-store)]/90 disabled:opacity-40"
+          >
+            Continuar al pago
+          </Button>
         </div>
       </div>
 
@@ -732,6 +724,31 @@ function VenderPage() {
         onCreado={(c) => setCliente(c)}
         nombreInicial={/^[\d+\s]+$/.test(clienteQ) ? "" : clienteQ}
         telefonoInicial={/^[\d+\s]+$/.test(clienteQ) ? clienteQ : ""}
+      />
+
+      <PagoModal
+        abierto={modalPago}
+        onCerrar={() => setModalPago(false)}
+        total={total}
+        carrito={carrito}
+        tiendaId={tiendaActiva?.id ?? null}
+        clienteId={cliente?.id ?? null}
+        conBoleta={conBoleta}
+        onConfirmada={(v) => {
+          setModalPago(false);
+          setVenta({
+            id: v.id,
+            total: v.total,
+            recargo,
+            conBoleta,
+            cliente: cliente?.nombre ?? null,
+            tienda: store.nombre,
+            items: carrito,
+            pagos: v.pagos,
+          });
+          void stock.refetch();
+          void stockAcc.refetch();
+        }}
       />
     </div>
   );
