@@ -1,4 +1,5 @@
 import {
+  ClipboardCheck,
   LayoutDashboard,
   ShoppingCart,
   Boxes,
@@ -61,6 +62,12 @@ export const NAV = [
     label: "Caja",
     icon: Banknote,
     roles: ["direccion", "jefe_tienda", "administracion", "vendedor"] as AppRol[],
+  },
+  {
+    to: "/revision",
+    label: "Revisión de pagos",
+    icon: ClipboardCheck,
+    roles: ["direccion", "administracion"] as AppRol[],
   },
   {
     to: "/gastos",
