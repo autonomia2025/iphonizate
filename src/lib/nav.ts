@@ -1,4 +1,5 @@
 import {
+  ClipboardCheck,
   LayoutDashboard,
   ShoppingCart,
   Boxes,
