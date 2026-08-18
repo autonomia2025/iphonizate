@@ -155,6 +155,11 @@ function InventarioPage() {
       });
   }, [stock.data, extras, busqueda, ubicacion, estado]);
 
+  const { enVivo, destellos } = useEquiposEnVivo(() => {
+    void stock.refetch();
+    if (conCostos) void full.refetch();
+  });
+
   const estadosPresentes = useMemo(
     () => ESTADOS.filter((s) => (stock.data ?? []).some((e) => e.estado === s)),
     [stock.data],
