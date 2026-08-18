@@ -39,3 +39,28 @@ export const aNumero = (valor: string) => {
 
 export const claveModelo = (modelo?: string | null, gb?: number | null) =>
   `${(modelo ?? "").trim().toLowerCase()}:${gb ?? 0}`;
+
+export const METODOS = [
+  { valor: "efectivo", label: "Efectivo" },
+  { valor: "transferencia", label: "Transferencia" },
+  { valor: "credito", label: "Crédito" },
+  { valor: "partePago", label: "Parte de pago" },
+] as const;
+
+export type MetodoPago = (typeof METODOS)[number]["valor"];
+
+export const METODO_ETIQUETA = METODOS.reduce(
+  (acc, m) => ({ ...acc, [m.valor]: m.label }),
+  {} as Record<MetodoPago, string>,
+);
+
+export type PagoFila = {
+  key: string;
+  metodo: MetodoPago;
+  monto: string;
+  nombre: string;
+};
+
+export const ROLES_QUE_ANULAN: AppRol[] = ["direccion", "jefe_tienda", "administracion"];
+export const puedeAnularVentas = (rol?: AppRol | null) =>
+  !!rol && ROLES_QUE_ANULAN.includes(rol);
