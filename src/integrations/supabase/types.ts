@@ -1199,6 +1199,43 @@ export type Database = {
           },
         ]
       }
+      v_movimientos: {
+        Row: {
+          desde: string | null
+          desde_id: string | null
+          fecha: string | null
+          hacia: string | null
+          hacia_id: string | null
+          id: string | null
+          imei: string | null
+          modelo: string | null
+          movido_por: string | null
+          usuario_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimientos_desde_id_fkey"
+            columns: ["desde_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_hacia_id_fkey"
+            columns: ["hacia_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_stock: {
         Row: {
           bateria: number | null
@@ -1315,6 +1352,10 @@ export type Database = {
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
+      trasladar_equipos: {
+        Args: { _destino: string; _imeis: string[]; _origen: string }
+        Returns: number
+      }
       ve_costos: { Args: { _tienda?: string }; Returns: boolean }
       ve_ganancias: { Args: { _tienda?: string }; Returns: boolean }
       ve_todas_tiendas: { Args: never; Returns: boolean }
