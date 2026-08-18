@@ -118,11 +118,13 @@ function RevisionPage() {
     if (!venta) return;
     setGuardando(true);
     try {
-      const { error } = await supabase.rpc("marcar_revision_venta", {
+      const args: { _venta: string; _estado: string; _nota?: string } = {
         _venta: venta.id,
         _estado: estado,
-        _nota: nota.trim() || undefined,
-      });
+      };
+      const notaLimpia = nota.trim();
+      if (notaLimpia) args._nota = notaLimpia;
+      const { error } = await supabase.rpc("marcar_revision_venta", args);
       if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
       toast.success(estado === "revisado" ? "Venta marcada como revisada" : "Problema registrado");
       setNota("");
