@@ -182,3 +182,35 @@
     0 0 0 1px var(--glass-border),
     0 0 24px -4px var(--accent-store-soft);
 }
+
+/* Destello del acento cuando llega un cambio en vivo */
+@keyframes destello-acento {
+  0% {
+    background-color: var(--accent-store-soft);
+    box-shadow: inset 3px 0 0 0 var(--accent-store);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 3px 0 0 0 transparent;
+  }
+}
+
+@utility destello {
+  animation: destello-acento 1000ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes latido-vivo {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.7);
+  }
+}
+
+@utility punto-vivo {
+  animation: latido-vivo 1400ms ease-in-out infinite;
+}
