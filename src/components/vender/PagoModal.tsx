@@ -89,7 +89,7 @@ export function PagoModal({
       );
       const { data, error } = await supabase.rpc("registrar_venta", {
         _tienda: tiendaId,
-        _cliente: clienteId,
+        _cliente: clienteId as unknown as string,
         _con_boleta: conBoleta,
         _items: items,
         _pagos: pagos.map((p) => ({
