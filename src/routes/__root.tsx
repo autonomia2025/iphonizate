@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { StoreProvider } from "@/components/StoreContext";
 import { AppShell } from "@/components/AppShell";
 import { AuthProvider, useAuth } from "@/components/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -156,6 +157,7 @@ function RootComponent() {
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </Guardia>
+          <Toaster />
         </StoreProvider>
       </AuthProvider>
     </QueryClientProvider>
