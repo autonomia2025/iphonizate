@@ -41,6 +41,3 @@ export function useEquiposEnVivo(onCambio: () => void) {
   return { enVivo, destellos };
 }
 
-export function IndicadorEnVivoClases(enVivo: boolean) {
-  return enVivo ? "bg-emerald-400 punto-vivo" : "bg-white/25";
-}
