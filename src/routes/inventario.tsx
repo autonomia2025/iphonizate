@@ -111,7 +111,7 @@ function InventarioPage() {
   });
 
   const extras = useMemo(() => {
-    const mapa = new Map<string, (typeof full.data)[number]>();
+    const mapa = new Map<string, NonNullable<typeof full.data>[number]>();
     (full.data ?? []).forEach((f) => f.id && mapa.set(f.id, f));
     return mapa;
   }, [full.data]);
