@@ -64,6 +64,12 @@ export const NAV = [
     roles: ["direccion", "jefe_tienda", "administracion", "vendedor"] as AppRol[],
   },
   {
+    to: "/revision",
+    label: "Revisión de pagos",
+    icon: ClipboardCheck,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
+  {
     to: "/gastos",
     label: "Gastos",
     icon: ReceiptText,
