@@ -121,7 +121,7 @@ function RevisionPage() {
       const { error } = await supabase.rpc("marcar_revision_venta", {
         _venta: venta.id,
         _estado: estado,
-        _nota: nota.trim() || null,
+        _nota: nota.trim() || undefined,
       });
       if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
       toast.success(estado === "revisado" ? "Venta marcada como revisada" : "Problema registrado");

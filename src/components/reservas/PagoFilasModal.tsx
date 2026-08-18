@@ -27,7 +27,7 @@ export function PagoFilasModal({
   etiquetaMonto: string;
   total: number;
   textoBoton: string;
-  nota?: string;
+  nota?: string | undefined;
   onConfirmar: (pagos: PagoPlano[]) => Promise<void>;
 }) {
   const [pagos, setPagos] = useState<PagoFila[]>([]);
