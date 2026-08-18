@@ -223,6 +223,18 @@ function InventarioPage() {
       </div>
 
       <div className="solid-panel mt-6 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/8 px-4 py-2.5">
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            Equipos de la cadena
+          </span>
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span
+              aria-hidden
+              className={`size-2 rounded-full ${enVivo ? "punto-vivo bg-emerald-400" : "bg-white/25"}`}
+            />
+            {enVivo ? "En vivo" : "Conectando…"}
+          </span>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
