@@ -302,7 +302,7 @@ function VenderPage() {
   const quitar = (item: ItemCarrito) =>
     setCarrito((c) => c.filter((i) => !(i.tipo === item.tipo && i.id === item.id)));
 
-  const actualizar = (item: ItemCarrito, cambios: Partial<ItemEquipo & ItemAccesorio>) =>
+  const actualizar = (item: ItemCarrito, cambios: Record<string, unknown>) =>
     setCarrito((c) =>
       c.map((i) =>
         i.tipo === item.tipo && i.id === item.id ? ({ ...i, ...cambios } as ItemCarrito) : i,
