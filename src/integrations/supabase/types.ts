@@ -1495,6 +1495,24 @@ export type Database = {
         Returns: number
       }
       cambiar_pin: { Args: { _pin_nuevo: string }; Returns: undefined }
+      cancelar_reserva: {
+        Args: { _destino_abono: string; _reserva: string }
+        Returns: undefined
+      }
+      completar_reserva: {
+        Args: { _pagos: Json; _reserva: string }
+        Returns: string
+      }
+      crear_reserva: {
+        Args: {
+          _abono: number
+          _cliente: string
+          _items: Json
+          _pagos: Json
+          _tienda: string
+        }
+        Returns: string
+      }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
       fn_sin_sensibles: { Args: { _fila: Json }; Returns: Json }
       login_lookup: {
@@ -1503,6 +1521,10 @@ export type Database = {
           debe_cambiar_pin: boolean
           email_interno: string
         }[]
+      }
+      marcar_revision_venta: {
+        Args: { _estado: string; _nota?: string; _venta: string }
+        Returns: undefined
       }
       mi_rol: { Args: never; Returns: Database["public"]["Enums"]["app_rol"] }
       mi_tienda: { Args: never; Returns: string }
