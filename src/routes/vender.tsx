@@ -287,7 +287,14 @@ function VenderPage() {
       setBusqueda("");
       return;
     }
-    agregarEquipo({ ...equipo, id: equipo.id });
+    agregarEquipo({
+      id: equipo.id,
+      imei: equipo.imei,
+      modelo: equipo.modelo,
+      gb: equipo.gb,
+      color: equipo.color,
+      bateria: equipo.bateria,
+    });
     setBusqueda("");
     buscadorRef.current?.focus();
   };
