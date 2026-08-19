@@ -1,12 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState, useRouter } from "@tanstack/react-router";
-import {
-  ChevronsUpDown,
-  Check,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
+import { ChevronsUpDown, Check, LogOut, ChevronLeft } from "lucide-react";
+
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useStore } from "@/components/StoreContext";
@@ -126,19 +121,11 @@ function ItemNavLink({
           <motion.span
             layoutId={grupoId}
             transition={RESORTE}
-            className="absolute inset-0 rounded-xl border border-white/[0.09] bg-white/[0.07]"
-            style={{ boxShadow: `0 0 26px -8px ${store.hex}` }}
-          />
-        )}
-        {activo && (
-          <motion.span
-            layoutId={`${grupoId}-barra`}
-            transition={RESORTE}
-            className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full"
-            style={{ background: store.accent }}
+            className="absolute inset-0 rounded-xl border border-white/[0.08] bg-white/[0.06]"
           />
         )}
         <item.icon className="relative size-4 shrink-0" style={activo ? { color: store.accent } : {}} />
+
         {!colapsado && <span className="relative truncate">{item.label}</span>}
       </Link>
 
@@ -251,7 +238,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           style={{ background: glow.fondo }}
         />
 
-        <div className="relative flex items-center gap-2.5 px-1 py-2">
+        <div className={cn("relative flex items-center gap-2.5 py-2", colapsado ? "flex-col gap-2" : "px-1")}>
           <motion.span
             layout
             className="grid size-8 shrink-0 place-items-center rounded-xl font-display text-sm font-bold text-background"
@@ -275,18 +262,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button
             onClick={() => setColapsado((v) => !v)}
             aria-label={colapsado ? "Expandir menú" : "Colapsar menú"}
-            className={cn(
-              "rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-white/[0.07] hover:text-foreground",
-              colapsado && "absolute right-0 top-full mt-1",
-            )}
+            className="grid size-8 shrink-0 place-items-center rounded-lg border border-white/[0.06] bg-white/[0.03] text-muted-foreground transition-colors duration-200 hover:border-white/[0.12] hover:bg-white/[0.07] hover:text-foreground"
           >
-            {colapsado ? (
-              <PanelLeftOpen className="size-4" />
-            ) : (
-              <PanelLeftClose className="size-4" />
-            )}
+            <motion.span animate={{ rotate: colapsado ? 180 : 0 }} transition={RESORTE_RAPIDO} className="grid place-items-center">
+              <ChevronLeft className="size-4" />
+            </motion.span>
           </button>
         </div>
+
+
 
         <nav className="relative mt-4 flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-1">
           <NavItems colapsado={colapsado} />
