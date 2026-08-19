@@ -275,13 +275,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
 
-            {colapsado ? (
-              <PanelLeftOpen className="size-4" />
-            ) : (
-              <PanelLeftClose className="size-4" />
-            )}
-          </button>
-        </div>
+
 
         <nav className="relative mt-4 flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden pr-1">
           <NavItems colapsado={colapsado} />
