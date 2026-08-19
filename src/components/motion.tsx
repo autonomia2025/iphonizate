@@ -250,11 +250,24 @@ export function Chip({
   children,
   className,
   color,
-  ...rest
-}: { activo: boolean; children: ReactNode; color?: string } & ComponentProps<"button">) {
+  onClick,
+  title,
+  disabled,
+}: {
+  activo: boolean;
+  children: ReactNode;
+  className?: string;
+  color?: string;
+  onClick?: () => void;
+  title?: string;
+  disabled?: boolean;
+}) {
   return (
     <motion.button
       type="button"
+      onClick={onClick}
+      title={title}
+      disabled={disabled}
       whileTap={{ scale: 0.95 }}
       whileHover={{ scale: 1.03 }}
       transition={RESORTE_RAPIDO}
@@ -265,7 +278,6 @@ export function Chip({
           : "border-white/[0.1] text-muted-foreground hover:text-foreground",
         className,
       )}
-      {...(rest as ComponentProps<typeof motion.button>)}
     >
       <AnimatePresence initial={false}>
         {activo && (
