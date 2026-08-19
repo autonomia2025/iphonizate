@@ -102,6 +102,25 @@ function Dashboard() {
   const gananciaDia = VENTAS.reduce((a, v) => a + v.ganancia, 0);
   const pct = Math.round((AVANCE_MES / META_MES) * 100);
 
+  const garantias = useQuery({
+    queryKey: ["v_garantias", "alertas"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("v_garantias")
+        .select("id, imei, modelo, gb, cliente_nombre, horas, estado")
+        .eq("estado", "abierta")
+        .order("fecha", { ascending: true })
+        .limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+    refetchInterval: 60_000,
+  });
+
+  const alertasGarantia = (garantias.data ?? [])
+    .filter((g) => (g.horas ?? 0) >= 48)
+    .sort((a, b) => (b.horas ?? 0) - (a.horas ?? 0));
+
   return (
     <div className="mx-auto max-w-[86rem] space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
