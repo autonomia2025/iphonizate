@@ -1,0 +1,1 @@
+update public.usuarios set pin_hash = extensions.crypt('483920', extensions.gen_salt('bf')), debe_cambiar_pin = true, intentos_fallidos = 0, bloqueado_hasta = null where usuario = 'aaron';
