@@ -612,6 +612,8 @@ function ReportesPage() {
                   formatter={(v: number, n: string) => [formatCLP(Number(v)), n]}
                 />
                 <Line
+                  animationDuration={900}
+                  animationEasing="ease-out"
                   type="monotone"
                   dataKey="ingresos"
                   name="Ingresos"
@@ -621,6 +623,8 @@ function ReportesPage() {
                 />
                 {verGanancias && (
                   <Line
+                  animationDuration={900}
+                  animationEasing="ease-out"
                     type="monotone"
                     dataKey="ganancia"
                     name="Ganancia"
