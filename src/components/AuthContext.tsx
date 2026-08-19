@@ -20,7 +20,12 @@ type Ctx = {
   salir: () => Promise<void>;
 };
 
-const AuthCtx = createContext<Ctx | null>(null);
+// Se reutiliza la misma instancia entre recargas en caliente (HMR): si se creara
+// un contexto nuevo, el proveedor montado quedaría en la instancia antigua y
+// useAuth lanzaría "debe usarse dentro de AuthProvider" con pantalla en blanco.
+const globalAuth = globalThis as { __authCtx?: React.Context<Ctx | null> };
+const AuthCtx = globalAuth.__authCtx ?? createContext<Ctx | null>(null);
+globalAuth.__authCtx = AuthCtx;
 
 async function cargarUsuario(): Promise<UsuarioSesion | null> {
   const { data: sesion } = await supabase.auth.getSession();
