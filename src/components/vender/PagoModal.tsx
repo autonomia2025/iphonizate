@@ -111,8 +111,11 @@ export function PagoModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCerrar} />
-      <div className="glass relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl p-6">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm modal-rapido"
+        onClick={onCerrar}
+      />
+      <div className="modal-rapido glass-flotante relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl p-6">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Total a pagar</p>

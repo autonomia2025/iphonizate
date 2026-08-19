@@ -251,12 +251,20 @@ function InventarioPage() {
                 {conCostos && <th className="px-4 py-3 text-right font-medium">Costo</th>}
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody initial="oculto" animate="visible" variants={varsListaFilas}>
+              <AnimatePresence initial={false}>
               {filas.map((e) => (
-                <tr
+                <motion.tr
                   key={`${e.id}-${destellos[e.id] ?? 0}`}
+                  layout
+                  variants={varsFila}
+                  initial="oculto"
+                  animate="visible"
+                  exit="salida"
+                  whileHover={{ x: 2 }}
+                  transition={RESORTE_RAPIDO}
                   onClick={() => setSeleccionado(e)}
-                  className={`cursor-pointer border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035] ${destellos[e.id] ? "destello" : ""}`}
+                  className={`fila-densa cursor-pointer border-b border-white/5 last:border-0 hover:bg-white/[0.035] ${destellos[e.id] ? "destello" : ""}`}
                 >
                   <td className="num px-4 py-2.5 tracking-[0.04em]">{e.imei}</td>
                   <td className="px-4 py-2.5">{e.modelo}</td>
@@ -283,21 +291,28 @@ function InventarioPage() {
                       {e.costo != null ? formatCLP(e.costo) : "—"}
                     </td>
                   )}
-                </tr>
+                </motion.tr>
               ))}
+              </AnimatePresence>
               {filas.length === 0 && (
                 <tr>
                   <td
                     colSpan={conCostos ? 10 : 9}
                     className="px-4 py-10 text-center text-sm text-muted-foreground"
                   >
-                    {stock.isLoading
-                      ? "Cargando equipos…"
-                      : "No hay equipos que coincidan con el filtro."}
+                    {stock.isLoading ? (
+                      <SkeletonFilas filas={6} columnas={conCostos ? 10 : 9} />
+                    ) : (
+                      <EstadoVacio
+                        icono={PackageSearch}
+                        titulo="Acá no hay nada que mostrar"
+                        mensaje="Ningún equipo calza con el filtro. Prueba con otro criterio o ingresa equipos nuevos."
+                      />
+                    )}
                   </td>
                 </tr>
               )}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
       </div>
