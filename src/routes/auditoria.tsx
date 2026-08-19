@@ -93,31 +93,48 @@ function AuditoriaPage() {
     },
   });
 
-  const filtros = [usuarioFiltro, accionFiltro, tiendaFiltro, desde, hasta, texto, pagina] as const;
+  const busqueda = texto.trim().toLowerCase();
+  const filtros = [usuarioFiltro, accionFiltro, tiendaFiltro, desde, hasta, busqueda, pagina] as const;
 
   const registros = useQuery({
     queryKey: ["auditoria", ...filtros],
     enabled: autorizado,
     queryFn: async () => {
-      let q = supabase
-        .from("auditoria")
-        .select("id, accion, detalle, usuario_id, rol, tienda_id, fecha", { count: "exact" })
-        .order("fecha", { ascending: false });
+      const armar = () => {
+        let q = supabase
+          .from("auditoria")
+          .select("id, accion, detalle, usuario_id, rol, tienda_id, fecha", { count: "exact" })
+          .order("fecha", { ascending: false });
+        if (usuarioFiltro !== "todos") q = q.eq("usuario_id", usuarioFiltro);
+        if (accionFiltro !== "todas") q = q.eq("accion", accionFiltro);
+        if (tiendaFiltro === "general") q = q.is("tienda_id", null);
+        else if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
+        if (desde) q = q.gte("fecha", new Date(`${desde}T00:00:00`).toISOString());
+        if (hasta) q = q.lte("fecha", new Date(`${hasta}T23:59:59.999`).toISOString());
+        return q;
+      };
 
-      if (usuarioFiltro !== "todos") q = q.eq("usuario_id", usuarioFiltro);
-      if (accionFiltro !== "todas") q = q.eq("accion", accionFiltro);
-      if (tiendaFiltro === "general") q = q.is("tienda_id", null);
-      else if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-      if (desde) q = q.gte("fecha", new Date(`${desde}T00:00:00`).toISOString());
-      if (hasta) q = q.lte("fecha", new Date(`${hasta}T23:59:59.999`).toISOString());
-      if (texto.trim()) q = q.ilike("detalle::text", `%${texto.trim()}%`);
+      // El detalle es jsonb: el buscador de texto libre se aplica sobre una
+      // ventana de registros recientes y luego se pagina en el cliente.
+      if (busqueda) {
+        const { data, error } = await armar().range(0, 1999);
+        if (error) throw error;
+        const todas = ((data ?? []) as unknown as FilaAuditoria[]).filter((f) =>
+          JSON.stringify(f.detalle ?? {})
+            .toLowerCase()
+            .includes(busqueda),
+        );
+        const inicio = pagina * POR_PAGINA;
+        return { filas: todas.slice(inicio, inicio + POR_PAGINA), total: todas.length };
+      }
 
       const inicio = pagina * POR_PAGINA;
-      const { data, error, count } = await q.range(inicio, inicio + POR_PAGINA - 1);
+      const { data, error, count } = await armar().range(inicio, inicio + POR_PAGINA - 1);
       if (error) throw error;
       return { filas: (data ?? []) as unknown as FilaAuditoria[], total: count ?? 0 };
     },
   });
+
 
   const total = registros.data?.total ?? 0;
   const paginas = Math.max(1, Math.ceil(total / POR_PAGINA));
