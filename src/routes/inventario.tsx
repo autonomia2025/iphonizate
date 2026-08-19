@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react";
+import { PackageSearch, Plus, Search } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { IngresarEquipoModal } from "@/components/inventario/IngresarEquipoModal";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
+import {
+  AnimatePresence,
+  EstadoVacio,
+  SkeletonFilas,
+  motion,
+} from "@/components/motion";
+import { RESORTE_RAPIDO, varsFila, varsListaFilas } from "@/lib/motion";
 import { formatCLP } from "@/lib/stores";
 import {
   CATEGORIA_ETIQUETA,
