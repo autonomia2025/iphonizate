@@ -15,6 +15,7 @@ import { StoreProvider } from "@/components/StoreContext";
 import { AppShell } from "@/components/AppShell";
 import { AuthProvider, useAuth } from "@/components/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
+import { MotionConfig } from "framer-motion";
 
 function NotFoundComponent() {
   return (
@@ -151,6 +152,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <MotionConfig reducedMotion="user">
       <AuthProvider>
         <StoreProvider>
           <Guardia>
@@ -160,6 +162,7 @@ function RootComponent() {
           <Toaster />
         </StoreProvider>
       </AuthProvider>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

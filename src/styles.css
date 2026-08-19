@@ -214,3 +214,243 @@
 @utility punto-vivo {
   animation: latido-vivo 1400ms ease-in-out infinite;
 }
+
+/* ============================================================
+   Refinamiento visual y animación
+   ============================================================ */
+
+/* Acento animable: permite transición suave del color de tienda */
+@property --accent-store {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ec4899;
+}
+
+:root {
+  --shadow-flotante: 0 32px 70px -28px rgba(0, 0, 0, 0.8), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --shadow-glass: 0 22px 50px -24px rgba(0, 0, 0, 0.7), 0 4px 14px -8px rgba(0, 0, 0, 0.45);
+}
+
+html {
+  transition: --accent-store 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Luz cenital: borde superior más claro que el inferior */
+@utility glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-top-color: rgba(255, 255, 255, 0.14);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: var(--shadow-glass);
+}
+
+@utility glass-flotante {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  border-top-color: rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  box-shadow: var(--shadow-flotante);
+}
+
+/* Cifras grandes con degradado del blanco al acento */
+@utility cifra-degradada {
+  background-image: linear-gradient(
+    170deg,
+    oklch(0.99 0 0) 20%,
+    color-mix(in oklab, var(--accent-store) 78%, white)
+  );
+  background-clip: text;
+  color: transparent;
+}
+
+/* Badges de estado: gradiente sutil + borde luminoso */
+@utility badge-luz {
+  background-image: linear-gradient(
+    150deg,
+    color-mix(in oklab, currentColor 22%, transparent),
+    color-mix(in oklab, currentColor 8%, transparent)
+  );
+  border: 1px solid color-mix(in oklab, currentColor 45%, transparent);
+  box-shadow: 0 0 14px -6px currentColor;
+}
+
+/* Barrido de luz en la fila que cambió en tiempo real */
+@keyframes barrido-acento {
+  0% {
+    background-position: -140% 0;
+    background-color: color-mix(in oklab, var(--accent-store) 12%, transparent);
+  }
+  100% {
+    background-position: 240% 0;
+    background-color: transparent;
+  }
+}
+
+@utility destello {
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, var(--accent-store) 34%, transparent) 45%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  box-shadow: inset 2px 0 0 0 var(--accent-store);
+  animation: barrido-acento 900ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Shimmer de skeletons */
+@keyframes shimmer-skeleton {
+  0% {
+    background-position: -160% 0;
+  }
+  100% {
+    background-position: 260% 0;
+  }
+}
+
+@utility shimmer {
+  background-color: rgba(255, 255, 255, 0.05);
+  background-image: linear-gradient(
+    100deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.1) 48%,
+    transparent 72%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer-skeleton 1500ms linear infinite;
+  border-radius: 8px;
+}
+
+/* Pulso rojo lento para garantías vencidas */
+@keyframes pulso-vencida {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
+  }
+  50% {
+    box-shadow: 0 0 26px -6px rgba(248, 113, 113, 0.45);
+  }
+}
+
+@utility pulso-alerta {
+  animation: pulso-vencida 2600ms ease-in-out infinite;
+}
+
+/* Validación en error: shake horizontal corto */
+@keyframes shake-error {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  45% { transform: translateX(4px); }
+  70% { transform: translateX(-2px); }
+}
+
+@utility shake {
+  animation: shake-error 320ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* Flash verde brevísimo al escanear un IMEI válido */
+@keyframes flash-ok {
+  0% {
+    box-shadow: 0 0 0 1.5px oklch(0.78 0.18 152), 0 0 18px -4px oklch(0.78 0.18 152);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@utility flash-ok {
+  animation: flash-ok 320ms ease-out;
+}
+
+/* Campos: borde iluminado con el acento al enfocar */
+@layer base {
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+    border-color: color-mix(in oklab, var(--accent-store) 60%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent-store) 18%, transparent);
+  }
+
+  /* Contraste sobre vidrio */
+  :root {
+    --muted-foreground: oklch(0.74 0.018 286);
+  }
+}
+
+/* Filas de tablas densas: hover con desplazamiento mínimo */
+@utility fila-densa {
+  transition:
+    background-color 150ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 150ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@utility entrada-suave {
+  animation: entrada-suave-kf 250ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes entrada-suave-kf {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Toast: barra de progreso que se agota */
+@keyframes toast-progreso {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+[data-sonner-toast] {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-sonner-toast]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  transform-origin: left;
+  background: var(--accent-store);
+  animation: toast-progreso 4s linear forwards;
+}
+
+/* Modales rápidos (POS y ingreso de equipos): 120ms, sin escalado */
+.modal-rapido {
+  animation-duration: 120ms !important;
+  animation-name: fade-rapido !important;
+}
+
+@keyframes fade-rapido {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Toast: entrada deslizando desde arriba a la derecha con spring */
+[data-sonner-toast][data-mounted="true"] {
+  transition:
+    transform 300ms cubic-bezier(0.32, 1.4, 0.4, 1),
+    opacity 200ms ease;
+}

@@ -117,3 +117,42 @@ export const ROL_ETIQUETA: Record<AppRol, string> = {
 
 export const tituloDeRuta = (pathname: string) =>
   NAV.find((n) => n.to === pathname)?.label ?? "riff store OS";
+
+/* ---------------- Agrupación del sidebar ---------------- */
+
+export type GrupoNav = "Operación" | "Inventario" | "Administración";
+
+const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
+  "/vender": "Operación",
+  "/reservas": "Operación",
+  "/garantias": "Operación",
+  "/clientes": "Operación",
+  "/tareas": "Operación",
+  "/stock": "Inventario",
+  "/inventario": "Inventario",
+  "/movimientos": "Inventario",
+  "/tecnico": "Inventario",
+  "/accesorios": "Inventario",
+  "/precios": "Inventario",
+  "/caja": "Administración",
+  "/revision": "Administración",
+  "/gastos": "Administración",
+  "/metas": "Administración",
+  "/reportes": "Administración",
+  "/auditoria": "Administración",
+};
+
+export const ORDEN_GRUPOS: GrupoNav[] = ["Operación", "Inventario", "Administración"];
+
+export type ItemNav = (typeof NAV)[number];
+
+/** Nav del rol agrupada en bloques, con el Dashboard suelto arriba. */
+export function navAgrupada(rol: AppRol | null | undefined) {
+  const items = navParaRol(rol);
+  const sueltos = items.filter((i) => !GRUPO_POR_RUTA[i.to]);
+  const grupos = ORDEN_GRUPOS.map((grupo) => ({
+    grupo,
+    items: items.filter((i) => GRUPO_POR_RUTA[i.to] === grupo),
+  })).filter((g) => g.items.length > 0);
+  return { sueltos, grupos };
+}
