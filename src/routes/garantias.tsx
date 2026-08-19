@@ -5,6 +5,7 @@ import { AlertTriangle, ScanLine, ShieldCheck, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useFlashEscaneo } from "@/components/motion";
 import { useAuth } from "@/components/AuthContext";
 import { useStore } from "@/components/StoreContext";
 import { Button } from "@/components/ui/button";
@@ -136,17 +137,19 @@ function GarantiasPage() {
     scanRef.current?.focus();
   };
 
+  const flash = useFlashEscaneo();
+
   const escanear = async (valor: string) => {
     const codigo = valor.trim();
     setScan("");
     if (!codigo) return;
     if (!/^\d{15}$/.test(codigo)) {
-      toast.error("El IMEI debe tener 15 dígitos");
+      flash.error(); toast.error("El IMEI debe tener 15 dígitos");
       return;
     }
     const { data, error } = await supabase.rpc("garantia_buscar_imei", { _imei: codigo });
     if (error) {
-      toast.error("No se pudo buscar el IMEI", { description: error.message });
+      flash.error(); toast.error("No se pudo buscar el IMEI", { description: error.message });
       return;
     }
     const fila = (Array.isArray(data) ? data[0] : data) as Venta | undefined;
@@ -157,10 +160,11 @@ function GarantiasPage() {
     setCliente(fila?.cliente_nombre ?? "");
     setTelefono(fila?.cliente_telefono ?? "");
     if (!hayVenta) {
-      toast.warning("Ese IMEI no tiene venta registrada", {
+      flash.error(); toast.warning("Ese IMEI no tiene venta registrada", {
         description: "Puedes ingresar la garantía igual, quedará sin venta asociada.",
       });
     }
+    flash.ok();
   };
 
   const ingresar = async () => {
@@ -227,6 +231,7 @@ function GarantiasPage() {
               <ScanLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 ref={scanRef}
+                className={flash.clase}
                 value={scan}
                 onChange={(e) => setScan(e.target.value.replace(/\D/g, ""))}
                 onKeyDown={(e) => {

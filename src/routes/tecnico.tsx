@@ -5,6 +5,7 @@ import { ChevronDown, Plus, ScanLine, Wrench, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useFlashEscaneo } from "@/components/motion";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { formatCLP } from "@/lib/stores";
@@ -132,12 +133,14 @@ function TecnicoPage() {
     scanRef.current?.focus();
   };
 
+  const flash = useFlashEscaneo();
+
   const escanear = async (valorCrudo: string) => {
     const imei = valorCrudo.trim();
     setScan("");
     if (!imei) return;
     if (lista.some((e) => e.imei === imei)) {
-      toast.warning(`El IMEI ${imei} ya está en la lista`);
+      flash.error(); toast.warning(`El IMEI ${imei} ya está en la lista`);
       return;
     }
 
@@ -148,16 +151,16 @@ function TecnicoPage() {
       .maybeSingle();
 
     if (error) {
-      toast.error("No se pudo verificar el IMEI", { description: error.message });
+      flash.error(); toast.error("No se pudo verificar el IMEI", { description: error.message });
       return;
     }
     if (!equipo?.id) {
-      toast.error("Ese IMEI no está en el sistema");
+      flash.error(); toast.error("Ese IMEI no está en el sistema");
       return;
     }
     const estado = (equipo.estado ?? "POR_REVISAR") as EquipoEstado;
     if (NO_TECNICO.includes(estado)) {
-      toast.error(`No se puede mandar a técnico: está ${ESTADO_ETIQUETA[estado].toLowerCase()}`, {
+      flash.error(); toast.error(`No se puede mandar a técnico: está ${ESTADO_ETIQUETA[estado].toLowerCase()}`, {
         description:
           estado === "RESERVADO"
             ? "El equipo está comprometido con un cliente."
@@ -172,7 +175,7 @@ function TecnicoPage() {
       .eq("equipo_id", equipo.id);
 
     if (errServ) {
-      toast.error("No se pudieron leer los servicios del equipo", { description: errServ.message });
+      flash.error(); toast.error("No se pudieron leer los servicios del equipo", { description: errServ.message });
       return;
     }
 
@@ -180,7 +183,7 @@ function TecnicoPage() {
     if (asignado) {
       const quien =
         (asignado.tecnicos as { nombre: string } | null)?.nombre ?? "otro técnico";
-      toast.error(`Este equipo ya está asignado a ${quien}`);
+      flash.error(); toast.error(`Este equipo ya está asignado a ${quien}`);
       return;
     }
 
@@ -189,7 +192,7 @@ function TecnicoPage() {
       .map((s) => s.tipo as ServicioTipo);
 
     if (pendientes.length === 0) {
-      toast.error("Este equipo no necesita reparación");
+      flash.error(); toast.error("Este equipo no necesita reparación");
       return;
     }
 
@@ -203,6 +206,7 @@ function TecnicoPage() {
       },
       ...prev,
     ]);
+    flash.ok();
   };
 
   const asignar = async () => {
@@ -381,6 +385,7 @@ function TecnicoPage() {
             <ScanLine className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[var(--accent-store)]" />
             <input
               ref={scanRef}
+                className={flash.clase}
               value={scan}
               inputMode="numeric"
               autoComplete="off"

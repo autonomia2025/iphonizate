@@ -5,6 +5,7 @@ import { ArrowRight, ScanLine, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useFlashEscaneo } from "@/components/motion";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,16 +103,18 @@ function MovimientosPage() {
   const nombreTienda = (id: string) =>
     (tiendas.data ?? []).find((t) => t.id === id)?.nombre ?? "la tienda seleccionada";
 
+  const flash = useFlashEscaneo();
+
   const escanear = async (valorCrudo: string) => {
     const imei = valorCrudo.trim();
     setScan("");
     if (!imei) return;
     if (!origen) {
-      toast.error("Elige primero la tienda de origen");
+      flash.error(); toast.error("Elige primero la tienda de origen");
       return;
     }
     if (lista.some((e) => e.imei === imei)) {
-      toast.warning(`El IMEI ${imei} ya está en la lista`);
+      flash.error(); toast.warning(`El IMEI ${imei} ya está en la lista`);
       return;
     }
 
@@ -122,17 +125,17 @@ function MovimientosPage() {
       .maybeSingle();
 
     if (error) {
-      toast.error("No se pudo verificar el IMEI", { description: error.message });
+      flash.error(); toast.error("No se pudo verificar el IMEI", { description: error.message });
       return;
     }
     if (!data || !data.id) {
-      toast.error("Ese IMEI no está en el sistema");
+      flash.error(); toast.error("Ese IMEI no está en el sistema");
       return;
     }
 
     const estado = (data.estado ?? "POR_REVISAR") as EquipoEstado;
     if (NO_TRASLADABLES.includes(estado)) {
-      toast.error(`No se puede trasladar: está ${ESTADO_ETIQUETA[estado].toLowerCase()}`, {
+      flash.error(); toast.error(`No se puede trasladar: está ${ESTADO_ETIQUETA[estado].toLowerCase()}`, {
         description:
           estado === "RESERVADO"
             ? "El equipo está comprometido con un cliente; libera la reserva antes de moverlo."
@@ -141,7 +144,7 @@ function MovimientosPage() {
       return;
     }
     if (data.ubicacion_id !== origen) {
-      toast.error("Ese equipo no está en el origen seleccionado", {
+      flash.error(); toast.error("Ese equipo no está en el origen seleccionado", {
         description: `Está en ${data.tienda ?? "una ubicación sin asignar"}, no en ${nombreTienda(origen)}.`,
       });
       return;
@@ -158,6 +161,7 @@ function MovimientosPage() {
       },
       ...prev,
     ]);
+    flash.ok();
   };
 
   const confirmar = async () => {
@@ -264,6 +268,7 @@ function MovimientosPage() {
             <ScanLine className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[var(--accent-store)]" />
             <input
               ref={scanRef}
+                className={flash.clase}
               value={scan}
               inputMode="numeric"
               autoComplete="off"
