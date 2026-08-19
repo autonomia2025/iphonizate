@@ -166,9 +166,11 @@ function ItemNavLink({
 function NavItems({
   onNavigate,
   colapsado = false,
+  grupoId = "nav-activo",
 }: {
   onNavigate?: () => void;
   colapsado?: boolean;
+  grupoId?: string;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { usuario } = useAuth();
@@ -185,7 +187,7 @@ function NavItems({
         activo={pathname === it.to}
         colapsado={colapsado}
         onNavigate={onNavigate}
-        grupoId="nav-activo"
+        grupoId={grupoId}
       />
     </motion.div>
   );
@@ -221,6 +223,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [colapsado, setColapsado] = useState(false);
   const titulo = tituloDeRuta(pathname);
   const glow = useGlowCursor();
+  const [sobreSidebar, setSobreSidebar] = useState(false);
 
   const cerrarSesion = async () => {
     await salir();
@@ -233,6 +236,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <motion.aside
         animate={{ width: colapsado ? "4.5rem" : "15.5rem" }}
         transition={RESORTE}
+        onMouseEnter={() => setSobreSidebar(true)}
+        onMouseLeave={() => setSobreSidebar(false)}
         onMouseMove={(e) => {
           const r = e.currentTarget.getBoundingClientRect();
           glow.x.set(e.clientX - r.left);
@@ -243,7 +248,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Glow del acento difundido desde el cursor */}
         <motion.span
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 hover:opacity-100 [aside:hover_&]:opacity-100"
+          className="pointer-events-none absolute inset-0"
+          animate={{ opacity: sobreSidebar ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
           style={{ background: glow.fondo }}
         />
 
@@ -380,7 +387,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="overflow-hidden border-b border-white/[0.08]"
             >
               <div className="max-h-[60vh] overflow-y-auto p-2">
-                <NavItems onNavigate={() => setNavAbierto(false)} />
+                <NavItems onNavigate={() => setNavAbierto(false)} grupoId="nav-movil-lista" />
                 <div className="mt-2">
                   <SelectorTienda />
                 </div>
