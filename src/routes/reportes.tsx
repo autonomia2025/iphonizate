@@ -429,7 +429,7 @@ function ReportesPage() {
       abiertas: filas.length - cerradas.length,
       pctSobreVentas: porcentaje(filas.length, resumen.ventas),
       cumplimiento: cerradas.length ? porcentaje(enSla.length, cerradas.length) : 0,
-      vencidas: filas.filter((g) => !g.fecha_cierre && nivelSla(Number(g.horas ?? 0)) === "vencido")
+      vencidas: filas.filter((g) => !g.fecha_cierre && nivelSla(Number(g.horas ?? 0)) === "vencida")
         .length,
       fallas: Array.from(mapa.entries())
         .map(([falla, cantidad]) => ({ falla, cantidad }))
