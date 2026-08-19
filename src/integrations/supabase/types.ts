@@ -1297,6 +1297,77 @@ export type Database = {
           },
         ]
       }
+      v_garantias: {
+        Row: {
+          cliente_nombre: string | null
+          cliente_telefono: string | null
+          color: string | null
+          costo_arreglo: number | null
+          diferencia: number | null
+          equipo_estado: Database["public"]["Enums"]["equipo_estado"] | null
+          equipo_id: string | null
+          estado: string | null
+          falla: string | null
+          fecha: string | null
+          fecha_cierre: string | null
+          gb: number | null
+          horas: number | null
+          id: string | null
+          imei: string | null
+          imei_entregado: string | null
+          modelo: string | null
+          notas: string | null
+          recibio: string | null
+          resolucion: string | null
+          servicios_pendientes: number | null
+          tienda: string | null
+          tienda_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "garantias_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "garantias_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_movimientos: {
         Row: {
           desde: string | null
@@ -1503,6 +1574,17 @@ export type Database = {
         Args: { _pagos: Json; _reserva: string }
         Returns: string
       }
+      crear_garantia: {
+        Args: {
+          _cliente_nombre: string
+          _cliente_telefono: string
+          _falla: string
+          _imei: string
+          _notas: string
+          _tienda: string
+        }
+        Returns: string
+      }
       crear_reserva: {
         Args: {
           _abono: number
@@ -1515,6 +1597,28 @@ export type Database = {
       }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
       fn_sin_sensibles: { Args: { _fila: Json }; Returns: Json }
+      garantia_buscar_imei: {
+        Args: { _imei: string }
+        Returns: {
+          cliente_nombre: string
+          cliente_telefono: string
+          color: string
+          dias_desde_venta: number
+          equipo_id: string
+          estado: string
+          fecha_venta: string
+          gb: number
+          imei: string
+          modelo: string
+          tienda_venta: string
+          venta_id: string
+        }[]
+      }
+      garantia_costo_arreglo: { Args: { _garantia: string }; Returns: number }
+      garantia_mandar_tecnico: {
+        Args: { _garantia: string; _servicios: Json }
+        Returns: number
+      }
       login_lookup: {
         Args: { _pin: string; _usuario: string }
         Returns: {
@@ -1529,6 +1633,7 @@ export type Database = {
       mi_rol: { Args: never; Returns: Database["public"]["Enums"]["app_rol"] }
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
+      puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
       registrar_venta: {
         Args: {
@@ -1539,6 +1644,18 @@ export type Database = {
           _tienda: string
         }
         Returns: string
+      }
+      resolver_garantia_cambio: {
+        Args: {
+          _diferencia: number
+          _garantia: string
+          _imei_reemplazo: string
+        }
+        Returns: undefined
+      }
+      resolver_garantia_reparado: {
+        Args: { _garantia: string }
+        Returns: undefined
       }
       servicio_listo: { Args: { _servicio_id: string }; Returns: string }
       trasladar_equipos: {

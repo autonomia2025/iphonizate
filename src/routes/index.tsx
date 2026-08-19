@@ -1,7 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Clock, TrendingDown } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Clock, ShieldCheck, TrendingDown } from "lucide-react";
 import { useStore } from "@/components/StoreContext";
+import { supabase } from "@/integrations/supabase/client";
 import { formatCLP, formatNumero } from "@/lib/stores";
+import { equipoTexto, nivelSla, textoSla } from "@/lib/garantias";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -99,6 +102,25 @@ function Dashboard() {
   const gananciaDia = VENTAS.reduce((a, v) => a + v.ganancia, 0);
   const pct = Math.round((AVANCE_MES / META_MES) * 100);
 
+  const garantias = useQuery({
+    queryKey: ["v_garantias", "alertas"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("v_garantias")
+        .select("id, imei, modelo, gb, cliente_nombre, horas, estado")
+        .eq("estado", "abierta")
+        .order("fecha", { ascending: true })
+        .limit(50);
+      if (error) throw error;
+      return data ?? [];
+    },
+    refetchInterval: 60_000,
+  });
+
+  const alertasGarantia = (garantias.data ?? [])
+    .filter((g) => (g.horas ?? 0) >= 48)
+    .sort((a, b) => (b.horas ?? 0) - (a.horas ?? 0));
+
   return (
     <div className="mx-auto max-w-[86rem] space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -139,10 +161,38 @@ function Dashboard() {
           <div className="flex items-center justify-between gap-2">
             <h2 className="font-display text-sm font-semibold">Alertas de stock y rotación</h2>
             <span className="num rounded-full border border-white/[0.08] px-2 py-0.5 text-[11px] text-muted-foreground">
-              {ALERTAS.length} activas
+              {ALERTAS.length + alertasGarantia.length} activas
             </span>
           </div>
           <ul className="mt-4 space-y-2.5">
+            {alertasGarantia.map((g) => {
+              const horas = g.horas ?? 0;
+              const vencida = nivelSla(horas) === "vencida";
+              return (
+                <li key={g.id as string}>
+                  <Link
+                    to="/garantias"
+                    className={cn(
+                      "flex items-start gap-3 rounded-xl border p-3 transition-colors duration-200",
+                      vencida
+                        ? "border-red-400/50 bg-red-500/[0.12] hover:bg-red-500/[0.18]"
+                        : "border-red-400/25 bg-red-500/[0.07] hover:bg-red-500/[0.12]",
+                    )}
+                  >
+                    <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-destructive/15 text-destructive">
+                      <ShieldCheck className="size-4" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-medium">
+                        Garantía {equipoTexto(g.modelo, g.gb)} ({g.cliente_nombre}) —{" "}
+                        {textoSla(horas)}
+                      </span>
+                      <span className="num block text-[12px] text-muted-foreground">{g.imei}</span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
             {ALERTAS.map((a) => (
               <li
                 key={a.titulo}
