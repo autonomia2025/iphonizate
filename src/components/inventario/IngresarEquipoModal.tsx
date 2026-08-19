@@ -204,7 +204,7 @@ export function IngresarEquipoModal({
 
   return (
     <Dialog open={abierto} onOpenChange={(v) => !v && onCerrar()}>
-      <DialogContent className="glass max-h-[90vh] overflow-y-auto border-white/10 bg-white/5 backdrop-blur-2xl sm:max-w-3xl">
+      <DialogContent className="modal-rapido glass max-h-[90vh] overflow-y-auto border-white/10 bg-white/5 backdrop-blur-2xl sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="font-display text-lg">Ingresar equipo</DialogTitle>
         </DialogHeader>
