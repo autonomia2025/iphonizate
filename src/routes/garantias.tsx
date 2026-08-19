@@ -315,7 +315,7 @@ function GarantiasPage() {
                       value={notas}
                       onChange={(e) => setNotas(e.target.value)}
                       rows={2}
-                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25")}
+                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
                     />
                   </div>
                   <div className="flex justify-end gap-3 sm:col-span-2">
