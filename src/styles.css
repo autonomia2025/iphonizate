@@ -447,3 +447,10 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* Toast: entrada deslizando desde arriba a la derecha con spring */
+[data-sonner-toast][data-mounted="true"] {
+  transition:
+    transform 300ms cubic-bezier(0.32, 1.4, 0.4, 1),
+    opacity 200ms ease;
+}
