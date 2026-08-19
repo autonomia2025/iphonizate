@@ -112,7 +112,7 @@ function CajaPage() {
         .from("equipos")
         .select("id, imei, modelo, gb, color, estado")
         .eq("ubicacion_id", tienda!.id)
-        .in("estado", ESTADOS_EN_CAJA as unknown as string[])
+        .in("estado", [...ESTADOS_EN_CAJA])
         .order("modelo", { ascending: true });
       if (error) throw error;
       return data ?? [];
