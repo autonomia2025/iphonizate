@@ -12,7 +12,7 @@ const campo =
   "h-10 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25";
 
 export type MetaEditable = {
-  id?: string;
+  id?: string | undefined;
   tienda_id: string;
   tienda_nombre: string;
   equipos_objetivo: number;
