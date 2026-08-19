@@ -1,7 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Clock, TrendingDown } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Clock, ShieldCheck, TrendingDown } from "lucide-react";
 import { useStore } from "@/components/StoreContext";
+import { supabase } from "@/integrations/supabase/client";
 import { formatCLP, formatNumero } from "@/lib/stores";
+import { equipoTexto, nivelSla, textoSla } from "@/lib/garantias";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
