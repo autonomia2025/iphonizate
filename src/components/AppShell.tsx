@@ -100,10 +100,10 @@ function ItemNavLink({
   onNavigate,
   grupoId,
 }: {
-  item: { to: string; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> };
+  item: { to: string; label: string; icon: React.ComponentType<any> };
   activo: boolean;
   colapsado: boolean;
-  onNavigate?: () => void;
+  onNavigate?: (() => void) | undefined;
   grupoId: string;
 }) {
   const { store } = useStore();
@@ -138,10 +138,7 @@ function ItemNavLink({
             style={{ background: store.accent }}
           />
         )}
-        <item.icon
-          className="relative size-4 shrink-0"
-          style={activo ? { color: store.accent } : undefined}
-        />
+        <item.icon className="relative size-4 shrink-0" style={activo ? { color: store.accent } : {}} />
         {!colapsado && <span className="relative truncate">{item.label}</span>}
       </Link>
 
