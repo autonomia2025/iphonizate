@@ -408,3 +408,16 @@ export function useGlowCursor() {
 }
 
 export { AnimatePresence, motion };
+
+/**
+ * Feedback de escaneo sin bloquear el foco: flash verde de 100ms al leer un
+ * IMEI válido, shake corto cuando el IMEI se rechaza.
+ */
+export function useFlashEscaneo() {
+  const [clase, setClase] = useState("");
+  const marcar = (tipo: "ok" | "error") => {
+    setClase(tipo === "ok" ? "flash-ok" : "shake");
+    setTimeout(() => setClase(""), tipo === "ok" ? 340 : 340);
+  };
+  return { clase, ok: () => marcar("ok"), error: () => marcar("error") };
+}
