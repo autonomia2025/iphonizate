@@ -8,6 +8,7 @@ import {
   ListChecks,
   PackageSearch,
   ShieldCheck,
+  ShoppingBag,
   TrendingDown,
 } from "lucide-react";
 
@@ -21,6 +22,18 @@ import { claveModelo } from "@/lib/pos";
 import { diasEnStock } from "@/lib/inventario";
 import { URGENCIA_INFO, pct, periodoActual, periodoTexto, rangoPeriodo, type Urgencia } from "@/lib/gestion";
 import { cn } from "@/lib/utils";
+import {
+  Aparece,
+  BarraProgreso,
+  Cascada,
+  Cifra,
+  EstadoVacio,
+  SkeletonFilas,
+  SkeletonTarjetasMetrica,
+  TarjetaViva,
+  motion,
+} from "@/components/motion";
+import { RESORTE_RAPIDO, varsFila, varsHijo, varsListaFilas } from "@/lib/motion";
 
 const DESC =
   "Panel de operaciones de la cadena: ventas, ingresos, ganancia, stock, alertas y metas del mes.";
@@ -41,13 +54,28 @@ export const Route = createFileRoute("/")({
 
 const DIAS_LIQUIDAR = 50;
 
-function Metrica({ label, valor, sub }: { label: string; valor: string; sub?: string }) {
+function Metrica({
+  label,
+  valor,
+  formato,
+  sub,
+}: {
+  label: string;
+  valor: number;
+  formato: (n: number) => string;
+  sub?: string;
+}) {
   return (
-    <article className="glass p-5 transition-colors duration-200 hover:bg-white/[0.07]">
+    <TarjetaViva className="p-5">
       <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
-      <p className="num mt-3 text-[1.8rem] font-semibold leading-none">{valor}</p>
+      <Cifra
+        valor={valor}
+        formato={formato}
+        degradada
+        className="mt-3 block text-[1.8rem] font-semibold leading-none"
+      />
       {sub && <p className="mt-3 text-[11px] text-muted-foreground">{sub}</p>}
-    </article>
+    </TarjetaViva>
   );
 }
 
@@ -371,36 +399,45 @@ function Dashboard() {
         </div>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metrica
-          label="Ventas hoy"
-          valor={formatNumero(itemsHoy.length)}
-          sub={`${ventasHoy.length} boletas emitidas hoy`}
-        />
-        <Metrica
-          label="Ingresos hoy"
-          valor={formatCLP(ingresosHoy)}
-          sub={`${formatCLP(ingresosMes)} en el mes`}
-        />
-        {verGanancias ? (
+      {ventas.isLoading && !ventas.data ? (
+        <SkeletonTarjetasMetrica />
+      ) : (
+        <Cascada className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Metrica
-            label="Ganancia hoy"
-            valor={formatCLP(gananciaHoy)}
-            sub={`${formatCLP(gananciaMes)} en el mes`}
+            label="Ventas hoy"
+            valor={itemsHoy.length}
+            formato={formatNumero}
+            sub={`${ventasHoy.length} boletas emitidas hoy`}
           />
-        ) : (
           <Metrica
-            label="Stock en la tienda"
-            valor={formatNumero(disponiblesTienda.length)}
-            sub={`${store.nombre} · equipos disponibles`}
+            label="Ingresos hoy"
+            valor={ingresosHoy}
+            formato={formatCLP}
+            sub={`${formatCLP(ingresosMes)} en el mes`}
           />
-        )}
-        <Metrica
-          label="Stock disponible"
-          valor={formatNumero(disponiblesCadena.length)}
-          sub="Equipos disponibles en toda la cadena"
-        />
-      </section>
+          {verGanancias ? (
+            <Metrica
+              label="Ganancia hoy"
+              valor={gananciaHoy}
+              formato={formatCLP}
+              sub={`${formatCLP(gananciaMes)} en el mes`}
+            />
+          ) : (
+            <Metrica
+              label="Stock en la tienda"
+              valor={disponiblesTienda.length}
+              formato={formatNumero}
+              sub={`${store.nombre} · equipos disponibles`}
+            />
+          )}
+          <Metrica
+            label="Stock disponible"
+            valor={disponiblesCadena.length}
+            formato={formatNumero}
+            sub="Equipos disponibles en toda la cadena"
+          />
+        </Cascada>
+      )}
 
       <section className="glass grid gap-4 p-5 sm:grid-cols-3">
         <div>
@@ -436,16 +473,22 @@ function Dashboard() {
               {alertas.length + alertasGarantia.length} activas
             </span>
           </div>
-          <ul className="mt-4 space-y-2.5">
+          <motion.ul
+            className="mt-4 space-y-2.5"
+            initial="oculto"
+            animate="visible"
+            variants={{ oculto: {}, visible: { transition: { staggerChildren: 0.05 } } }}
+          >
             {alertasGarantia.map((g) => {
               const horas = g.horas ?? 0;
               const vencida = nivelSla(horas) === "vencida";
               return (
-                <li key={g.id as string}>
+                <motion.li key={g.id as string} variants={varsHijo}>
                   <Link
                     to="/garantias"
                     className={cn(
                       "flex items-start gap-3 rounded-xl border p-3 transition-colors duration-200",
+                      vencida && "pulso-alerta",
                       vencida
                         ? "border-red-400/50 bg-red-500/[0.12] hover:bg-red-500/[0.18]"
                         : "border-red-400/25 bg-red-500/[0.07] hover:bg-red-500/[0.12]",
@@ -462,7 +505,7 @@ function Dashboard() {
                       <span className="num block text-[12px] text-muted-foreground">{g.imei}</span>
                     </span>
                   </Link>
-                </li>
+                </motion.li>
               );
             })}
 
@@ -486,7 +529,7 @@ function Dashboard() {
                 </>
               );
               return (
-                <li key={a.key}>
+                <motion.li key={a.key} variants={varsHijo}>
                   {a.to ? (
                     <Link
                       to={a.to}
@@ -499,16 +542,25 @@ function Dashboard() {
                       {contenido}
                     </div>
                   )}
-                </li>
+                </motion.li>
               );
             })}
 
             {alertas.length + alertasGarantia.length === 0 && (
-              <li className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-[13px] text-muted-foreground">
-                {stock.isLoading ? "Revisando la operación…" : "Todo en orden, sin alertas activas."}
+              <li className="rounded-xl border border-white/[0.06] bg-white/[0.03]">
+                {stock.isLoading ? (
+                  <p className="p-4 text-[13px] text-muted-foreground">Revisando la operación…</p>
+                ) : (
+                  <EstadoVacio
+                    icono={ShieldCheck}
+                    titulo="Todo impecable por acá"
+                    mensaje="Ni una alerta activa: la operación está al día. Aprovecha y vende."
+                    className="py-8"
+                  />
+                )}
               </li>
             )}
-          </ul>
+          </motion.ul>
         </section>
 
         <div className="space-y-4">
@@ -522,16 +574,7 @@ function Dashboard() {
                 <p className="num mt-4 text-[1.6rem] font-semibold leading-none">
                   llevan {formatNumero(equiposMes)} de {formatNumero(objEquipos)} equipos
                 </p>
-                <div className="mt-4 h-3 w-full overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.04]">
-                  <div
-                    className="h-full rounded-full transition-[width] duration-200"
-                    style={{
-                      width: `${avanceEquipos}%`,
-                      background: `linear-gradient(90deg, color-mix(in oklab, ${store.accent} 55%, transparent), ${store.accent})`,
-                      boxShadow: `0 0 20px -4px ${store.hex}`,
-                    }}
-                  />
-                </div>
+                <BarraProgreso valor={avanceEquipos} color={store.accent} className="mt-4" />
                 <p className="num mt-2 text-[12px]" style={{ color: store.accent }}>
                   {avanceEquipos}% cumplido
                 </p>
@@ -604,11 +647,14 @@ function Dashboard() {
                 {verGanancias && <th className="px-5 py-2.5 text-right font-medium">Ganancia</th>}
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody initial="oculto" animate="visible" variants={varsListaFilas}>
               {ultimas.map((v) => (
-                <tr
+                <motion.tr
                   key={v.id}
-                  className="border-t border-white/[0.05] transition-colors duration-200 hover:bg-surface-alt"
+                  variants={varsFila}
+                  whileHover={{ x: 2 }}
+                  transition={RESORTE_RAPIDO}
+                  className="fila-densa border-t border-white/[0.05] hover:bg-surface-alt"
                 >
                   <td className="num px-5 py-2.5 text-muted-foreground">
                     {new Date(v.fecha).toLocaleString("es-CL", {
@@ -635,7 +681,7 @@ function Dashboard() {
                       {formatCLP(gananciaPorVenta[v.id] ?? 0)}
                     </td>
                   )}
-                </tr>
+                </motion.tr>
               ))}
               {ultimas.length === 0 && (
                 <tr>
@@ -643,13 +689,28 @@ function Dashboard() {
                     className="px-5 py-8 text-center text-muted-foreground"
                     colSpan={verGanancias ? 6 : 5}
                   >
-                    {ventas.isLoading
-                      ? "Cargando ventas…"
-                      : "Todavía no hay ventas en el período para esta tienda."}
+                    {ventas.isLoading ? (
+                      <SkeletonFilas filas={4} columnas={verGanancias ? 6 : 5} />
+                    ) : (
+                      <EstadoVacio
+                        icono={ShoppingBag}
+                        titulo="Todavía no se vende nada este mes"
+                        mensaje="Cuando registres la primera venta del período va a aparecer justo acá."
+                        accion={
+                          <Link
+                            to="/vender"
+                            className="inline-flex rounded-xl px-4 py-2 text-[13px] font-medium text-background"
+                            style={{ background: store.accent }}
+                          >
+                            Ir a vender
+                          </Link>
+                        }
+                      />
+                    )}
                   </td>
                 </tr>
               )}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
       </section>
