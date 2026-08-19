@@ -385,7 +385,6 @@ function TecnicoPage() {
             <ScanLine className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[var(--accent-store)]" />
             <input
               ref={scanRef}
-                className={flash.clase}
               value={scan}
               inputMode="numeric"
               autoComplete="off"
@@ -397,7 +396,7 @@ function TecnicoPage() {
                 }
               }}
               placeholder="Escanea los equipos que se lleva el técnico"
-              className="num h-14 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-12 pr-4 text-base tracking-[0.06em] outline-none transition-all duration-200 placeholder:font-sans placeholder:text-sm placeholder:tracking-normal placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+              className={cn(flash.clase, "num h-14 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-12 pr-4 text-base tracking-[0.06em] outline-none transition-all duration-200 placeholder:font-sans placeholder:text-sm placeholder:tracking-normal placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25")}
             />
           </label>
           <p className="mt-2 text-xs text-muted-foreground">

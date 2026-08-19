@@ -231,14 +231,13 @@ function GarantiasPage() {
               <ScanLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 ref={scanRef}
-                className={flash.clase}
                 value={scan}
                 onChange={(e) => setScan(e.target.value.replace(/\D/g, ""))}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") void escanear(scan);
                 }}
                 placeholder="Escanea el IMEI del equipo que trae el cliente"
-                className={`${campo} num pl-9`}
+                className={cn(campo, "num pl-9", flash.clase)}
               />
             </div>
 
@@ -316,7 +315,7 @@ function GarantiasPage() {
                       value={notas}
                       onChange={(e) => setNotas(e.target.value)}
                       rows={2}
-                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25")}
                     />
                   </div>
                   <div className="flex justify-end gap-3 sm:col-span-2">
