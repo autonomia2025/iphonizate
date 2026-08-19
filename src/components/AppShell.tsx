@@ -126,19 +126,11 @@ function ItemNavLink({
           <motion.span
             layoutId={grupoId}
             transition={RESORTE}
-            className="absolute inset-0 rounded-xl border border-white/[0.09] bg-white/[0.07]"
-            style={{ boxShadow: `0 0 26px -8px ${store.hex}` }}
-          />
-        )}
-        {activo && (
-          <motion.span
-            layoutId={`${grupoId}-barra`}
-            transition={RESORTE}
-            className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full"
-            style={{ background: store.accent }}
+            className="absolute inset-0 rounded-xl border border-white/[0.08] bg-white/[0.06]"
           />
         )}
         <item.icon className="relative size-4 shrink-0" style={activo ? { color: store.accent } : {}} />
+
         {!colapsado && <span className="relative truncate">{item.label}</span>}
       </Link>
 
