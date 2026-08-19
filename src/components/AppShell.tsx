@@ -1,12 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useRouterState, useRouter } from "@tanstack/react-router";
-import {
-  ChevronsUpDown,
-  Check,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
+import { ChevronsUpDown, Check, LogOut, ChevronLeft } from "lucide-react";
+
 import { AnimatePresence, motion } from "framer-motion";
 
 import { useStore } from "@/components/StoreContext";
