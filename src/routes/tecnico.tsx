@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Plus, ScanLine, Wrench, X } from "lucide-react";
+import { ChevronDown, Plus, Wrench, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,9 +9,12 @@ import { useFlashEscaneo } from "@/components/motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { CampoImei } from "@/components/CampoImei";
 import { formatCLP } from "@/lib/stores";
 import {
   ESTADO_ETIQUETA,
+  SERVICIOS,
   SERVICIO_ETIQUETA,
   fechaLarga,
   puedeIngresarEquipos,
@@ -64,6 +67,12 @@ function TecnicoPage() {
   const [creandoTecnico, setCreandoTecnico] = useState(false);
   const [lista, setLista] = useState<Escaneado[]>([]);
   const [scan, setScan] = useState("");
+  /* Equipo por revisar que llegó sin arreglos: se le agregan aquí mismo */
+  const [sinArreglos, setSinArreglos] = useState<
+    { id: string; imei: string; modelo: string; color: string | null } | null
+  >(null);
+  const [arreglosNuevos, setArreglosNuevos] = useState<Record<string, string>>({});
+  const [guardandoArreglos, setGuardandoArreglos] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [abierto, setAbierto] = useState<string | null>(null);
   const scanRef = useRef<HTMLInputElement>(null);
@@ -193,7 +202,17 @@ function TecnicoPage() {
       .map((s) => s.tipo as ServicioTipo);
 
     if (pendientes.length === 0) {
-      flash.error(); toast.error("Este equipo no necesita reparación");
+      /* En vez del error seco: se le agregan arreglos ahí mismo */
+      setSinArreglos({
+        id: equipo.id!,
+        imei: equipo.imei ?? imei,
+        modelo: equipo.modelo ?? "",
+        color: equipo.color,
+      });
+      setArreglosNuevos({});
+      toast.info("Ese equipo no tiene arreglos pendientes", {
+        description: "Elige abajo qué hay que arreglarle y queda listo para asignar.",
+      });
       return;
     }
 
