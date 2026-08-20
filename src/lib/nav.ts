@@ -17,6 +17,7 @@ import {
   ListChecks,
   BarChart3,
   ScrollText,
+  Settings,
 } from "lucide-react";
 
 export type AppRol = "direccion" | "jefe_tienda" | "administracion" | "operaciones" | "vendedor";
@@ -102,6 +103,12 @@ export const NAV = [
     icon: ScrollText,
     roles: ["direccion", "administracion"] as AppRol[],
   },
+  {
+    to: "/configuracion",
+    label: "Configuración",
+    icon: Settings,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
 ] as const;
 
 export const navParaRol = (rol: AppRol | null | undefined) =>
@@ -140,6 +147,7 @@ const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
   "/metas": "Administración",
   "/reportes": "Administración",
   "/auditoria": "Administración",
+  "/configuracion": "Administración",
 };
 
 export const ORDEN_GRUPOS: GrupoNav[] = ["Operación", "Inventario", "Administración"];
