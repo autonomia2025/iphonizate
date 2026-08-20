@@ -104,7 +104,9 @@ export function IngresarEquipoModal({
     setServicios({});
     setRiesgos([]);
     setAceptoRiesgo(false);
+    setVerificado(false);
     setTimeout(() => imeiRef.current?.focus(), 30);
+
   };
 
   const guardar = async () => {
