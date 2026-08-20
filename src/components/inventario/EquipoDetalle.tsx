@@ -19,7 +19,7 @@ import {
   type ServicioTipo,
 } from "@/lib/inventario";
 
-export type EquipoFila = {
+export type EquipoFila = VerificacionFila & {
   id: string;
   imei: string;
   modelo: string;
@@ -37,6 +37,7 @@ export type EquipoFila = {
   lote?: string | null;
   notas?: string | null;
 };
+
 
 const NO_TRASLADABLES: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO"];
 
