@@ -11,6 +11,8 @@ import { limpiarImei } from "@/components/CampoImei";
 import { IngresarEquipoModal } from "@/components/inventario/IngresarEquipoModal";
 import { ImportarEquiposModal } from "@/components/inventario/ImportarEquiposModal";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
+import { tieneAlertaImei } from "@/components/inventario/VerificacionEquipo";
+
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 import {
   AnimatePresence,
