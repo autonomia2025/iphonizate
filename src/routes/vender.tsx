@@ -642,6 +642,17 @@ function VenderPage() {
                   {!valor && (
                     <p className="mt-1.5 text-xs text-amber-300">Falta el precio de este equipo</p>
                   )}
+                  {alertas.get(i.id) && (
+                    <p className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-red-400/35 bg-red-500/10 px-2 py-1.5 text-xs text-red-200">
+                      <ShieldAlert className="size-3.5 shrink-0" />
+                      {alertas.get(i.id)!.icloud && alertas.get(i.id)!.negra
+                        ? "iCloud activo y lista negra: revisa antes de vender."
+                        : alertas.get(i.id)!.icloud
+                          ? "iCloud activo: el cliente no podrá usarlo."
+                          : "IMEI en lista negra: reportado perdido o robado."}
+                    </p>
+                  )}
+
                 </div>
               );
             })}
