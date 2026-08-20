@@ -115,7 +115,7 @@ export function CampoImei({
         <span
           className={cn(
             "num rounded-full border px-2 py-0.5",
-            ok
+            ok && luhn
               ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
               : largo > 0
                 ? "border-amber-400/25 bg-amber-500/10 text-amber-300"
@@ -123,7 +123,9 @@ export function CampoImei({
           )}
         >
           {largo}/15
+          {ok ? (luhn ? " · válido" : " · dígito verificador incorrecto") : ""}
         </span>
+
       </p>
       {mensaje && <p className="mt-1 text-xs text-amber-300">{mensaje}</p>}
     </div>
