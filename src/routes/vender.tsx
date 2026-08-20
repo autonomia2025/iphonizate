@@ -86,7 +86,10 @@ function VenderPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("v_stock")
-        .select("id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso")
+        .select(
+          "id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso, icloud_activo, lista_negra",
+        )
+
         .order("fecha_ingreso", { ascending: false });
       if (error) throw error;
       return data ?? [];
