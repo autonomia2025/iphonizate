@@ -319,7 +319,9 @@ export function IngresarEquipoModal({
             onRiesgos={setRiesgos}
             aceptoRiesgo={aceptoRiesgo}
             onAceptoRiesgo={setAceptoRiesgo}
+            onVerificado={setVerificado}
           />
+
 
 
 
