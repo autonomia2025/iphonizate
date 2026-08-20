@@ -192,6 +192,17 @@ export function IngresarEquipoModal({
         );
       }
 
+      /* Queda en la auditoría quién aceptó ingresar un equipo con riesgo */
+      if (riesgos.length > 0) {
+        await supabase.rpc("registrar_riesgo_imei", {
+          _imei: form.imei,
+          _motivos: riesgos,
+          _detalle: { modelo: form.modelo.trim(), ubicacion_id: form.ubicacion_id },
+        });
+      }
+
+
+
       if (esReingreso && equipoId) {
         const { data: hist } = await supabase
           .from("equipos_historial")
