@@ -122,6 +122,7 @@ export function ImportarEquiposModal({ abierto, onCerrar, tiendas, puedeCostos, 
 
     for (let i = 0; i < listas.length; i++) {
       const fila = listas[i];
+      if (!fila) continue;
       const { error } = await supabase.from("equipos").insert({
         imei: fila.imei,
         modelo: fila.modelo,
