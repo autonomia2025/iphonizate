@@ -441,27 +441,94 @@ function TecnicoPage() {
             </div>
           </div>
 
-          <label className="relative mt-5 block">
-            <ScanLine className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[var(--accent-store)]" />
-            <input
-              ref={scanRef}
-              value={scan}
-              inputMode="numeric"
-              autoComplete="off"
-              onChange={(e) => setScan(e.target.value.replace(/\D/g, ""))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void escanear(scan);
-                }
-              }}
-              placeholder="Escanea los equipos que se lleva el técnico"
-              className={cn(flash.clase, "num h-14 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-12 pr-4 text-base tracking-[0.06em] outline-none transition-all duration-200 placeholder:font-sans placeholder:text-sm placeholder:tracking-normal placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25")}
+          <div className="mt-5">
+            <CampoImei
+              valor={scan}
+              onValor={setScan}
+              onAgregar={(imei) => void escanear(imei)}
+              claseFlash={flash.clase}
+              inputRef={scanRef}
+              placeholder="IMEI del equipo que se lleva el técnico"
             />
-          </label>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Compatible con lector de código de barras: escanea varios seguidos sin sacar el foco.
-          </p>
+          </div>
+
+          {sinArreglos && (
+            <div className="mt-4 rounded-2xl border border-[var(--accent-store)]/30 bg-white/[0.04] p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">
+                    {sinArreglos.modelo}
+                    {sinArreglos.color ? ` · ${sinArreglos.color}` : ""}
+                  </p>
+                  <p className="num mt-0.5 text-xs text-muted-foreground">{sinArreglos.imei}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    No tiene arreglos pendientes. Marca lo que hay que arreglarle.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSinArreglos(null)}
+                  className="rounded-lg p-1.5 text-muted-foreground transition-colors duration-200 hover:bg-white/5 hover:text-foreground"
+                  aria-label="Cerrar"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {SERVICIOS.map((tipo) => {
+                  const activo = tipo in arreglosNuevos;
+                  return (
+                    <div key={tipo} className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setArreglosNuevos((prev) => {
+                            const siguiente = { ...prev };
+                            if (tipo in siguiente) delete siguiente[tipo];
+                            else siguiente[tipo] = "";
+                            return siguiente;
+                          })
+                        }
+                        className={cn(
+                          "h-10 flex-1 rounded-xl border px-3 text-left text-sm transition-all duration-200",
+                          activo
+                            ? "border-[var(--accent-store)]/60 bg-[var(--accent-store)]/12 text-foreground"
+                            : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {SERVICIO_ETIQUETA[tipo]}
+                      </button>
+                      {activo && verCostos && (
+                        <Input
+                          value={arreglosNuevos[tipo] ?? ""}
+                          onChange={(e) =>
+                            setArreglosNuevos((prev) => ({
+                              ...prev,
+                              [tipo]: e.target.value.replace(/\D/g, ""),
+                            }))
+                          }
+                          inputMode="numeric"
+                          placeholder="Costo"
+                          className="num h-10 w-24 shrink-0"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => void guardarArreglos()}
+                disabled={guardandoArreglos || Object.keys(arreglosNuevos).length === 0}
+                className="mt-3 gap-2"
+              >
+                <Wrench className="size-4" />
+                {guardandoArreglos ? "Guardando…" : "Agregar arreglos y sumar a la lista"}
+              </Button>
+            </div>
+          )}
 
           {lista.length > 0 && (
             <ul className="mt-4 space-y-2">
