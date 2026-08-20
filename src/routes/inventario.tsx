@@ -278,8 +278,20 @@ function InventarioPage() {
               {ESTADO_ETIQUETA[s]} {conteos.get(s) ?? 0}
             </Chip>
           ))}
+          <button
+            type="button"
+            onClick={() => setSoloAlertas((v) => !v)}
+            className={`ml-1 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all duration-200 ${
+              soloAlertas
+                ? "border-red-400/50 bg-red-500/15 text-red-200"
+                : "border-white/10 bg-white/[0.04] text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ShieldAlert className="size-3.5" /> Con alertas {conAlertas}
+          </button>
         </div>
       </div>
+
 
       <div className="solid-panel mt-6 overflow-hidden">
         <div className="flex items-center justify-between border-b border-white/8 px-4 py-2.5">
