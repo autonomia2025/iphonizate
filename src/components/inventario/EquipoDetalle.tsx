@@ -278,6 +278,9 @@ export function EquipoDetalle({
               </div>
             )}
 
+            <VerificacionEquipo equipo={equipo} onActualizado={refrescar} />
+
+
             <section className="mt-6">
               <h3 className="text-sm font-semibold">Servicios</h3>
               {servicios.data && servicios.data.length > 0 ? (
