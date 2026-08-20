@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ScanLine, X } from "lucide-react";
+import { ArrowRight, Warehouse, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useFlashEscaneo } from "@/components/motion";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { CampoImei } from "@/components/CampoImei";
 import {
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
@@ -47,8 +47,11 @@ const selectClase =
 function MovimientosPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const puedeTrasladar = puedeIngresarEquipos(rol);
+  const esVendedor = rol === "vendedor";
+  /* El vendedor solo puede devolver a bodega desde su tienda */
+  const puedeTrasladar = puedeIngresarEquipos(rol) || esVendedor;
   const esJefe = rol === "jefe_tienda";
+  const origenFijo = esJefe || esVendedor;
   const queryClient = useQueryClient();
 
   const [origen, setOrigen] = useState<string>("");
@@ -65,15 +68,48 @@ function MovimientosPage() {
   const tiendas = useQuery({
     queryKey: ["tiendas"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tiendas").select("id, nombre").order("nombre");
+      const { data, error } = await supabase
+        .from("tiendas")
+        .select("id, nombre, es_bodega")
+        .order("nombre");
       if (error) throw error;
       return data ?? [];
     },
   });
 
+  const bodega = (tiendas.data ?? []).find((t) => t.es_bodega);
+  const etiquetaTienda = (t: { nombre: string; es_bodega?: boolean | null }) =>
+    t.es_bodega ? `${t.nombre} · bodega` : t.nombre;
+
+  const devolverABodega = () => {
+    if (!bodega) {
+      toast.error("No hay una bodega configurada en el sistema");
+      return;
+    }
+    const miTienda = usuario?.tienda_id ?? origen;
+    if (!miTienda) {
+      toast.error("Tu usuario no tiene tienda asignada: elige el origen a mano");
+      return;
+    }
+    if (miTienda === bodega.id) {
+      toast.warning("Ya estás en la bodega: elige otro destino");
+      return;
+    }
+    setOrigen(miTienda);
+    setDestino(bodega.id);
+    setLista([]);
+    scanRef.current?.focus();
+    toast.success(`Listo para devolver a ${bodega.nombre}: escanea los equipos`);
+  };
+
   useEffect(() => {
-    if (esJefe && usuario?.tienda_id) setOrigen(usuario.tienda_id);
-  }, [esJefe, usuario?.tienda_id]);
+    if (origenFijo && usuario?.tienda_id) setOrigen(usuario.tienda_id);
+  }, [origenFijo, usuario?.tienda_id]);
+
+  /* El vendedor solo tiene un destino posible: la bodega */
+  useEffect(() => {
+    if (esVendedor && bodega) setDestino(bodega.id);
+  }, [esVendedor, bodega]);
 
   useEffect(() => {
     if (puedeTrasladar) scanRef.current?.focus();
@@ -210,82 +246,88 @@ function MovimientosPage() {
 
       {puedeTrasladar && (
         <section className="glass mt-6 p-5">
-          <h2 className="font-display text-base font-semibold">Trasladar equipos</h2>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto_1fr]">
-            <div>
-              <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
-                Origen
-              </label>
-              <select
-                value={origen}
-                disabled={esJefe}
-                onChange={(e) => {
-                  setOrigen(e.target.value);
-                  setLista([]);
-                }}
-                className={`${selectClase} ${esJefe ? "opacity-60" : ""}`}
-              >
-                <option value="">Selecciona…</option>
-                {(tiendas.data ?? []).map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.nombre}
-                  </option>
-                ))}
-              </select>
-              {esJefe && (
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  Como jefe de tienda solo puedes mover equipos que estén en tu tienda.
-                </p>
-              )}
-            </div>
-
-            <div className="hidden items-center justify-center pt-6 sm:flex">
-              <ArrowRight className="size-5 text-[var(--accent-store)]" />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
-                Destino
-              </label>
-              <select
-                value={destino}
-                onChange={(e) => setDestino(e.target.value)}
-                className={selectClase}
-              >
-                <option value="">Selecciona…</option>
-                {(tiendas.data ?? [])
-                  .filter((t) => t.id !== origen)
-                  .map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.nombre}
-                    </option>
-                  ))}
-              </select>
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-base font-semibold">
+              {esVendedor ? "Devolver equipos a bodega" : "Trasladar equipos"}
+            </h2>
+            {bodega && (
+              <Button variant="secondary" className="gap-2" onClick={devolverABodega}>
+                <Warehouse className="size-4" /> Devolver a bodega
+              </Button>
+            )}
           </div>
 
-          <label className="relative mt-5 block">
-            <ScanLine className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[var(--accent-store)]" />
-            <input
-              ref={scanRef}
-              value={scan}
-              inputMode="numeric"
-              autoComplete="off"
-              onChange={(e) => setScan(e.target.value.replace(/\D/g, ""))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void escanear(scan);
-                }
-              }}
-              placeholder="Escanea el IMEI del equipo a trasladar"
-              className={cn(flash.clase, "num h-14 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-12 pr-4 text-base tracking-[0.06em] outline-none transition-all duration-200 placeholder:font-sans placeholder:text-sm placeholder:tracking-normal placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25")}
+          {esVendedor ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Como vendedor puedes devolver equipos de tu tienda a{" "}
+              {bodega ? etiquetaTienda(bodega) : "la bodega"}. Escanea los equipos y confirma.
+            </p>
+          ) : (
+            <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto_1fr]">
+              <div>
+                <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
+                  Origen
+                </label>
+                <select
+                  value={origen}
+                  disabled={origenFijo}
+                  onChange={(e) => {
+                    setOrigen(e.target.value);
+                    setLista([]);
+                  }}
+                  className={`${selectClase} ${origenFijo ? "opacity-60" : ""}`}
+                >
+                  <option value="">Selecciona…</option>
+                  {(tiendas.data ?? []).map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {etiquetaTienda(t)}
+                    </option>
+                  ))}
+                </select>
+                {esJefe && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    Como jefe de tienda solo puedes mover equipos que estén en tu tienda.
+                  </p>
+                )}
+              </div>
+
+              <div className="hidden items-center justify-center pt-6 sm:flex">
+                <ArrowRight className="size-5 text-[var(--accent-store)]" />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
+                  Destino
+                </label>
+                <select
+                  value={destino}
+                  onChange={(e) => setDestino(e.target.value)}
+                  className={selectClase}
+                >
+                  <option value="">Selecciona…</option>
+                  {(tiendas.data ?? [])
+                    .filter((t) => t.id !== origen)
+                    .map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {etiquetaTienda(t)}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-5">
+            <CampoImei
+              valor={scan}
+              onValor={setScan}
+              onAgregar={(imei) => void escanear(imei)}
+              claseFlash={flash.clase}
+              inputRef={scanRef}
+              placeholder={esVendedor ? "IMEI del equipo que devuelves" : "IMEI del equipo a trasladar"}
             />
-          </label>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Compatible con lector de código de barras: escanea varios seguidos sin sacar el foco.
-          </p>
+          </div>
+
 
           {lista.length > 0 && (
             <ul className="mt-4 space-y-2">

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Plus, ScanLine, Wrench, X } from "lucide-react";
+import { ChevronDown, Plus, Wrench, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,9 +9,12 @@ import { useFlashEscaneo } from "@/components/motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { CampoImei } from "@/components/CampoImei";
 import { formatCLP } from "@/lib/stores";
 import {
   ESTADO_ETIQUETA,
+  SERVICIOS,
   SERVICIO_ETIQUETA,
   fechaLarga,
   puedeIngresarEquipos,
@@ -64,6 +67,12 @@ function TecnicoPage() {
   const [creandoTecnico, setCreandoTecnico] = useState(false);
   const [lista, setLista] = useState<Escaneado[]>([]);
   const [scan, setScan] = useState("");
+  /* Equipo por revisar que llegó sin arreglos: se le agregan aquí mismo */
+  const [sinArreglos, setSinArreglos] = useState<
+    { id: string; imei: string; modelo: string; color: string | null } | null
+  >(null);
+  const [arreglosNuevos, setArreglosNuevos] = useState<Record<string, string>>({});
+  const [guardandoArreglos, setGuardandoArreglos] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [abierto, setAbierto] = useState<string | null>(null);
   const scanRef = useRef<HTMLInputElement>(null);
@@ -193,7 +202,17 @@ function TecnicoPage() {
       .map((s) => s.tipo as ServicioTipo);
 
     if (pendientes.length === 0) {
-      flash.error(); toast.error("Este equipo no necesita reparación");
+      /* En vez del error seco: se le agregan arreglos ahí mismo */
+      setSinArreglos({
+        id: equipo.id!,
+        imei: equipo.imei ?? imei,
+        modelo: equipo.modelo ?? "",
+        color: equipo.color,
+      });
+      setArreglosNuevos({});
+      toast.info("Ese equipo no tiene arreglos pendientes", {
+        description: "Elige abajo qué hay que arreglarle y queda listo para asignar.",
+      });
       return;
     }
 
@@ -208,6 +227,46 @@ function TecnicoPage() {
       ...prev,
     ]);
     flash.ok();
+  };
+
+  const guardarArreglos = async () => {
+    if (!sinArreglos) return;
+    const elegidos = Object.entries(arreglosNuevos);
+    if (elegidos.length === 0) {
+      toast.error("Elige al menos un arreglo");
+      return;
+    }
+    setGuardandoArreglos(true);
+    const { error } = await supabase.rpc("agregar_servicios_equipo", {
+      _equipo: sinArreglos.id,
+      _servicios: elegidos.map(([tipo, costo]) => ({
+        tipo,
+        costo: Number(String(costo).replace(/\D/g, "")) || 0,
+      })),
+    });
+    setGuardandoArreglos(false);
+    if (error) {
+      toast.error("No se pudieron agregar los arreglos", {
+        description: error.message.replace(/^.*?:\s*/, ""),
+      });
+      return;
+    }
+    setLista((prev) => [
+      {
+        id: sinArreglos.id,
+        imei: sinArreglos.imei,
+        modelo: sinArreglos.modelo,
+        color: sinArreglos.color,
+        pendientes: elegidos.map(([tipo]) => tipo as ServicioTipo),
+      },
+      ...prev.filter((e) => e.id !== sinArreglos.id),
+    ]);
+    toast.success(`${elegidos.length} arreglo(s) agregados a ${sinArreglos.modelo}`);
+    setSinArreglos(null);
+    setArreglosNuevos({});
+    void queryClient.invalidateQueries({ queryKey: ["v_stock"] });
+    flash.ok();
+    scanRef.current?.focus();
   };
 
   const asignar = async () => {
@@ -382,27 +441,94 @@ function TecnicoPage() {
             </div>
           </div>
 
-          <label className="relative mt-5 block">
-            <ScanLine className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[var(--accent-store)]" />
-            <input
-              ref={scanRef}
-              value={scan}
-              inputMode="numeric"
-              autoComplete="off"
-              onChange={(e) => setScan(e.target.value.replace(/\D/g, ""))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void escanear(scan);
-                }
-              }}
-              placeholder="Escanea los equipos que se lleva el técnico"
-              className={cn(flash.clase, "num h-14 w-full rounded-2xl border border-white/10 bg-white/[0.04] pl-12 pr-4 text-base tracking-[0.06em] outline-none transition-all duration-200 placeholder:font-sans placeholder:text-sm placeholder:tracking-normal placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25")}
+          <div className="mt-5">
+            <CampoImei
+              valor={scan}
+              onValor={setScan}
+              onAgregar={(imei) => void escanear(imei)}
+              claseFlash={flash.clase}
+              inputRef={scanRef}
+              placeholder="IMEI del equipo que se lleva el técnico"
             />
-          </label>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Compatible con lector de código de barras: escanea varios seguidos sin sacar el foco.
-          </p>
+          </div>
+
+          {sinArreglos && (
+            <div className="mt-4 rounded-2xl border border-[var(--accent-store)]/30 bg-white/[0.04] p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">
+                    {sinArreglos.modelo}
+                    {sinArreglos.color ? ` · ${sinArreglos.color}` : ""}
+                  </p>
+                  <p className="num mt-0.5 text-xs text-muted-foreground">{sinArreglos.imei}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    No tiene arreglos pendientes. Marca lo que hay que arreglarle.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSinArreglos(null)}
+                  className="rounded-lg p-1.5 text-muted-foreground transition-colors duration-200 hover:bg-white/5 hover:text-foreground"
+                  aria-label="Cerrar"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {SERVICIOS.map(({ tipo }) => {
+                  const activo = tipo in arreglosNuevos;
+                  return (
+                    <div key={tipo} className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setArreglosNuevos((prev) => {
+                            const siguiente = { ...prev };
+                            if (tipo in siguiente) delete siguiente[tipo];
+                            else siguiente[tipo] = "";
+                            return siguiente;
+                          })
+                        }
+                        className={cn(
+                          "h-10 flex-1 rounded-xl border px-3 text-left text-sm transition-all duration-200",
+                          activo
+                            ? "border-[var(--accent-store)]/60 bg-[var(--accent-store)]/12 text-foreground"
+                            : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {SERVICIO_ETIQUETA[tipo]}
+                      </button>
+                      {activo && verCostos && (
+                        <Input
+                          value={arreglosNuevos[tipo] ?? ""}
+                          onChange={(e) =>
+                            setArreglosNuevos((prev) => ({
+                              ...prev,
+                              [tipo]: e.target.value.replace(/\D/g, ""),
+                            }))
+                          }
+                          inputMode="numeric"
+                          placeholder="Costo"
+                          className="num h-10 w-24 shrink-0"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => void guardarArreglos()}
+                disabled={guardandoArreglos || Object.keys(arreglosNuevos).length === 0}
+                className="mt-3 gap-2"
+              >
+                <Wrench className="size-4" />
+                {guardandoArreglos ? "Guardando…" : "Agregar arreglos y sumar a la lista"}
+              </Button>
+            </div>
+          )}
 
           {lista.length > 0 && (
             <ul className="mt-4 space-y-2">

@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { PackageSearch, Plus, Search } from "lucide-react";
+import { FileSpreadsheet, PackageSearch, Plus, Search } from "lucide-react";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { limpiarImei } from "@/components/CampoImei";
 import { IngresarEquipoModal } from "@/components/inventario/IngresarEquipoModal";
+import { ImportarEquiposModal } from "@/components/inventario/ImportarEquiposModal";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 import {
@@ -76,6 +79,7 @@ function InventarioPage() {
   const [ubicacion, setUbicacion] = useState<string | null>(null);
   const [estado, setEstado] = useState<EquipoEstado | null>(null);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [importAbierto, setImportAbierto] = useState(false);
   const [seleccionado, setSeleccionado] = useState<EquipoFila | null>(null);
   const buscadorRef = useRef<HTMLInputElement>(null);
 
@@ -86,7 +90,10 @@ function InventarioPage() {
   const tiendas = useQuery({
     queryKey: ["tiendas"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tiendas").select("id, nombre").order("nombre");
+      const { data, error } = await supabase
+        .from("tiendas")
+        .select("id, nombre, es_bodega")
+        .order("nombre");
       if (error) throw error;
       return data ?? [];
     },
@@ -167,10 +174,31 @@ function InventarioPage() {
     if (conCostos) void full.refetch();
   });
 
+  /* Conteo por estado para que nadie crea que un equipo desapareció */
+  const conteos = useMemo(() => {
+    const mapa = new Map<EquipoEstado, number>();
+    (stock.data ?? []).forEach((e) => {
+      const s = (e.estado ?? "POR_REVISAR") as EquipoEstado;
+      mapa.set(s, (mapa.get(s) ?? 0) + 1);
+    });
+    return mapa;
+  }, [stock.data]);
+
   const estadosPresentes = useMemo(
-    () => ESTADOS.filter((s) => (stock.data ?? []).some((e) => e.estado === s)),
-    [stock.data],
+    () => ESTADOS.filter((s) => (conteos.get(s) ?? 0) > 0),
+    [conteos],
   );
+
+  const abrirPorImei = (valor: string) => {
+    const imei = limpiarImei(valor);
+    if (imei.length !== 15) return;
+    const equipo = filas.find((e) => e.imei === imei);
+    if (!equipo) {
+      toast.error("Ese IMEI no está en el sistema o está fuera del filtro actual");
+      return;
+    }
+    setSeleccionado(equipo);
+  };
 
   return (
     <div className="mx-auto max-w-[86rem]">
@@ -180,9 +208,14 @@ function InventarioPage() {
           <p className="mt-1 text-sm text-muted-foreground">{DESC}</p>
         </div>
         {puedeIngresar && (
-          <Button onClick={() => setModalAbierto(true)} className="accent-glow gap-2">
-            <Plus className="size-4" /> Ingresar equipo
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setImportAbierto(true)} className="gap-2">
+              <FileSpreadsheet className="size-4" /> Importar desde Excel
+            </Button>
+            <Button onClick={() => setModalAbierto(true)} className="accent-glow gap-2">
+              <Plus className="size-4" /> Ingresar equipo
+            </Button>
+          </div>
         )}
       </div>
 
@@ -194,10 +227,13 @@ function InventarioPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             onKeyDown={(e) => {
-              /* el lector de código de barras envía Enter automático */
-              if (e.key === "Enter") e.preventDefault();
+              /* Enter con 15 dígitos abre la ficha del equipo */
+              if (e.key === "Enter") {
+                e.preventDefault();
+                abrirPorImei(busqueda);
+              }
             }}
-            placeholder="Buscar por IMEI, modelo o color · compatible con lector de código de barras"
+            placeholder="Escanea o escribe el IMEI y presiona Enter · también busca por modelo o color"
             className="num h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-10 pr-4 text-sm outline-none transition-all duration-200 placeholder:font-sans placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
           />
         </label>
@@ -219,11 +255,11 @@ function InventarioPage() {
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">Estado</span>
           <Chip activo={!estado} onClick={() => setEstado(null)}>
-            Todos
+            Todos {stock.data?.length ?? 0}
           </Chip>
           {(estadosPresentes.length ? estadosPresentes : ESTADOS).map((s) => (
             <Chip key={s} activo={estado === s} onClick={() => setEstado(s)}>
-              {ESTADO_ETIQUETA[s]}
+              {ESTADO_ETIQUETA[s]} {conteos.get(s) ?? 0}
             </Chip>
           ))}
         </div>
@@ -329,23 +365,39 @@ function InventarioPage() {
       </p>
 
       {puedeIngresar && (
-        <IngresarEquipoModal
-          abierto={modalAbierto}
-          onCerrar={() => setModalAbierto(false)}
-          tiendas={tiendas.data ?? []}
-          tiendaPorDefecto={usuario?.tienda_id ?? null}
-          puedeCostos={conCostos}
-          onGuardado={() => {
-            void stock.refetch();
-            if (conCostos) void full.refetch();
-          }}
-        />
+        <>
+          <IngresarEquipoModal
+            abierto={modalAbierto}
+            onCerrar={() => setModalAbierto(false)}
+            tiendas={tiendas.data ?? []}
+            tiendaPorDefecto={usuario?.tienda_id ?? null}
+            puedeCostos={conCostos}
+            onGuardado={() => {
+              void stock.refetch();
+              if (conCostos) void full.refetch();
+            }}
+          />
+          <ImportarEquiposModal
+            abierto={importAbierto}
+            onCerrar={() => setImportAbierto(false)}
+            tiendas={tiendas.data ?? []}
+            puedeCostos={conCostos}
+            onImportado={() => {
+              void stock.refetch();
+              if (conCostos) void full.refetch();
+            }}
+          />
+        </>
       )}
 
       <EquipoDetalle
         equipo={seleccionado}
         onCerrar={() => setSeleccionado(null)}
         puedeCostos={conCostos}
+        onCambio={() => {
+          void stock.refetch();
+          if (conCostos) void full.refetch();
+        }}
       />
     </div>
   );
