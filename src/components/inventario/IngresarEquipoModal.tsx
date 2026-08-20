@@ -68,7 +68,10 @@ export function IngresarEquipoModal({
   /* Riesgos bloqueantes detectados por imeicheck (iCloud activo, lista negra) */
   const [riesgos, setRiesgos] = useState<string[]>([]);
   const [aceptoRiesgo, setAceptoRiesgo] = useState(false);
+  const [verificado, setVerificado] = useState(false);
   const imeiRef = useRef<HTMLInputElement>(null);
+  const guardarVerificacion = useServerFn(verificarYGuardarImei);
+
 
   const set = (k: keyof typeof vacio, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
