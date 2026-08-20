@@ -78,6 +78,8 @@ function InventarioPage() {
   const [busqueda, setBusqueda] = useState("");
   const [ubicacion, setUbicacion] = useState<string | null>(null);
   const [estado, setEstado] = useState<EquipoEstado | null>(null);
+  const [soloAlertas, setSoloAlertas] = useState(false);
+
   const [modalAbierto, setModalAbierto] = useState(false);
   const [importAbierto, setImportAbierto] = useState(false);
   const [seleccionado, setSeleccionado] = useState<EquipoFila | null>(null);
