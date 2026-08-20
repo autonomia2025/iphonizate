@@ -87,6 +87,8 @@ export function IngresarEquipoModal({
   }, [abierto, tiendaPorDefecto, tiendas]);
 
   const imeiOk = /^\d{15}$/.test(form.imei);
+  const imeiLuhn = luhnValido(form.imei);
+
   const serviciosMarcados = useMemo(() => Object.keys(servicios) as ServicioTipo[], [servicios]);
 
   const toggleServicio = (tipo: ServicioTipo) =>
