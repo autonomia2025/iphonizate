@@ -562,6 +562,7 @@ export function IngresarEquipoModal({
 
           {aviso && (
             <div
+              ref={avisoRef}
               className={`rounded-xl border p-3 text-sm ${
                 aviso.tipo === "error"
                   ? "border-red-400/25 bg-red-500/10 text-red-200"
@@ -588,10 +589,11 @@ export function IngresarEquipoModal({
             <Button type="button" variant="ghost" onClick={onCerrar}>
               Cerrar
             </Button>
-            <Button type="submit" disabled={guardando}>
-              {guardando ? "Guardando…" : "Guardar e ingresar otro"}
+            <Button type="submit" disabled={guardando || !!duplicado}>
+              {guardando ? "Guardando…" : duplicado ? "IMEI ya registrado" : "Guardar e ingresar otro"}
             </Button>
           </div>
+
         </form>
       </DialogContent>
     </Dialog>
