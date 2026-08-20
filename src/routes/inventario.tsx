@@ -150,6 +150,17 @@ function InventarioPage() {
           tienda: e.tienda,
           ubicacion_id: e.ubicacion_id,
           fecha_ingreso: e.fecha_ingreso,
+          serie: e.serie,
+          imei2: e.imei2,
+          icloud_activo: e.icloud_activo,
+          lista_negra: e.lista_negra,
+          bloqueo_operador: e.bloqueo_operador,
+          reemplazado_apple: e.reemplazado_apple,
+          garantia_estado: e.garantia_estado,
+          pais_compra: e.pais_compra,
+          fecha_compra_estimada: e.fecha_compra_estimada,
+          bloqueo_usa: e.bloqueo_usa,
+          verificado_at: e.verificado_at,
           costo: ex?.costo ?? null,
           email_vinculado: ex?.email_vinculado ?? null,
           proveedor: ex?.proveedor ?? null,
@@ -161,6 +172,7 @@ function InventarioPage() {
         if (ubicacion && (e as { ubicacion_id?: string | null }).ubicacion_id !== ubicacion)
           return false;
         if (estado && e.estado !== estado) return false;
+        if (soloAlertas && !tieneAlertaImei(e)) return false;
         if (!q) return true;
         return (
           e.imei.toLowerCase().includes(q) ||
@@ -168,7 +180,8 @@ function InventarioPage() {
           (e.color ?? "").toLowerCase().includes(q)
         );
       });
-  }, [stock.data, extras, busqueda, ubicacion, estado]);
+  }, [stock.data, extras, busqueda, ubicacion, estado, soloAlertas]);
+
 
   const { enVivo, destellos } = useEquiposEnVivo(() => {
     void stock.refetch();
