@@ -212,6 +212,19 @@ export function IngresarEquipoModal({
         });
       }
 
+      /* La verificación queda grabada en la fila: reusa la caché, no gasta otra consulta */
+      if (verificado) {
+        try {
+          await guardarVerificacion({
+            data: { imei: form.imei, riesgoAceptado: riesgos.length > 0 && aceptoRiesgo },
+          });
+        } catch {
+          toast.warning("El equipo quedó guardado, pero no pudimos grabar la verificación.");
+        }
+      }
+
+
+
 
 
       if (esReingreso && equipoId) {
