@@ -47,7 +47,7 @@ async function guardarConsulta(
       imei,
       service_id: serviceId,
       status,
-      properties: (respuesta.properties ?? {}) as never,
+      properties: (respuesta["properties"] ?? {}) as never,
       respuesta: respuesta as never,
       costo,
     })
