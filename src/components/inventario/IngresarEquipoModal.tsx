@@ -282,11 +282,24 @@ export function IngresarEquipoModal({
                 className="num mt-1 tracking-[0.08em]"
               />
               <p
-                className={`mt-1 text-xs ${imeiOk ? "text-emerald-300" : form.imei ? "text-amber-300" : "text-muted-foreground"}`}
+                className={`mt-1 text-xs ${
+                  imeiOk && imeiLuhn
+                    ? "text-emerald-300"
+                    : form.imei
+                      ? "text-amber-300"
+                      : "text-muted-foreground"
+                }`}
               >
                 {form.imei.length}/15 dígitos
-                {form.imei && !imeiOk ? " · falta completar" : imeiOk ? " · válido" : ""}
+                {!form.imei
+                  ? ""
+                  : !imeiOk
+                    ? " · falta completar"
+                    : imeiLuhn
+                      ? " · válido"
+                      : " · dígito verificador incorrecto"}
               </p>
+
             </div>
             <div>
               <Label htmlFor="modelo">Modelo</Label>
