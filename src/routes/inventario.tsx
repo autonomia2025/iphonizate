@@ -105,9 +105,10 @@ function InventarioPage() {
       const { data, error } = await supabase
         .from("v_stock")
         .select(
-          "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
+          "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at",
         )
         .order("fecha_ingreso", { ascending: false });
+
       if (error) throw error;
       return data ?? [];
     },
