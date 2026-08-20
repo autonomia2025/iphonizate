@@ -73,7 +73,12 @@ export function IngresarEquipoModal({
   const [riesgos, setRiesgos] = useState<string[]>([]);
   const [aceptoRiesgo, setAceptoRiesgo] = useState(false);
   const [verificado, setVerificado] = useState(false);
+  /* Aviso temprano: si el IMEI ya está activo en la cadena, se dice al tipear */
+  const [duplicado, setDuplicado] = useState<{ estado: EquipoEstado; tienda: string | null } | null>(
+    null,
+  );
   const imeiRef = useRef<HTMLInputElement>(null);
+  const avisoRef = useRef<HTMLDivElement>(null);
   const guardarVerificacion = useServerFn(verificarYGuardarImei);
 
 
@@ -88,6 +93,33 @@ export function IngresarEquipoModal({
 
   const imeiOk = /^\d{15}$/.test(form.imei);
   const imeiLuhn = luhnValido(form.imei);
+
+  /* Chequeo de duplicado en cuanto el IMEI está completo, no al final del formulario */
+  useEffect(() => {
+    if (!abierto || !imeiOk) {
+      setDuplicado(null);
+      return;
+    }
+    let vivo = true;
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("v_stock")
+        .select("estado, tienda")
+        .eq("imei", form.imei)
+        .maybeSingle();
+      if (!vivo) return;
+      const estado = data?.estado as EquipoEstado | undefined;
+      setDuplicado(
+        estado && ESTADOS_ACTIVOS.includes(estado)
+          ? { estado, tienda: (data?.tienda as string | null) ?? null }
+          : null,
+      );
+    }, 250);
+    return () => {
+      vivo = false;
+      clearTimeout(t);
+    };
+  }, [abierto, imeiOk, form.imei]);
 
   const serviciosMarcados = useMemo(() => Object.keys(servicios) as ServicioTipo[], [servicios]);
 
@@ -105,31 +137,38 @@ export function IngresarEquipoModal({
     setRiesgos([]);
     setAceptoRiesgo(false);
     setVerificado(false);
+    setDuplicado(null);
     setTimeout(() => imeiRef.current?.focus(), 30);
 
   };
 
+  /* Un error nunca queda escondido al final del modal: toast + scroll al aviso */
+  const fallar = (texto: string, opciones?: { foco?: boolean }) => {
+    setAviso({ tipo: "error", texto });
+    toast.error("No se pudo guardar el equipo", { description: texto });
+    if (opciones?.foco) imeiRef.current?.focus();
+    setTimeout(() => avisoRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 40);
+  };
+
+
   const guardar = async () => {
     setAviso(null);
     if (!imeiOk) {
-      setAviso({ tipo: "error", texto: "El IMEI debe tener exactamente 15 dígitos." });
-      imeiRef.current?.focus();
+      fallar("El IMEI debe tener exactamente 15 dígitos.", { foco: true });
       return;
     }
     if (!form.modelo.trim()) {
-      setAviso({ tipo: "error", texto: "Indica el modelo del equipo." });
+      fallar("Indica el modelo del equipo.");
       return;
     }
     if (!form.ubicacion_id) {
-      setAviso({ tipo: "error", texto: "Selecciona la ubicación del equipo." });
+      fallar("Selecciona la ubicación del equipo.");
       return;
     }
     if (riesgos.length > 0 && !aceptoRiesgo) {
-      setAviso({
-        tipo: "error",
-        texto:
-          "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
-      });
+      fallar(
+        "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
+      );
       return;
     }
 
@@ -146,11 +185,11 @@ export function IngresarEquipoModal({
 
       const estadoPrevio = previo?.estado as EquipoEstado | undefined;
       if (estadoPrevio && ESTADOS_ACTIVOS.includes(estadoPrevio)) {
-        setAviso({
-          tipo: "error",
-          texto: `Ese IMEI ya está registrado y activo: ${ESTADO_ETIQUETA[estadoPrevio]} en ${previo?.tienda ?? "una tienda de la cadena"}. No se puede ingresar de nuevo hasta que se cierre su ciclo.`,
-        });
-        imeiRef.current?.focus();
+        setDuplicado({ estado: estadoPrevio, tienda: (previo?.tienda as string | null) ?? null });
+        fallar(
+          `Ese IMEI ya está registrado y activo: ${ESTADO_ETIQUETA[estadoPrevio]} en ${previo?.tienda ?? "una tienda de la cadena"}. No se puede ingresar de nuevo hasta que se cierre su ciclo.`,
+          { foco: true },
+        );
         return;
       }
       const esReingreso = !!estadoPrevio;
@@ -175,16 +214,17 @@ export function IngresarEquipoModal({
       if (error) {
         const crudo = error.message ?? "";
         const m = crudo.match(/ya existe en estado activo \((\w+)\)/);
-        setAviso({
-          tipo: "error",
-          texto: m
+        fallar(
+          m
             ? `Ese IMEI ya está registrado y activo (${ESTADO_ETIQUETA[m[1] as EquipoEstado] ?? m[1]}). No se puede ingresar de nuevo.`
             : /permission|denied|row-level/i.test(crudo)
               ? "Tu rol no tiene permiso para ingresar equipos."
               : "No pudimos guardar el equipo. Revisa los datos e inténtalo otra vez.",
-        });
+        );
         return;
       }
+
+
 
       const { data: fila } = await supabase
         .from("v_stock")
@@ -300,7 +340,15 @@ export function IngresarEquipoModal({
                       : " · dígito verificador incorrecto"}
               </p>
 
+              {duplicado && (
+                <p className="mt-2 rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-xs text-red-200">
+                  Este IMEI ya está en el sistema: {ESTADO_ETIQUETA[duplicado.estado]} en{" "}
+                  {duplicado.tienda ?? "una tienda de la cadena"}. No se puede ingresar de nuevo
+                  hasta que se cierre su ciclo.
+                </p>
+              )}
             </div>
+
             <div>
               <Label htmlFor="modelo">Modelo</Label>
               <Input
@@ -514,6 +562,7 @@ export function IngresarEquipoModal({
 
           {aviso && (
             <div
+              ref={avisoRef}
               className={`rounded-xl border p-3 text-sm ${
                 aviso.tipo === "error"
                   ? "border-red-400/25 bg-red-500/10 text-red-200"
@@ -540,10 +589,11 @@ export function IngresarEquipoModal({
             <Button type="button" variant="ghost" onClick={onCerrar}>
               Cerrar
             </Button>
-            <Button type="submit" disabled={guardando}>
-              {guardando ? "Guardando…" : "Guardar e ingresar otro"}
+            <Button type="submit" disabled={guardando || !!duplicado}>
+              {guardando ? "Guardando…" : duplicado ? "IMEI ya registrado" : "Guardar e ingresar otro"}
             </Button>
           </div>
+
         </form>
       </DialogContent>
     </Dialog>
