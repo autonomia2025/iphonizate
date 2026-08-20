@@ -5,9 +5,12 @@ import { AlertTriangle, BadgeCheck, Info, Loader2, ShieldAlert } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { verificarImei } from "@/lib/imeicheck.functions";
 import {
+  MENSAJE_MOTIVO,
+  TITULO_MOTIVO,
   alertasDeVerificacion,
   fechaCompra,
   fechaCorta,
+  luhnValido,
   type Alerta,
   type ResultadoVerificacion,
 } from "@/lib/imeicheck";
@@ -19,14 +22,8 @@ type Props = {
   onRiesgos: (claves: string[]) => void;
   aceptoRiesgo: boolean;
   onAceptoRiesgo: (valor: boolean) => void;
-};
-
-const MOTIVO_TITULO: Record<string, string> = {
-  sin_saldo: "Sin saldo en imeicheck",
-  clave_invalida: "Clave de imeicheck inválida",
-  sin_configuracion: "Falta configurar imeicheck",
-  api_caida: "imeicheck no respondió",
-  sin_resultado: "No se pudo verificar",
+  /** Avisa si hay una verificación exitosa vigente para este IMEI. */
+  onVerificado?: (verificado: boolean) => void;
 };
 
 const ESTILO_ALERTA: Record<Alerta["nivel"], string> = {
@@ -41,13 +38,15 @@ export function VerificarImeiPanel({
   onRiesgos,
   aceptoRiesgo,
   onAceptoRiesgo,
+  onVerificado,
 }: Props) {
   const verificar = useServerFn(verificarImei);
   const [cargando, setCargando] = useState(false);
   const [resultado, setResultado] = useState<ResultadoVerificacion | null>(null);
   const [imeiVerificado, setImeiVerificado] = useState("");
 
-  const imeiOk = /^\d{15}$/.test(imei);
+  const largoOk = /^\d{15}$/.test(imei);
+  const imeiOk = largoOk && luhnValido(imei);
 
   /* Si cambia el IMEI, el resultado anterior deja de ser válido */
   useEffect(() => {
@@ -56,8 +55,9 @@ export function VerificarImeiPanel({
       setImeiVerificado("");
       onRiesgos([]);
       onAceptoRiesgo(false);
+      onVerificado?.(false);
     }
-  }, [imei, imeiVerificado, onRiesgos, onAceptoRiesgo]);
+  }, [imei, imeiVerificado, onRiesgos, onAceptoRiesgo, onVerificado]);
 
   const lanzar = async (forzar = false) => {
     if (!imeiOk || cargando) return;
@@ -67,6 +67,7 @@ export function VerificarImeiPanel({
       setResultado(r);
       setImeiVerificado(imei);
       onAceptoRiesgo(false);
+      onVerificado?.(r.ok);
       onRiesgos(
         r.ok
           ? alertasDeVerificacion(r.propiedades)
@@ -77,10 +78,11 @@ export function VerificarImeiPanel({
     } catch {
       setResultado({
         ok: false,
-        motivo: "api_caida",
-        mensaje: "No pudimos verificar el IMEI. Completa los datos a mano y sigue.",
+        motivo: "sin_respuesta",
+        mensaje: MENSAJE_MOTIVO.sin_respuesta,
       });
       onRiesgos([]);
+      onVerificado?.(false);
     } finally {
       setCargando(false);
     }
@@ -118,9 +120,15 @@ export function VerificarImeiPanel({
         </div>
       </div>
 
-      {!imeiOk && (
+      {!largoOk && (
         <p className="mt-3 text-xs text-muted-foreground">
           Completa los 15 dígitos del IMEI para poder verificarlo.
+        </p>
+      )}
+      {largoOk && !imeiOk && (
+        <p className="mt-3 text-xs text-amber-300">
+          Ese IMEI no pasa el dígito verificador: está mal copiado. Corrígelo antes de gastar una
+          consulta.
         </p>
       )}
 
@@ -128,7 +136,7 @@ export function VerificarImeiPanel({
         <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-500/10 p-3 text-sm text-amber-100">
           <p className="flex items-center gap-2 font-medium">
             <AlertTriangle className="size-4" />
-            {MOTIVO_TITULO[resultado.motivo] ?? "No se pudo verificar"}
+            {TITULO_MOTIVO[resultado.motivo]}
           </p>
           <p className="mt-1 text-xs text-amber-100/85">{resultado.mensaje}</p>
           <p className="mt-1 text-xs text-amber-100/70">
@@ -182,7 +190,7 @@ export function VerificarImeiPanel({
                 ["Serie", resultado.propiedades.serial],
                 ["Segundo IMEI", resultado.propiedades.imei2],
                 ["Garantía", resultado.propiedades.warrantyStatus],
-                ["País de compra", resultado.propiedades.purchaseCountry],
+                ["País o región", resultado.propiedades.purchaseCountry],
                 ["Compra estimada", fechaCompra(resultado.propiedades.estPurchaseDate)],
                 ["Bloqueo en USA", resultado.propiedades.usaBlockStatus],
               ].map(([etiqueta, valor]) => (
@@ -192,6 +200,10 @@ export function VerificarImeiPanel({
                 </div>
               ))}
             </dl>
+
+            <p className="mt-3 text-xs text-muted-foreground">
+              Todos estos datos quedan guardados en la ficha del equipo al guardarlo.
+            </p>
           </div>
 
           {bloqueantes.length > 0 && (
