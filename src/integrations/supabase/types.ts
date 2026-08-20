@@ -514,6 +514,85 @@ export type Database = {
           },
         ]
       }
+      imei_verificaciones: {
+        Row: {
+          costo: number
+          fecha: string
+          id: string
+          imei: string
+          properties: Json
+          respuesta: Json | null
+          service_id: number
+          status: string
+          usuario_id: string | null
+        }
+        Insert: {
+          costo?: number
+          fecha?: string
+          id?: string
+          imei: string
+          properties?: Json
+          respuesta?: Json | null
+          service_id: number
+          status: string
+          usuario_id?: string | null
+        }
+        Update: {
+          costo?: number
+          fecha?: string
+          id?: string
+          imei?: string
+          properties?: Json
+          respuesta?: Json | null
+          service_id?: number
+          status?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imei_verificaciones_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imeicheck_config: {
+        Row: {
+          ambiente: string
+          id: number
+          service_id: number
+          service_nombre: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ambiente?: string
+          id?: number
+          service_id?: number
+          service_nombre?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ambiente?: string
+          id?: number
+          service_id?: number
+          service_nombre?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imeicheck_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metas: {
         Row: {
           equipos_objetivo: number
@@ -1643,6 +1722,10 @@ export type Database = {
       mi_usuario_id: { Args: never; Returns: string }
       puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
+      registrar_riesgo_imei: {
+        Args: { _detalle?: Json; _imei: string; _motivos: string[] }
+        Returns: undefined
+      }
       registrar_venta: {
         Args: {
           _cliente: string
