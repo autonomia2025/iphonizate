@@ -229,6 +229,46 @@ function TecnicoPage() {
     flash.ok();
   };
 
+  const guardarArreglos = async () => {
+    if (!sinArreglos) return;
+    const elegidos = Object.entries(arreglosNuevos);
+    if (elegidos.length === 0) {
+      toast.error("Elige al menos un arreglo");
+      return;
+    }
+    setGuardandoArreglos(true);
+    const { error } = await supabase.rpc("agregar_servicios_equipo", {
+      _equipo: sinArreglos.id,
+      _servicios: elegidos.map(([tipo, costo]) => ({
+        tipo,
+        costo: Number(String(costo).replace(/\D/g, "")) || 0,
+      })),
+    });
+    setGuardandoArreglos(false);
+    if (error) {
+      toast.error("No se pudieron agregar los arreglos", {
+        description: error.message.replace(/^.*?:\s*/, ""),
+      });
+      return;
+    }
+    setLista((prev) => [
+      {
+        id: sinArreglos.id,
+        imei: sinArreglos.imei,
+        modelo: sinArreglos.modelo,
+        color: sinArreglos.color,
+        pendientes: elegidos.map(([tipo]) => tipo as ServicioTipo),
+      },
+      ...prev.filter((e) => e.id !== sinArreglos.id),
+    ]);
+    toast.success(`${elegidos.length} arreglo(s) agregados a ${sinArreglos.modelo}`);
+    setSinArreglos(null);
+    setArreglosNuevos({});
+    void queryClient.invalidateQueries({ queryKey: ["v_stock"] });
+    flash.ok();
+    scanRef.current?.focus();
+  };
+
   const asignar = async () => {
     if (!tecnicoSel) {
       toast.error("Elige un técnico");
