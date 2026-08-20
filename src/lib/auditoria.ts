@@ -58,8 +58,16 @@ const OP_TEXTO: Record<Op, string> = {
   delete: "Eliminó",
 };
 
+/** Acciones que no vienen de un trigger de tabla sino de una acción explícita. */
+const ACCION_ESPECIAL: Record<string, string> = {
+  "imei.riesgo_aceptado": "Ingresó un equipo aceptando el riesgo del IMEI",
+  "imei.verificado": "Verificó un IMEI",
+};
+
 /** "equipos.update" -> "Modificó un equipo" */
 export const traducirAccion = (accion: string) => {
+  const especial = ACCION_ESPECIAL[accion];
+  if (especial) return especial;
   const [tabla, op] = accion.split(".");
   const clave = (op ?? "").toLowerCase() as Op;
   const texto = tabla ? TABLA_TEXTO[tabla] : undefined;
@@ -67,6 +75,7 @@ export const traducirAccion = (accion: string) => {
   const nombre = (tabla ?? accion).replace(/_/g, " ");
   return `${OP_TEXTO[clave] ?? "Cambió"} un registro en ${nombre}`;
 };
+
 
 export const TIPOS_ACCION = Object.keys(TABLA_TEXTO)
   .flatMap((tabla) => ["insert", "update", "delete"].map((op) => `${tabla}.${op}`))

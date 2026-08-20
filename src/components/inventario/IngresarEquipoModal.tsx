@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCLP } from "@/lib/stores";
+import { VerificarImeiPanel } from "@/components/inventario/VerificarImeiPanel";
 import {
   CATEGORIAS,
   CATEGORIA_ETIQUETA,
@@ -17,6 +18,7 @@ import {
   type EquipoEstado,
   type ServicioTipo,
 } from "@/lib/inventario";
+
 
 type Tienda = { id: string; nombre: string };
 
@@ -63,6 +65,9 @@ export function IngresarEquipoModal({
     | { tipo: "error"; texto: string }
     | null
   >(null);
+  /* Riesgos bloqueantes detectados por imeicheck (iCloud activo, lista negra) */
+  const [riesgos, setRiesgos] = useState<string[]>([]);
+  const [aceptoRiesgo, setAceptoRiesgo] = useState(false);
   const imeiRef = useRef<HTMLInputElement>(null);
 
   const set = (k: keyof typeof vacio, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -88,6 +93,8 @@ export function IngresarEquipoModal({
   const reiniciar = () => {
     setForm((f) => ({ ...vacio, ubicacion_id: f.ubicacion_id, categoria: f.categoria }));
     setServicios({});
+    setRiesgos([]);
+    setAceptoRiesgo(false);
     setTimeout(() => imeiRef.current?.focus(), 30);
   };
 
@@ -106,6 +113,16 @@ export function IngresarEquipoModal({
       setAviso({ tipo: "error", texto: "Selecciona la ubicación del equipo." });
       return;
     }
+    if (riesgos.length > 0 && !aceptoRiesgo) {
+      setAviso({
+        tipo: "error",
+        texto:
+          "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
+      });
+      return;
+    }
+
+
 
     setGuardando(true);
     try {
@@ -174,6 +191,17 @@ export function IngresarEquipoModal({
           })),
         );
       }
+
+      /* Queda en la auditoría quién aceptó ingresar un equipo con riesgo */
+      if (riesgos.length > 0) {
+        await supabase.rpc("registrar_riesgo_imei", {
+          _imei: form.imei,
+          _motivos: riesgos,
+          _detalle: { modelo: form.modelo.trim(), ubicacion_id: form.ubicacion_id },
+        });
+      }
+
+
 
       if (esReingreso && equipoId) {
         const { data: hist } = await supabase
@@ -247,6 +275,16 @@ export function IngresarEquipoModal({
               />
             </div>
           </div>
+
+          <VerificarImeiPanel
+            imei={form.imei}
+            onUsarModelo={(modelo) => set("modelo", modelo)}
+            onRiesgos={setRiesgos}
+            aceptoRiesgo={aceptoRiesgo}
+            onAceptoRiesgo={setAceptoRiesgo}
+          />
+
+
 
           <div className="grid gap-4 sm:grid-cols-4">
             <div>
