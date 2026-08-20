@@ -154,24 +154,21 @@ export function IngresarEquipoModal({
   const guardar = async () => {
     setAviso(null);
     if (!imeiOk) {
-      setAviso({ tipo: "error", texto: "El IMEI debe tener exactamente 15 dígitos." });
-      imeiRef.current?.focus();
+      fallar("El IMEI debe tener exactamente 15 dígitos.", { foco: true });
       return;
     }
     if (!form.modelo.trim()) {
-      setAviso({ tipo: "error", texto: "Indica el modelo del equipo." });
+      fallar("Indica el modelo del equipo.");
       return;
     }
     if (!form.ubicacion_id) {
-      setAviso({ tipo: "error", texto: "Selecciona la ubicación del equipo." });
+      fallar("Selecciona la ubicación del equipo.");
       return;
     }
     if (riesgos.length > 0 && !aceptoRiesgo) {
-      setAviso({
-        tipo: "error",
-        texto:
-          "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
-      });
+      fallar(
+        "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
+      );
       return;
     }
 
@@ -188,11 +185,11 @@ export function IngresarEquipoModal({
 
       const estadoPrevio = previo?.estado as EquipoEstado | undefined;
       if (estadoPrevio && ESTADOS_ACTIVOS.includes(estadoPrevio)) {
-        setAviso({
-          tipo: "error",
-          texto: `Ese IMEI ya está registrado y activo: ${ESTADO_ETIQUETA[estadoPrevio]} en ${previo?.tienda ?? "una tienda de la cadena"}. No se puede ingresar de nuevo hasta que se cierre su ciclo.`,
-        });
-        imeiRef.current?.focus();
+        setDuplicado({ estado: estadoPrevio, tienda: (previo?.tienda as string | null) ?? null });
+        fallar(
+          `Ese IMEI ya está registrado y activo: ${ESTADO_ETIQUETA[estadoPrevio]} en ${previo?.tienda ?? "una tienda de la cadena"}. No se puede ingresar de nuevo hasta que se cierre su ciclo.`,
+          { foco: true },
+        );
         return;
       }
       const esReingreso = !!estadoPrevio;
@@ -217,16 +214,17 @@ export function IngresarEquipoModal({
       if (error) {
         const crudo = error.message ?? "";
         const m = crudo.match(/ya existe en estado activo \((\w+)\)/);
-        setAviso({
-          tipo: "error",
-          texto: m
+        fallar(
+          m
             ? `Ese IMEI ya está registrado y activo (${ESTADO_ETIQUETA[m[1] as EquipoEstado] ?? m[1]}). No se puede ingresar de nuevo.`
             : /permission|denied|row-level/i.test(crudo)
               ? "Tu rol no tiene permiso para ingresar equipos."
               : "No pudimos guardar el equipo. Revisa los datos e inténtalo otra vez.",
-        });
+        );
         return;
       }
+
+
 
       const { data: fila } = await supabase
         .from("v_stock")
