@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { NuevoClienteModal, type ClienteBasico } from "@/components/vender/NuevoClienteModal";
 import { PagoModal } from "@/components/vender/PagoModal";
 import { VentaExito, type VentaResumen } from "@/components/vender/VentaExito";
+import { tieneAlertaImei } from "@/components/inventario/VerificacionEquipo";
+
 import { formatCLP } from "@/lib/stores";
 import { ESTADO_ETIQUETA, puedeVerCostos, type EquipoEstado } from "@/lib/inventario";
 import {
