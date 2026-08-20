@@ -340,7 +340,15 @@ export function IngresarEquipoModal({
                       : " · dígito verificador incorrecto"}
               </p>
 
+              {duplicado && (
+                <p className="mt-2 rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-xs text-red-200">
+                  Este IMEI ya está en el sistema: {ESTADO_ETIQUETA[duplicado.estado]} en{" "}
+                  {duplicado.tienda ?? "una tienda de la cadena"}. No se puede ingresar de nuevo
+                  hasta que se cierre su ciclo.
+                </p>
+              )}
             </div>
+
             <div>
               <Label htmlFor="modelo">Modelo</Label>
               <Input
