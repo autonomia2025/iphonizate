@@ -8,12 +8,14 @@
 
 const BASE = "https://api.imeicheck.net/v1";
 
-export type MotivoFalla = "sin_saldo" | "clave_invalida" | "sin_configuracion" | "api_caida";
+import { MENSAJE_MOTIVO, type MotivoFallaVerificacion } from "@/lib/imeicheck";
+
+export type MotivoFalla = MotivoFallaVerificacion;
 
 export class ErrorImeicheck extends Error {
   motivo: MotivoFalla;
-  constructor(motivo: MotivoFalla, mensaje: string) {
-    super(mensaje);
+  constructor(motivo: MotivoFalla, mensaje?: string) {
+    super(mensaje ?? MENSAJE_MOTIVO[motivo]);
     this.motivo = motivo;
   }
 }
@@ -21,22 +23,31 @@ export class ErrorImeicheck extends Error {
 const clave = () => {
   const valor = process.env["IMEICHECK_API_KEY"];
   if (!valor) {
-    throw new ErrorImeicheck(
-      "sin_configuracion",
-      "Falta la clave de imeicheck en el servidor. Configúrala para poder verificar IMEI.",
-    );
+    throw new ErrorImeicheck("sin_configuracion");
   }
   return valor;
 };
 
-const mensajeDeRespuesta = (cuerpo: unknown, status: number) => {
-  if (cuerpo && typeof cuerpo === "object") {
-    const c = cuerpo as Record<string, unknown>;
-    const m = c["message"] ?? c["error"] ?? c["errors"];
-    if (typeof m === "string") return m;
-    if (m) return JSON.stringify(m);
+/** Texto crudo del error, SOLO para los registros del servidor. */
+const detalleTecnico = (cuerpo: unknown, status: number) => {
+  let texto = "";
+  try {
+    texto = typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo);
+  } catch {
+    texto = String(cuerpo);
   }
-  return `La API respondió con error ${status}`;
+  return `HTTP ${status} ${texto}`;
+};
+
+/** Clasifica el error de validación que devuelve la API (400/422 con "errors"). */
+const motivoDeValidacion = (cuerpo: unknown): MotivoFalla | null => {
+  if (!cuerpo || typeof cuerpo !== "object") return null;
+  const c = cuerpo as Record<string, unknown>;
+  const bolsa = JSON.stringify(c["errors"] ?? c["error"] ?? c["message"] ?? c).toLowerCase();
+  if (/deviceid|imei/.test(bolsa)) return "imei_invalido";
+  if (/serviceid|service/.test(bolsa)) return "servicio_invalido";
+  if (/balance|fund|credit|saldo/.test(bolsa)) return "sin_saldo";
+  return null;
 };
 
 async function pedir<T>(ruta: string, init?: RequestInit): Promise<T> {
@@ -53,10 +64,8 @@ async function pedir<T>(ruta: string, init?: RequestInit): Promise<T> {
     });
   } catch (e) {
     if (e instanceof ErrorImeicheck) throw e;
-    throw new ErrorImeicheck(
-      "api_caida",
-      "No pudimos contactar a imeicheck. Completa los datos a mano y sigue.",
-    );
+    console.error("[imeicheck] sin respuesta", ruta, e);
+    throw new ErrorImeicheck("sin_respuesta");
   }
 
   const texto = await respuesta.text();
@@ -64,28 +73,27 @@ async function pedir<T>(ruta: string, init?: RequestInit): Promise<T> {
   try {
     cuerpo = texto ? JSON.parse(texto) : null;
   } catch {
-    cuerpo = null;
+    cuerpo = texto || null;
   }
 
   if (!respuesta.ok) {
-    const mensaje = mensajeDeRespuesta(cuerpo, respuesta.status);
+    /* El detalle crudo queda solo acá; al usuario le llega el mensaje en español. */
+    console.error("[imeicheck] error", ruta, detalleTecnico(cuerpo, respuesta.status));
+
     if (respuesta.status === 401 || respuesta.status === 403) {
-      throw new ErrorImeicheck(
-        "clave_invalida",
-        "La clave de imeicheck no es válida o fue revocada. Hay que actualizarla.",
-      );
+      throw new ErrorImeicheck("clave_invalida");
     }
-    if (respuesta.status === 402 || /balance|fund|credit|saldo/i.test(mensaje)) {
-      throw new ErrorImeicheck(
-        "sin_saldo",
-        "Se acabó el saldo de la cuenta imeicheck. Recárgala para seguir verificando.",
-      );
+    if (respuesta.status === 402) throw new ErrorImeicheck("sin_saldo");
+    if (respuesta.status === 400 || respuesta.status === 422) {
+      throw new ErrorImeicheck(motivoDeValidacion(cuerpo) ?? "imei_invalido");
     }
-    throw new ErrorImeicheck("api_caida", mensaje);
+    if (respuesta.status >= 500) throw new ErrorImeicheck("sin_respuesta");
+    throw new ErrorImeicheck(motivoDeValidacion(cuerpo) ?? "api_caida");
   }
 
   return (cuerpo ?? {}) as T;
 }
+
 
 export type RespuestaCheck = {
   id?: string;
