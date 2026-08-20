@@ -1551,6 +1551,10 @@ export type Database = {
       }
     }
     Functions: {
+      agregar_servicios_equipo: {
+        Args: { _equipo: string; _servicios: Json }
+        Returns: number
+      }
       ajustar_stock_accesorio: {
         Args: {
           _accesorio: string
@@ -1625,6 +1629,10 @@ export type Database = {
           debe_cambiar_pin: boolean
           email_interno: string
         }[]
+      }
+      marcar_equipo_disponible: {
+        Args: { _equipo: string }
+        Returns: undefined
       }
       marcar_revision_venta: {
         Args: { _estado: string; _nota?: string; _venta: string }
