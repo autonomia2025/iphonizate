@@ -73,7 +73,12 @@ export function IngresarEquipoModal({
   const [riesgos, setRiesgos] = useState<string[]>([]);
   const [aceptoRiesgo, setAceptoRiesgo] = useState(false);
   const [verificado, setVerificado] = useState(false);
+  /* Aviso temprano: si el IMEI ya está activo en la cadena, se dice al tipear */
+  const [duplicado, setDuplicado] = useState<{ estado: EquipoEstado; tienda: string | null } | null>(
+    null,
+  );
   const imeiRef = useRef<HTMLInputElement>(null);
+  const avisoRef = useRef<HTMLDivElement>(null);
   const guardarVerificacion = useServerFn(verificarYGuardarImei);
 
 
@@ -88,6 +93,33 @@ export function IngresarEquipoModal({
 
   const imeiOk = /^\d{15}$/.test(form.imei);
   const imeiLuhn = luhnValido(form.imei);
+
+  /* Chequeo de duplicado en cuanto el IMEI está completo, no al final del formulario */
+  useEffect(() => {
+    if (!abierto || !imeiOk) {
+      setDuplicado(null);
+      return;
+    }
+    let vivo = true;
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("v_stock")
+        .select("estado, tienda")
+        .eq("imei", form.imei)
+        .maybeSingle();
+      if (!vivo) return;
+      const estado = data?.estado as EquipoEstado | undefined;
+      setDuplicado(
+        estado && ESTADOS_ACTIVOS.includes(estado)
+          ? { estado, tienda: (data?.tienda as string | null) ?? null }
+          : null,
+      );
+    }, 250);
+    return () => {
+      vivo = false;
+      clearTimeout(t);
+    };
+  }, [abierto, imeiOk, form.imei]);
 
   const serviciosMarcados = useMemo(() => Object.keys(servicios) as ServicioTipo[], [servicios]);
 
@@ -105,9 +137,19 @@ export function IngresarEquipoModal({
     setRiesgos([]);
     setAceptoRiesgo(false);
     setVerificado(false);
+    setDuplicado(null);
     setTimeout(() => imeiRef.current?.focus(), 30);
 
   };
+
+  /* Un error nunca queda escondido al final del modal: toast + scroll al aviso */
+  const fallar = (texto: string, opciones?: { foco?: boolean }) => {
+    setAviso({ tipo: "error", texto });
+    toast.error("No se pudo guardar el equipo", { description: texto });
+    if (opciones?.foco) imeiRef.current?.focus();
+    setTimeout(() => avisoRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 40);
+  };
+
 
   const guardar = async () => {
     setAviso(null);
