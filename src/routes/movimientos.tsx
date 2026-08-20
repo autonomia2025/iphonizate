@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ScanLine, X } from "lucide-react";
+import { ArrowRight, Warehouse, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useFlashEscaneo } from "@/components/motion";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { CampoImei } from "@/components/CampoImei";
 import {
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
