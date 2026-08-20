@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
+  VerificacionEquipo,
+  type VerificacionFila,
+} from "@/components/inventario/VerificacionEquipo";
+import {
   CATEGORIA_ETIQUETA,
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
@@ -18,6 +22,7 @@ import {
   type EquipoEstado,
   type ServicioTipo,
 } from "@/lib/inventario";
+
 
 export type EquipoFila = VerificacionFila & {
   id: string;
