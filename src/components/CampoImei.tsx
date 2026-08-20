@@ -46,6 +46,8 @@ export function CampoImei({
   const [mensaje, setMensaje] = useState<string | null>(null);
   const largo = valor.length;
   const ok = imeiValido(valor);
+  const luhn = imeiRealmenteValido(valor);
+
 
   const intentar = () => {
     if (!valor) {
