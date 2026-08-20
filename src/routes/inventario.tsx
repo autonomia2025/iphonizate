@@ -346,7 +346,26 @@ function InventarioPage() {
                   onClick={() => setSeleccionado(e)}
                   className={`fila-densa cursor-pointer border-b border-white/5 last:border-0 hover:bg-white/[0.035] ${destellos[e.id] ? "destello" : ""}`}
                 >
-                  <td className="num px-4 py-2.5 tracking-[0.04em]">{e.imei}</td>
+                  <td className="num px-4 py-2.5 tracking-[0.04em]">
+                    <span className="inline-flex items-center gap-2">
+                      {e.imei}
+                      {tieneAlertaImei(e) && (
+                        <span
+                          title={
+                            e.icloud_activo && e.lista_negra
+                              ? "iCloud activo y lista negra"
+                              : e.icloud_activo
+                                ? "iCloud activo"
+                                : "En lista negra"
+                          }
+                          className="inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-red-500/15 px-1.5 py-0.5 font-sans text-[10px] uppercase tracking-wide text-red-200"
+                        >
+                          <ShieldAlert className="size-3" /> Alerta
+                        </span>
+                      )}
+                    </span>
+                  </td>
+
                   <td className="px-4 py-2.5">{e.modelo}</td>
                   <td className="num px-4 py-2.5 text-right">{e.gb ?? "—"}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">{e.color ?? "—"}</td>
