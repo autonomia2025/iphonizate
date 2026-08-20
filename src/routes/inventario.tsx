@@ -205,6 +205,13 @@ function InventarioPage() {
     [conteos],
   );
 
+  /* Equipos con iCloud activo o lista negra: no dependen del filtro de estado */
+  const conAlertas = useMemo(
+    () => (stock.data ?? []).filter((e) => tieneAlertaImei(e)).length,
+    [stock.data],
+  );
+
+
   const abrirPorImei = (valor: string) => {
     const imei = limpiarImei(valor);
     if (imei.length !== 15) return;
