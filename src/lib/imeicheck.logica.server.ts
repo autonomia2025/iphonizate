@@ -8,7 +8,13 @@ import {
   numero,
   type ServicioImeicheck,
 } from "@/lib/imeicheck.server";
-import { leerPropiedades, type ResultadoVerificacion } from "@/lib/imeicheck";
+import {
+  MENSAJE_MOTIVO,
+  datosParaEquipo,
+  leerPropiedades,
+  llavesDesconocidas,
+  type ResultadoVerificacion,
+} from "@/lib/imeicheck";
 
 const DIAS_CACHE = 30;
 
@@ -24,6 +30,31 @@ async function configuracion(supabase: Cliente) {
     serviceId: Number(data?.service_id ?? 12),
     ambiente: String(data?.ambiente ?? "sandbox"),
   };
+}
+
+/** La respuesta cruda se guarda siempre, incluso si el mapeo no reconoce nada. */
+async function guardarConsulta(
+  supabase: Cliente,
+  imei: string,
+  serviceId: number,
+  status: string,
+  respuesta: Record<string, unknown>,
+  costo: number,
+) {
+  const { data, error } = await supabase
+    .from("imei_verificaciones")
+    .insert({
+      imei,
+      service_id: serviceId,
+      status,
+      properties: (respuesta["properties"] ?? {}) as never,
+      respuesta: respuesta as never,
+      costo,
+    })
+    .select("fecha")
+    .maybeSingle();
+  if (error) console.error("[imeicheck] no se pudo guardar la consulta", imei, error.message);
+  return data?.fecha ? String(data.fecha) : new Date().toISOString();
 }
 
 export async function ejecutarVerificacion(
@@ -65,13 +96,10 @@ export async function ejecutarVerificacion(
     respuesta = await consultarImei(serviceId, imei);
   } catch (e) {
     if (e instanceof ErrorImeicheck) {
-      return { ok: false, motivo: e.motivo, mensaje: e.message };
+      return { ok: false, motivo: e.motivo, mensaje: MENSAJE_MOTIVO[e.motivo] };
     }
-    return {
-      ok: false,
-      motivo: "api_caida",
-      mensaje: "No pudimos verificar el IMEI. Completa los datos a mano y sigue.",
-    };
+    console.error("[imeicheck] fallo inesperado", imei, e);
+    return { ok: false, motivo: "sin_respuesta", mensaje: MENSAJE_MOTIVO.sin_respuesta };
   }
 
   const status = String(respuesta.status ?? "unsuccessful");
@@ -80,38 +108,50 @@ export async function ejecutarVerificacion(
   /* Siempre se valida status antes de leer properties: en el caso fallido llega como array vacío. */
   const props = status === "successful" ? leerPropiedades(respuesta.properties) : null;
 
-  if (!props) {
-    return {
-      ok: false,
-      motivo: "sin_resultado",
-      status,
-      mensaje:
-        "imeicheck no pudo verificar este IMEI. Puedes reintentar o completar los datos a mano.",
-    };
+  /* Aviso temprano si Live cambia los nombres de las llaves. */
+  const desconocidas = llavesDesconocidas(respuesta.properties);
+  if (desconocidas.length > 0) {
+    console.warn(
+      `[imeicheck] llaves no contempladas en el mapeo (servicio ${serviceId}): ${desconocidas.join(", ")}`,
+    );
   }
 
-  const { data: fila } = await supabase
-    .from("imei_verificaciones")
-    .insert({
-      imei,
-      service_id: serviceId,
-      status,
-      properties: respuesta.properties as never,
-      respuesta: respuesta as never,
-      costo,
-    })
-    .select("fecha")
-    .maybeSingle();
-
-  return {
-    ok: true,
-    status: "successful",
-    propiedades: props,
-    origen: "api",
-    fecha: String(fila?.fecha ?? new Date().toISOString()),
+  const fecha = await guardarConsulta(
+    supabase,
+    imei,
     serviceId,
+    status,
+    respuesta as Record<string, unknown>,
     costo,
-  };
+  );
+
+  if (!props) {
+    return { ok: false, motivo: "sin_resultado", status, mensaje: MENSAJE_MOTIVO.sin_resultado };
+  }
+
+  return { ok: true, status: "successful", propiedades: props, origen: "api", fecha, serviceId, costo };
+}
+
+/** Verifica y deja los datos grabados en la fila del equipo (solo desde el servidor). */
+export async function verificarYGuardar(
+  supabase: Cliente,
+  imei: string,
+  forzar = false,
+  riesgoAceptado = false,
+): Promise<ResultadoVerificacion & { guardado?: boolean }> {
+  const resultado = await ejecutarVerificacion(supabase, imei, forzar);
+  if (!resultado.ok) return resultado;
+
+  const { error } = await supabase.rpc("guardar_verificacion_equipo", {
+    _imei: imei,
+    _datos: datosParaEquipo(resultado.propiedades) as never,
+    _riesgo_aceptado: riesgoAceptado,
+  });
+  if (error) {
+    console.error("[imeicheck] no se pudo guardar en el equipo", imei, error.message);
+    return { ...resultado, guardado: false };
+  }
+  return { ...resultado, guardado: true };
 }
 
 export async function obtenerSaldo() {
@@ -122,8 +162,8 @@ export async function obtenerSaldo() {
     const err = e instanceof ErrorImeicheck ? e : null;
     return {
       ok: false as const,
-      motivo: err?.motivo ?? "api_caida",
-      mensaje: err?.message ?? "No pudimos leer el saldo de imeicheck.",
+      motivo: err?.motivo ?? "sin_respuesta",
+      mensaje: err ? MENSAJE_MOTIVO[err.motivo] : MENSAJE_MOTIVO.sin_respuesta,
     };
   }
 }
@@ -146,8 +186,8 @@ export async function obtenerServicios() {
     const err = e instanceof ErrorImeicheck ? e : null;
     return {
       ok: false as const,
-      motivo: err?.motivo ?? "api_caida",
-      mensaje: err?.message ?? "No pudimos leer los servicios de imeicheck.",
+      motivo: err?.motivo ?? "sin_respuesta",
+      mensaje: err ? MENSAJE_MOTIVO[err.motivo] : MENSAJE_MOTIVO.sin_respuesta,
     };
   }
 }

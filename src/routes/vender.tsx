@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Trash2, UserPlus, X } from "lucide-react";
+import { Plus, Search, ShieldAlert, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { NuevoClienteModal, type ClienteBasico } from "@/components/vender/NuevoClienteModal";
 import { PagoModal } from "@/components/vender/PagoModal";
 import { VentaExito, type VentaResumen } from "@/components/vender/VentaExito";
+import { tieneAlertaImei } from "@/components/inventario/VerificacionEquipo";
+
 import { formatCLP } from "@/lib/stores";
 import { ESTADO_ETIQUETA, puedeVerCostos, type EquipoEstado } from "@/lib/inventario";
 import {
@@ -86,12 +88,26 @@ function VenderPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("v_stock")
-        .select("id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso")
+        .select(
+          "id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso, icloud_activo, lista_negra",
+        )
+
         .order("fecha_ingreso", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  /* Alertas de verificación por equipo: se advierten antes de cerrar la venta */
+  const alertas = useMemo(() => {
+    const mapa = new Map<string, { icloud: boolean; negra: boolean }>();
+    (stock.data ?? []).forEach((e) => {
+      if (e.id && tieneAlertaImei(e))
+        mapa.set(e.id, { icloud: !!e.icloud_activo, negra: !!e.lista_negra });
+    });
+    return mapa;
+  }, [stock.data]);
+
 
   const costos = useQuery({
     queryKey: ["v_equipos_full-pos"],
@@ -628,6 +644,17 @@ function VenderPage() {
                   {!valor && (
                     <p className="mt-1.5 text-xs text-amber-300">Falta el precio de este equipo</p>
                   )}
+                  {alertas.get(i.id) && (
+                    <p className="mt-1.5 flex items-center gap-1.5 rounded-lg border border-red-400/35 bg-red-500/10 px-2 py-1.5 text-xs text-red-200">
+                      <ShieldAlert className="size-3.5 shrink-0" />
+                      {alertas.get(i.id)!.icloud && alertas.get(i.id)!.negra
+                        ? "iCloud activo y lista negra: revisa antes de vender."
+                        : alertas.get(i.id)!.icloud
+                          ? "iCloud activo: el cliente no podrá usarlo."
+                          : "IMEI en lista negra: reportado perdido o robado."}
+                    </p>
+                  )}
+
                 </div>
               );
             })}

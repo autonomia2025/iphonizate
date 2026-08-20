@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,7 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCLP } from "@/lib/stores";
+import { luhnValido } from "@/lib/imeicheck";
+import { verificarYGuardarImei } from "@/lib/imeicheck.functions";
 import { VerificarImeiPanel } from "@/components/inventario/VerificarImeiPanel";
+
 import {
   CATEGORIAS,
   CATEGORIA_ETIQUETA,
@@ -68,7 +72,10 @@ export function IngresarEquipoModal({
   /* Riesgos bloqueantes detectados por imeicheck (iCloud activo, lista negra) */
   const [riesgos, setRiesgos] = useState<string[]>([]);
   const [aceptoRiesgo, setAceptoRiesgo] = useState(false);
+  const [verificado, setVerificado] = useState(false);
   const imeiRef = useRef<HTMLInputElement>(null);
+  const guardarVerificacion = useServerFn(verificarYGuardarImei);
+
 
   const set = (k: keyof typeof vacio, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -80,6 +87,8 @@ export function IngresarEquipoModal({
   }, [abierto, tiendaPorDefecto, tiendas]);
 
   const imeiOk = /^\d{15}$/.test(form.imei);
+  const imeiLuhn = luhnValido(form.imei);
+
   const serviciosMarcados = useMemo(() => Object.keys(servicios) as ServicioTipo[], [servicios]);
 
   const toggleServicio = (tipo: ServicioTipo) =>
@@ -95,7 +104,9 @@ export function IngresarEquipoModal({
     setServicios({});
     setRiesgos([]);
     setAceptoRiesgo(false);
+    setVerificado(false);
     setTimeout(() => imeiRef.current?.focus(), 30);
+
   };
 
   const guardar = async () => {
@@ -201,6 +212,19 @@ export function IngresarEquipoModal({
         });
       }
 
+      /* La verificación queda grabada en la fila: reusa la caché, no gasta otra consulta */
+      if (verificado) {
+        try {
+          await guardarVerificacion({
+            data: { imei: form.imei, riesgoAceptado: riesgos.length > 0 && aceptoRiesgo },
+          });
+        } catch {
+          toast.warning("El equipo quedó guardado, pero no pudimos grabar la verificación.");
+        }
+      }
+
+
+
 
 
       if (esReingreso && equipoId) {
@@ -258,11 +282,24 @@ export function IngresarEquipoModal({
                 className="num mt-1 tracking-[0.08em]"
               />
               <p
-                className={`mt-1 text-xs ${imeiOk ? "text-emerald-300" : form.imei ? "text-amber-300" : "text-muted-foreground"}`}
+                className={`mt-1 text-xs ${
+                  imeiOk && imeiLuhn
+                    ? "text-emerald-300"
+                    : form.imei
+                      ? "text-amber-300"
+                      : "text-muted-foreground"
+                }`}
               >
                 {form.imei.length}/15 dígitos
-                {form.imei && !imeiOk ? " · falta completar" : imeiOk ? " · válido" : ""}
+                {!form.imei
+                  ? ""
+                  : !imeiOk
+                    ? " · falta completar"
+                    : imeiLuhn
+                      ? " · válido"
+                      : " · dígito verificador incorrecto"}
               </p>
+
             </div>
             <div>
               <Label htmlFor="modelo">Modelo</Label>
@@ -282,7 +319,9 @@ export function IngresarEquipoModal({
             onRiesgos={setRiesgos}
             aceptoRiesgo={aceptoRiesgo}
             onAceptoRiesgo={setAceptoRiesgo}
+            onVerificado={setVerificado}
           />
+
 
 
 

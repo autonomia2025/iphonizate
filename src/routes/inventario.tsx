@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileSpreadsheet, PackageSearch, Plus, Search } from "lucide-react";
+import { FileSpreadsheet, PackageSearch, Plus, Search, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,8 @@ import { limpiarImei } from "@/components/CampoImei";
 import { IngresarEquipoModal } from "@/components/inventario/IngresarEquipoModal";
 import { ImportarEquiposModal } from "@/components/inventario/ImportarEquiposModal";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
+import { tieneAlertaImei } from "@/components/inventario/VerificacionEquipo";
+
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 import {
   AnimatePresence,
@@ -78,6 +80,8 @@ function InventarioPage() {
   const [busqueda, setBusqueda] = useState("");
   const [ubicacion, setUbicacion] = useState<string | null>(null);
   const [estado, setEstado] = useState<EquipoEstado | null>(null);
+  const [soloAlertas, setSoloAlertas] = useState(false);
+
   const [modalAbierto, setModalAbierto] = useState(false);
   const [importAbierto, setImportAbierto] = useState(false);
   const [seleccionado, setSeleccionado] = useState<EquipoFila | null>(null);
@@ -105,9 +109,10 @@ function InventarioPage() {
       const { data, error } = await supabase
         .from("v_stock")
         .select(
-          "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
+          "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at",
         )
         .order("fecha_ingreso", { ascending: false });
+
       if (error) throw error;
       return data ?? [];
     },
@@ -149,6 +154,17 @@ function InventarioPage() {
           tienda: e.tienda,
           ubicacion_id: e.ubicacion_id,
           fecha_ingreso: e.fecha_ingreso,
+          serie: e.serie,
+          imei2: e.imei2,
+          icloud_activo: e.icloud_activo,
+          lista_negra: e.lista_negra,
+          bloqueo_operador: e.bloqueo_operador,
+          reemplazado_apple: e.reemplazado_apple,
+          garantia_estado: e.garantia_estado,
+          pais_compra: e.pais_compra,
+          fecha_compra_estimada: e.fecha_compra_estimada,
+          bloqueo_usa: e.bloqueo_usa,
+          verificado_at: e.verificado_at,
           costo: ex?.costo ?? null,
           email_vinculado: ex?.email_vinculado ?? null,
           proveedor: ex?.proveedor ?? null,
@@ -160,6 +176,7 @@ function InventarioPage() {
         if (ubicacion && (e as { ubicacion_id?: string | null }).ubicacion_id !== ubicacion)
           return false;
         if (estado && e.estado !== estado) return false;
+        if (soloAlertas && !tieneAlertaImei(e)) return false;
         if (!q) return true;
         return (
           e.imei.toLowerCase().includes(q) ||
@@ -167,7 +184,8 @@ function InventarioPage() {
           (e.color ?? "").toLowerCase().includes(q)
         );
       });
-  }, [stock.data, extras, busqueda, ubicacion, estado]);
+  }, [stock.data, extras, busqueda, ubicacion, estado, soloAlertas]);
+
 
   const { enVivo, destellos } = useEquiposEnVivo(() => {
     void stock.refetch();
@@ -188,6 +206,13 @@ function InventarioPage() {
     () => ESTADOS.filter((s) => (conteos.get(s) ?? 0) > 0),
     [conteos],
   );
+
+  /* Equipos con iCloud activo o lista negra: no dependen del filtro de estado */
+  const conAlertas = useMemo(
+    () => (stock.data ?? []).filter((e) => tieneAlertaImei(e)).length,
+    [stock.data],
+  );
+
 
   const abrirPorImei = (valor: string) => {
     const imei = limpiarImei(valor);
@@ -262,8 +287,20 @@ function InventarioPage() {
               {ESTADO_ETIQUETA[s]} {conteos.get(s) ?? 0}
             </Chip>
           ))}
+          <button
+            type="button"
+            onClick={() => setSoloAlertas((v) => !v)}
+            className={`ml-1 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all duration-200 ${
+              soloAlertas
+                ? "border-red-400/50 bg-red-500/15 text-red-200"
+                : "border-white/10 bg-white/[0.04] text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ShieldAlert className="size-3.5" /> Con alertas {conAlertas}
+          </button>
         </div>
       </div>
+
 
       <div className="solid-panel mt-6 overflow-hidden">
         <div className="flex items-center justify-between border-b border-white/8 px-4 py-2.5">
@@ -309,7 +346,26 @@ function InventarioPage() {
                   onClick={() => setSeleccionado(e)}
                   className={`fila-densa cursor-pointer border-b border-white/5 last:border-0 hover:bg-white/[0.035] ${destellos[e.id] ? "destello" : ""}`}
                 >
-                  <td className="num px-4 py-2.5 tracking-[0.04em]">{e.imei}</td>
+                  <td className="num px-4 py-2.5 tracking-[0.04em]">
+                    <span className="inline-flex items-center gap-2">
+                      {e.imei}
+                      {tieneAlertaImei(e) && (
+                        <span
+                          title={
+                            e.icloud_activo && e.lista_negra
+                              ? "iCloud activo y lista negra"
+                              : e.icloud_activo
+                                ? "iCloud activo"
+                                : "En lista negra"
+                          }
+                          className="inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-red-500/15 px-1.5 py-0.5 font-sans text-[10px] uppercase tracking-wide text-red-200"
+                        >
+                          <ShieldAlert className="size-3" /> Alerta
+                        </span>
+                      )}
+                    </span>
+                  </td>
+
                   <td className="px-4 py-2.5">{e.modelo}</td>
                   <td className="num px-4 py-2.5 text-right">{e.gb ?? "—"}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">{e.color ?? "—"}</td>

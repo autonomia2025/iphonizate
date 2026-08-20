@@ -1,6 +1,7 @@
 import { useState, type RefObject } from "react";
 import { ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { luhnValido } from "@/lib/imeicheck";
 import { cn } from "@/lib/utils";
 
 export const AYUDA_IMEI = "Escanea o escribe el IMEI y presiona Enter";
@@ -9,6 +10,10 @@ export const AYUDA_IMEI = "Escanea o escribe el IMEI y presiona Enter";
 export const limpiarImei = (valor: string) => valor.replace(/[^\d]/g, "").slice(0, 15);
 
 export const imeiValido = (valor: string) => /^\d{15}$/.test(valor);
+
+/** Largo correcto y dígito verificador correcto (Luhn). */
+export const imeiRealmenteValido = (valor: string) => luhnValido(valor);
+
 
 type Props = {
   valor: string;
@@ -41,6 +46,8 @@ export function CampoImei({
   const [mensaje, setMensaje] = useState<string | null>(null);
   const largo = valor.length;
   const ok = imeiValido(valor);
+  const luhn = imeiRealmenteValido(valor);
+
 
   const intentar = () => {
     if (!valor) {
@@ -110,7 +117,7 @@ export function CampoImei({
         <span
           className={cn(
             "num rounded-full border px-2 py-0.5",
-            ok
+            ok && luhn
               ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300"
               : largo > 0
                 ? "border-amber-400/25 bg-amber-500/10 text-amber-300"
@@ -118,7 +125,9 @@ export function CampoImei({
           )}
         >
           {largo}/15
+          {ok ? (luhn ? " · válido" : " · dígito verificador incorrecto") : ""}
         </span>
+
       </p>
       {mensaje && <p className="mt-1 text-xs text-amber-300">{mensaje}</p>}
     </div>

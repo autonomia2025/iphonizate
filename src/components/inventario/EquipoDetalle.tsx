@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
+  VerificacionEquipo,
+  type VerificacionFila,
+} from "@/components/inventario/VerificacionEquipo";
+import {
   CATEGORIA_ETIQUETA,
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
@@ -19,7 +23,8 @@ import {
   type ServicioTipo,
 } from "@/lib/inventario";
 
-export type EquipoFila = {
+
+export type EquipoFila = VerificacionFila & {
   id: string;
   imei: string;
   modelo: string;
@@ -37,6 +42,7 @@ export type EquipoFila = {
   lote?: string | null;
   notas?: string | null;
 };
+
 
 const NO_TRASLADABLES: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO"];
 
@@ -271,6 +277,9 @@ export function EquipoDetalle({
                 <p className="mt-0.5 text-sm">{equipo.notas}</p>
               </div>
             )}
+
+            <VerificacionEquipo equipo={equipo} onActualizado={refrescar} />
+
 
             <section className="mt-6">
               <h3 className="text-sm font-semibold">Servicios</h3>

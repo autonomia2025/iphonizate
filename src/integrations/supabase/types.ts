@@ -233,62 +233,105 @@ export type Database = {
       equipos: {
         Row: {
           bateria: number | null
+          bloqueo_operador: boolean | null
+          bloqueo_usa: string | null
           categoria: Database["public"]["Enums"]["categoria_equipo"]
           color: string | null
           costo: number
           email_vinculado: string | null
           estado: Database["public"]["Enums"]["equipo_estado"]
+          fecha_compra_estimada: string | null
           fecha_ingreso: string
+          garantia_estado: string | null
           gb: number | null
+          icloud_activo: boolean | null
           id: string
           imei: string
+          imei2: string | null
+          lista_negra: boolean | null
           lote: string | null
           modelo: string
           notas: string | null
+          pais_compra: string | null
           proveedor: string | null
+          reemplazado_apple: boolean | null
+          riesgo_aceptado_at: string | null
+          riesgo_aceptado_por: string | null
           serie: string | null
           ubicacion_id: string | null
           updated_at: string
+          verificado_at: string | null
         }
         Insert: {
           bateria?: number | null
+          bloqueo_operador?: boolean | null
+          bloqueo_usa?: string | null
           categoria?: Database["public"]["Enums"]["categoria_equipo"]
           color?: string | null
           costo?: number
           email_vinculado?: string | null
           estado?: Database["public"]["Enums"]["equipo_estado"]
+          fecha_compra_estimada?: string | null
           fecha_ingreso?: string
+          garantia_estado?: string | null
           gb?: number | null
+          icloud_activo?: boolean | null
           id?: string
           imei: string
+          imei2?: string | null
+          lista_negra?: boolean | null
           lote?: string | null
           modelo: string
           notas?: string | null
+          pais_compra?: string | null
           proveedor?: string | null
+          reemplazado_apple?: boolean | null
+          riesgo_aceptado_at?: string | null
+          riesgo_aceptado_por?: string | null
           serie?: string | null
           ubicacion_id?: string | null
           updated_at?: string
+          verificado_at?: string | null
         }
         Update: {
           bateria?: number | null
+          bloqueo_operador?: boolean | null
+          bloqueo_usa?: string | null
           categoria?: Database["public"]["Enums"]["categoria_equipo"]
           color?: string | null
           costo?: number
           email_vinculado?: string | null
           estado?: Database["public"]["Enums"]["equipo_estado"]
+          fecha_compra_estimada?: string | null
           fecha_ingreso?: string
+          garantia_estado?: string | null
           gb?: number | null
+          icloud_activo?: boolean | null
           id?: string
           imei?: string
+          imei2?: string | null
+          lista_negra?: boolean | null
           lote?: string | null
           modelo?: string
           notas?: string | null
+          pais_compra?: string | null
           proveedor?: string | null
+          reemplazado_apple?: boolean | null
+          riesgo_aceptado_at?: string | null
+          riesgo_aceptado_por?: string | null
           serie?: string | null
           ubicacion_id?: string | null
           updated_at?: string
+          verificado_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "equipos_riesgo_aceptado_por_fkey"
+            columns: ["riesgo_aceptado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "equipos_ubicacion_id_fkey"
             columns: ["ubicacion_id"]
@@ -1487,16 +1530,27 @@ export type Database = {
       v_stock: {
         Row: {
           bateria: number | null
+          bloqueo_operador: boolean | null
+          bloqueo_usa: string | null
           categoria: Database["public"]["Enums"]["categoria_equipo"] | null
           color: string | null
           estado: Database["public"]["Enums"]["equipo_estado"] | null
+          fecha_compra_estimada: string | null
           fecha_ingreso: string | null
+          garantia_estado: string | null
           gb: number | null
+          icloud_activo: boolean | null
           id: string | null
           imei: string | null
+          imei2: string | null
+          lista_negra: boolean | null
           modelo: string | null
+          pais_compra: string | null
+          reemplazado_apple: boolean | null
+          serie: string | null
           tienda: string | null
           ubicacion_id: string | null
+          verificado_at: string | null
         }
         Relationships: [
           {
@@ -1701,6 +1755,10 @@ export type Database = {
       garantia_mandar_tecnico: {
         Args: { _garantia: string; _servicios: Json }
         Returns: number
+      }
+      guardar_verificacion_equipo: {
+        Args: { _datos: Json; _imei: string; _riesgo_aceptado?: boolean }
+        Returns: string
       }
       login_lookup: {
         Args: { _pin: string; _usuario: string }
