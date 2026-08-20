@@ -476,7 +476,7 @@ function TecnicoPage() {
               </div>
 
               <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {SERVICIOS.map((tipo) => {
+                {SERVICIOS.map(({ tipo }) => {
                   const activo = tipo in arreglosNuevos;
                   return (
                     <div key={tipo} className="flex items-center gap-2">
