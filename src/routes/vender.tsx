@@ -96,6 +96,17 @@ function VenderPage() {
     },
   });
 
+  /* Alertas de verificación por equipo: se advierten antes de cerrar la venta */
+  const alertas = useMemo(() => {
+    const mapa = new Map<string, { icloud: boolean; negra: boolean }>();
+    (stock.data ?? []).forEach((e) => {
+      if (e.id && tieneAlertaImei(e))
+        mapa.set(e.id, { icloud: !!e.icloud_activo, negra: !!e.lista_negra });
+    });
+    return mapa;
+  }, [stock.data]);
+
+
   const costos = useQuery({
     queryKey: ["v_equipos_full-pos"],
     enabled: conCostos,
