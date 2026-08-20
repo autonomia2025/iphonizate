@@ -10,7 +10,22 @@ fmiOn, gsmaBlacklisted, simLock, replaced, loaner, demoUnit,
 estPurchaseDate, usaBlockStatus
 ```
 
-Por eso "Modelo detectado" sale "Sin dato": el mapeo busca una llave que no llega. Se corrige el mapeo completo contra esta lista real (`modelDesc` como modelo, `apple/region` como país/región, y se agregan `meid`, `loaner`, `demoUnit`, `image`). Las llaves con barra se leen siempre con `properties["apple/region"]`, nunca con punto.
+Por eso "Modelo detectado" sale "Sin dato": el mapeo busca una llave que no llega. Las llaves con barra se leen siempre con `properties["apple/region"]`, nunca con punto.
+
+### Mapeo tolerante a cambios de llaves
+
+Estas llaves vienen del servicio 12 de Sandbox (datos simulados), así que el mapeo acepta varias alternativas por dato, en orden de preferencia:
+
+- modelo → `modelDesc`, `apple/modelName`, `model`, `deviceName`
+- región / país → `apple/region`, `purchaseCountry`, `country`
+- garantía → `warrantyStatus`, `warranty`, `coverage`
+
+Si ninguna coincide, el panel muestra "Sin dato" y nada se rompe. Cuando llegue una llave desconocida (no contemplada en el mapeo), queda un aviso en los registros del servidor para ver de inmediato qué cambió al pasar a Live.
+
+### La respuesta cruda se guarda siempre
+
+El `properties` completo, tal cual llega, se guarda en `imei_verificaciones` incluso cuando el mapeo no reconoce nada. Así, si mañana Live trae capacidad o color en una llave que hoy ignoramos, se recuperan de las consultas ya pagadas.
+
 
 ## 1. Errores en español, nunca crudos
 
