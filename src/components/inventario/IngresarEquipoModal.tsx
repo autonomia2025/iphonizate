@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCLP } from "@/lib/stores";
+import { VerificarImeiPanel } from "@/components/inventario/VerificarImeiPanel";
 import {
   CATEGORIAS,
   CATEGORIA_ETIQUETA,
@@ -17,6 +18,7 @@ import {
   type EquipoEstado,
   type ServicioTipo,
 } from "@/lib/inventario";
+
 
 type Tienda = { id: string; nombre: string };
 
