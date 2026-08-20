@@ -47,8 +47,11 @@ const selectClase =
 function MovimientosPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const puedeTrasladar = puedeIngresarEquipos(rol);
+  const esVendedor = rol === "vendedor";
+  /* El vendedor solo puede devolver a bodega desde su tienda */
+  const puedeTrasladar = puedeIngresarEquipos(rol) || esVendedor;
   const esJefe = rol === "jefe_tienda";
+  const origenFijo = esJefe || esVendedor;
   const queryClient = useQueryClient();
 
   const [origen, setOrigen] = useState<string>("");
@@ -65,11 +68,39 @@ function MovimientosPage() {
   const tiendas = useQuery({
     queryKey: ["tiendas"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tiendas").select("id, nombre").order("nombre");
+      const { data, error } = await supabase
+        .from("tiendas")
+        .select("id, nombre, es_bodega")
+        .order("nombre");
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  const bodega = (tiendas.data ?? []).find((t) => t.es_bodega);
+  const etiquetaTienda = (t: { nombre: string; es_bodega?: boolean | null }) =>
+    t.es_bodega ? `${t.nombre} · bodega` : t.nombre;
+
+  const devolverABodega = () => {
+    if (!bodega) {
+      toast.error("No hay una bodega configurada en el sistema");
+      return;
+    }
+    const miTienda = usuario?.tienda_id ?? origen;
+    if (!miTienda) {
+      toast.error("Tu usuario no tiene tienda asignada: elige el origen a mano");
+      return;
+    }
+    if (miTienda === bodega.id) {
+      toast.warning("Ya estás en la bodega: elige otro destino");
+      return;
+    }
+    setOrigen(miTienda);
+    setDestino(bodega.id);
+    setLista([]);
+    scanRef.current?.focus();
+    toast.success(`Listo para devolver a ${bodega.nombre}: escanea los equipos`);
+  };
 
   useEffect(() => {
     if (esJefe && usuario?.tienda_id) setOrigen(usuario.tienda_id);
