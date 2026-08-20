@@ -1,6 +1,7 @@
 import { useState, type RefObject } from "react";
 import { ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { luhnValido } from "@/lib/imeicheck";
 import { cn } from "@/lib/utils";
 
 export const AYUDA_IMEI = "Escanea o escribe el IMEI y presiona Enter";
@@ -9,6 +10,10 @@ export const AYUDA_IMEI = "Escanea o escribe el IMEI y presiona Enter";
 export const limpiarImei = (valor: string) => valor.replace(/[^\d]/g, "").slice(0, 15);
 
 export const imeiValido = (valor: string) => /^\d{15}$/.test(valor);
+
+/** Largo correcto y dígito verificador correcto (Luhn). */
+export const imeiRealmenteValido = (valor: string) => luhnValido(valor);
+
 
 type Props = {
   valor: string;
