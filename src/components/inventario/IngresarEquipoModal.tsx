@@ -113,6 +113,16 @@ export function IngresarEquipoModal({
       setAviso({ tipo: "error", texto: "Selecciona la ubicación del equipo." });
       return;
     }
+    if (riesgos.length > 0 && !aceptoRiesgo) {
+      setAviso({
+        tipo: "error",
+        texto:
+          "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
+      });
+      return;
+    }
+
+
 
     setGuardando(true);
     try {
