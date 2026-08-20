@@ -103,8 +103,13 @@ function MovimientosPage() {
   };
 
   useEffect(() => {
-    if (esJefe && usuario?.tienda_id) setOrigen(usuario.tienda_id);
-  }, [esJefe, usuario?.tienda_id]);
+    if (origenFijo && usuario?.tienda_id) setOrigen(usuario.tienda_id);
+  }, [origenFijo, usuario?.tienda_id]);
+
+  /* El vendedor solo tiene un destino posible: la bodega */
+  useEffect(() => {
+    if (esVendedor && bodega) setDestino(bodega.id);
+  }, [esVendedor, bodega]);
 
   useEffect(() => {
     if (puedeTrasladar) scanRef.current?.focus();
