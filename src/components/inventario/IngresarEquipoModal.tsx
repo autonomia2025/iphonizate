@@ -248,6 +248,16 @@ export function IngresarEquipoModal({
             </div>
           </div>
 
+          <VerificarImeiPanel
+            imei={form.imei}
+            onUsarModelo={(modelo) => set("modelo", modelo)}
+            onRiesgos={setRiesgos}
+            aceptoRiesgo={aceptoRiesgo}
+            onAceptoRiesgo={setAceptoRiesgo}
+          />
+
+
+
           <div className="grid gap-4 sm:grid-cols-4">
             <div>
               <Label htmlFor="gb">GB</Label>
