@@ -64,17 +64,19 @@ export function ImportarEquiposModal({ abierto, onCerrar, tiendas, puedeCostos, 
     try {
       const buffer = await archivo.arrayBuffer();
       const libro = XLSX.read(buffer, { cellDates: false, raw: false });
-      const hoja = libro.Sheets[libro.SheetNames[0]];
+      const nombreHoja = libro.SheetNames[0];
+      const hoja = nombreHoja ? libro.Sheets[nombreHoja] : undefined;
       if (!hoja) {
         toast.error("El archivo no tiene ninguna hoja con datos");
         return;
       }
       const filas = XLSX.utils.sheet_to_json<Record<string, unknown>>(hoja, { defval: "", raw: false });
-      if (filas.length === 0) {
+      const primera = filas[0];
+      if (!primera) {
         toast.error("El archivo está vacío o no tiene encabezados");
         return;
       }
-      const enc = Object.keys(filas[0]);
+      const enc = Object.keys(primera);
       setNombreArchivo(archivo.name);
       setEncabezados(enc);
       setFilasCrudas(filas);
