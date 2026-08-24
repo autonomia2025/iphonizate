@@ -69,7 +69,16 @@ function AccesoriosPage() {
         .select("id, nombre, categoria, tipo, modelo, costo, precio, minimo")
         .order("nombre");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((a) => ({
+        id: a.id as string,
+        nombre: a.nombre ?? "",
+        categoria: a.categoria,
+        tipo: a.tipo,
+        modelo: a.modelo,
+        costo: a.costo ?? 0,
+        precio: a.precio ?? 0,
+        minimo: a.minimo ?? 0,
+      }));
     },
   });
 

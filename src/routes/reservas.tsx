@@ -115,7 +115,14 @@ function ReservasPage() {
         .select("id, nombre, categoria, modelo, precio, costo")
         .order("nombre");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((a) => ({
+        id: a.id as string,
+        nombre: a.nombre ?? "",
+        categoria: a.categoria,
+        modelo: a.modelo,
+        precio: a.precio ?? 0,
+        costo: a.costo,
+      }));
     },
   });
 

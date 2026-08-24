@@ -48,7 +48,7 @@ export function BuscarVendidos({
         _limite: 40,
       });
       if (error) throw error;
-      return (data ?? []) as EquipoVendido[];
+      return ((data ?? []) as EquipoVendido[]).filter((f) => !!f.imei);
     },
   });
 
