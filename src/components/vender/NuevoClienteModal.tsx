@@ -19,12 +19,14 @@ export function NuevoClienteModal({
   abierto,
   onCerrar,
   onCreado,
+  tiendaId,
   telefonoInicial = "",
   nombreInicial = "",
 }: {
   abierto: boolean;
   onCerrar: () => void;
   onCreado: (cliente: ClienteBasico) => void;
+  tiendaId: string | null | undefined;
   telefonoInicial?: string;
   nombreInicial?: string;
 }) {
