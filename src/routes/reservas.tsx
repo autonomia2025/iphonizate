@@ -190,13 +190,14 @@ function ReservasPage() {
   }, [accesorios.data, stockAcc.data, tiendaActiva?.id, busqueda]);
 
   const clientes = useQuery({
-    queryKey: ["clientes-reservas", clienteQ],
-    enabled: clienteQ.trim().length >= 2 && !cliente,
+    queryKey: ["clientes-reservas", clienteQ, tiendaActiva?.id],
+    enabled: clienteQ.trim().length >= 2 && !cliente && !!tiendaActiva?.id,
     queryFn: async () => {
       const q = clienteQ.trim();
       const { data, error } = await supabase
         .from("clientes")
         .select("id, nombre, telefono")
+        .eq("tienda_id", tiendaActiva!.id)
         .or(`nombre.ilike.%${q}%,telefono.ilike.%${q}%`)
         .limit(6);
       if (error) throw error;
