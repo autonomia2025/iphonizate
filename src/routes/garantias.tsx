@@ -25,6 +25,7 @@ import {
   type GarantiaMinima,
 } from "@/components/garantias/MandarTecnicoModal";
 import { ResolverGarantiaModal } from "@/components/garantias/ResolverGarantiaModal";
+import { BuscarVendidos } from "@/components/garantias/BuscarVendidos";
 
 const DESC = "Solicitudes de garantía, SLA de 72 horas y resoluciones por reparación o cambio.";
 
@@ -240,6 +241,17 @@ function GarantiasPage() {
                 className={cn(campo, "num pl-9", flash.clase)}
               />
             </div>
+
+            <BuscarVendidos
+              imeiActivo={imei}
+              onSeleccionar={(f) => {
+                setImei(f.imei);
+                setVenta(f);
+                setSinVenta(!f.venta_id);
+                setCliente(f.cliente_nombre ?? "");
+                setTelefono(f.cliente_telefono ?? "");
+              }}
+            />
 
             {imei && (
               <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
