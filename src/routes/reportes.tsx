@@ -175,15 +175,13 @@ function ReportesPage() {
     enabled: autorizado,
     queryFn: async () => {
       let q = supabase
-        .from("venta_items")
-        .select(
-          "id, precio, costo_snapshot, equipo_id, equipos(modelo, gb), ventas!inner(id, fecha, tienda_id, anulada)",
-        )
-        .eq("ventas.anulada", false)
-        .gte("ventas.fecha", desde)
-        .lte("ventas.fecha", hasta)
+        .from("v_venta_items")
+        .select("id, venta_id, precio, costo_snapshot, equipo_id, modelo, gb, tienda_id, fecha")
+        .eq("anulada", false)
+        .gte("fecha", desde)
+        .lte("fecha", hasta)
         .not("equipo_id", "is", null);
-      if (tiendaFiltro !== "todas") q = q.eq("ventas.tienda_id", tiendaFiltro);
+      if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
       const { data, error } = await q.limit(5000);
       if (error) throw error;
       return data ?? [];
@@ -242,7 +240,7 @@ function ReportesPage() {
     enabled: autorizado,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("servicios_equipo")
+        .from("v_servicios_equipo")
         .select("id, tipo, costo, estado, asignado_at, listo_at, created_at")
         .gte("created_at", desde)
         .lte("created_at", hasta)
@@ -302,7 +300,7 @@ function ReportesPage() {
   const modelos = useMemo<ModeloFila[]>(() => {
     const mapa = new Map<string, { unidades: number; ingreso: number; costo: number }>();
     for (const it of items.data ?? []) {
-      const eq = it.equipos as { modelo?: string; gb?: number | null } | null;
+      const eq = it as { modelo?: string | null; gb?: number | null };
       const nombre = eq?.modelo ? `${eq.modelo}${eq.gb ? ` ${eq.gb}GB` : ""}` : "Sin modelo";
       const actual = mapa.get(nombre) ?? { unidades: 0, ingreso: 0, costo: 0 };
       actual.unidades += 1;
@@ -339,8 +337,7 @@ function ReportesPage() {
       mapa.set(k, a);
     }
     for (const it of items.data ?? []) {
-      const venta = it.ventas as { id?: string } | null;
-      const fila = (ventas.data ?? []).find((v) => v.id === venta?.id);
+      const fila = (ventas.data ?? []).find((v) => v.id === it.venta_id);
       const k = (fila?.vendedor_id as string | null) ?? "sin";
       const a = mapa.get(k);
       if (a) a.equipos += 1;

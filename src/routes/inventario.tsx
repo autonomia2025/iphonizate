@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileSpreadsheet, PackageSearch, Plus, Search, ShieldAlert } from "lucide-react";
+import { FileSpreadsheet, PackageSearch, Plus, Printer, Search, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
+import type { EquipoEtiqueta } from "@/lib/etiquetas";
+
 import { limpiarImei } from "@/components/CampoImei";
 import { IngresarEquipoModal } from "@/components/inventario/IngresarEquipoModal";
 import { ImportarEquiposModal } from "@/components/inventario/ImportarEquiposModal";
@@ -85,6 +88,9 @@ function InventarioPage() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [importAbierto, setImportAbierto] = useState(false);
   const [seleccionado, setSeleccionado] = useState<EquipoFila | null>(null);
+  const [marcados, setMarcados] = useState<string[]>([]);
+  const [etiquetasAbierto, setEtiquetasAbierto] = useState(false);
+  const [etiquetasEquipos, setEtiquetasEquipos] = useState<EquipoEtiqueta[]>([]);
   const buscadorRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -225,6 +231,21 @@ function InventarioPage() {
     setSeleccionado(equipo);
   };
 
+  const aEtiqueta = (e: EquipoFila): EquipoEtiqueta => ({
+    imei: e.imei,
+    modelo: e.modelo,
+    gb: e.gb ?? null,
+    color: e.color ?? null,
+  });
+
+  const imprimir = (lista: EquipoFila[]) => {
+    setEtiquetasEquipos(lista.map(aEtiqueta));
+    setEtiquetasAbierto(true);
+  };
+
+  const visiblesMarcados = filas.filter((e) => marcados.includes(e.id));
+  const todasMarcadas = filas.length > 0 && visiblesMarcados.length === filas.length;
+
   return (
     <div className="mx-auto max-w-[86rem]">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -234,6 +255,11 @@ function InventarioPage() {
         </div>
         {puedeIngresar && (
           <div className="flex flex-wrap gap-2">
+            {visiblesMarcados.length > 0 && (
+              <Button variant="secondary" onClick={() => imprimir(visiblesMarcados)} className="gap-2">
+                <Printer className="size-4" /> Imprimir {visiblesMarcados.length} etiquetas
+              </Button>
+            )}
             <Button variant="secondary" onClick={() => setImportAbierto(true)} className="gap-2">
               <FileSpreadsheet className="size-4" /> Importar desde Excel
             </Button>
@@ -319,6 +345,15 @@ function InventarioPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/8 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="w-10 px-4 py-3 font-medium">
+                  <input
+                    type="checkbox"
+                    aria-label="Seleccionar todos"
+                    checked={todasMarcadas}
+                    onChange={(ev) => setMarcados(ev.target.checked ? filas.map((f) => f.id) : [])}
+                    className="size-4 cursor-pointer accent-[var(--accent-store)]"
+                  />
+                </th>
                 <th className="px-4 py-3 font-medium">IMEI</th>
                 <th className="px-4 py-3 font-medium">Modelo</th>
                 <th className="px-4 py-3 text-right font-medium">GB</th>
@@ -329,6 +364,7 @@ function InventarioPage() {
                 <th className="px-4 py-3 font-medium">Estado</th>
                 <th className="px-4 py-3 text-right font-medium">Días en stock</th>
                 {conCostos && <th className="px-4 py-3 text-right font-medium">Costo</th>}
+                <th className="px-4 py-3 text-right font-medium">Etiqueta</th>
               </tr>
             </thead>
             <motion.tbody initial="oculto" animate="visible" variants={varsListaFilas}>
@@ -346,6 +382,19 @@ function InventarioPage() {
                   onClick={() => setSeleccionado(e)}
                   className={`fila-densa cursor-pointer border-b border-white/5 last:border-0 hover:bg-white/[0.035] ${destellos[e.id] ? "destello" : ""}`}
                 >
+                  <td className="px-4 py-2.5" onClick={(ev) => ev.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Seleccionar ${e.imei}`}
+                      checked={marcados.includes(e.id)}
+                      onChange={(ev) =>
+                        setMarcados((prev) =>
+                          ev.target.checked ? [...prev, e.id] : prev.filter((id) => id !== e.id),
+                        )
+                      }
+                      className="size-4 cursor-pointer accent-[var(--accent-store)]"
+                    />
+                  </td>
                   <td className="num px-4 py-2.5 tracking-[0.04em]">
                     <span className="inline-flex items-center gap-2">
                       {e.imei}
@@ -390,17 +439,27 @@ function InventarioPage() {
                       {e.costo != null ? formatCLP(e.costo) : "—"}
                     </td>
                   )}
+                  <td className="px-4 py-2.5 text-right" onClick={(ev) => ev.stopPropagation()}>
+                    <button
+                      type="button"
+                      title="Imprimir etiqueta"
+                      onClick={() => imprimir([e])}
+                      className="rounded-lg p-1.5 text-muted-foreground transition-colors duration-200 hover:bg-white/[0.06] hover:text-foreground"
+                    >
+                      <Printer className="size-4" />
+                    </button>
+                  </td>
                 </motion.tr>
               ))}
               </AnimatePresence>
               {filas.length === 0 && (
                 <tr>
                   <td
-                    colSpan={conCostos ? 10 : 9}
+                    colSpan={conCostos ? 12 : 11}
                     className="px-4 py-10 text-center text-sm text-muted-foreground"
                   >
                     {stock.isLoading ? (
-                      <SkeletonFilas filas={6} columnas={conCostos ? 10 : 9} />
+                      <SkeletonFilas filas={6} columnas={conCostos ? 12 : 11} />
                     ) : (
                       <EstadoVacio
                         icono={PackageSearch}
@@ -445,6 +504,12 @@ function InventarioPage() {
           />
         </>
       )}
+
+      <EtiquetasModal
+        abierto={etiquetasAbierto}
+        equipos={etiquetasEquipos}
+        onCerrar={() => setEtiquetasAbierto(false)}
+      />
 
       <EquipoDetalle
         equipo={seleccionado}

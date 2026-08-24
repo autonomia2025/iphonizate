@@ -14,9 +14,9 @@ import {
   pct,
   periodoActual,
   periodoTexto,
-  puedeEditarMetas,
   rangoPeriodo,
 } from "@/lib/gestion";
+import { PERMISOS, usePermiso } from "@/lib/permisos";
 import { MetaModal, type MetaEditable } from "@/components/metas/MetaModal";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +43,7 @@ function MetasPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
   const verGanancias = puedeVerGanancias(rol);
-  const puedeEditar = puedeEditarMetas(rol);
+  const { permitido: puedeEditar } = usePermiso(PERMISOS.metasEditar);
 
   const [periodo, setPeriodo] = useState(periodoActual());
   const [editando, setEditando] = useState<MetaEditable | null>(null);
