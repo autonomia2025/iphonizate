@@ -67,6 +67,7 @@ export function NuevoClienteModal({
         .from("clientes")
         .insert({
           nombre: nombre.trim(),
+          tienda_id: tiendaId,
           telefono: telefono.trim() || null,
           correo: correo.trim() || null,
           instagram: instagram.trim() || null,
