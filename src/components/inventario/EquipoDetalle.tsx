@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { PackageCheck, Warehouse } from "lucide-react";
+import { PackageCheck, Printer, Warehouse } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
@@ -71,6 +72,7 @@ export function EquipoDetalle({
   const rol = usuario?.rol ?? null;
   const queryClient = useQueryClient();
   const [accion, setAccion] = useState<null | "disponible" | "bodega">(null);
+  const [etiquetaAbierta, setEtiquetaAbierta] = useState(false);
 
   const servicios = useQuery({
     queryKey: ["servicios_equipo", id],
@@ -195,6 +197,30 @@ export function EquipoDetalle({
                 {ESTADO_ETIQUETA[equipo.estado]}
               </span>
             </SheetHeader>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="gap-2"
+                onClick={() => setEtiquetaAbierta(true)}
+              >
+                <Printer className="size-4" /> Imprimir etiqueta
+              </Button>
+            </div>
+
+            <EtiquetasModal
+              abierto={etiquetaAbierta}
+              equipos={[
+                {
+                  imei: equipo.imei,
+                  modelo: equipo.modelo,
+                  gb: equipo.gb ?? null,
+                  color: equipo.color ?? null,
+                },
+              ]}
+              onCerrar={() => setEtiquetaAbierta(false)}
+            />
 
             {(puedeMarcarDisponible || puedeDevolverBodega) && (
               <div className="mt-4 flex flex-wrap gap-2">

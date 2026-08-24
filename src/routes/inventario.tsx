@@ -505,6 +505,12 @@ function InventarioPage() {
         </>
       )}
 
+      <EtiquetasModal
+        abierto={etiquetasAbierto}
+        equipos={etiquetasEquipos}
+        onCerrar={() => setEtiquetasAbierto(false)}
+      />
+
       <EquipoDetalle
         equipo={seleccionado}
         onCerrar={() => setSeleccionado(null)}
