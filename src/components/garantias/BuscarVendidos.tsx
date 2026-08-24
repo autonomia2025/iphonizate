@@ -94,8 +94,9 @@ export function BuscarVendidos({
                   </span>
                   <span className="text-right text-[11px] text-muted-foreground">
                     <span className="block text-slate-300">
-                      {f.cliente_nombre ?? "Sin cliente"}
-                      {f.cliente_telefono ? ` · ${f.cliente_telefono}` : ""}
+                      {f.cliente_nombre
+                        ? `${f.cliente_nombre}${f.cliente_telefono ? ` · ${f.cliente_telefono}` : ""}`
+                        : `Atiende ${f.tienda_venta ?? "la tienda de la venta"}`}
                     </span>
                     <span className="num block">
                       {fechaLarga(f.fecha_venta)} · {f.tienda_venta ?? "—"} · hace{" "}
