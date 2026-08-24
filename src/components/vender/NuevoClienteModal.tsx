@@ -43,12 +43,17 @@ export function NuevoClienteModal({
       toast.error("El nombre del cliente es obligatorio");
       return;
     }
+    if (!tiendaId) {
+      toast.error("Selecciona una tienda antes de crear el cliente");
+      return;
+    }
     setGuardando(true);
     try {
       if (telefono.trim()) {
         const { data: existente } = await supabase
           .from("clientes")
           .select("id, nombre, telefono")
+          .eq("tienda_id", tiendaId)
           .eq("telefono", telefono.trim())
           .maybeSingle();
         if (existente) {
