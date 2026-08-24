@@ -77,7 +77,7 @@ export function EquipoDetalle({
     enabled: !!id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("servicios_equipo")
+        .from("v_servicios_equipo")
         .select("id, tipo, costo, estado, created_at, listo_at")
         .eq("equipo_id", id!)
         .order("created_at", { ascending: true });

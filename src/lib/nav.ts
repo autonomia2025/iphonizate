@@ -88,7 +88,7 @@ export const NAV = [
     to: "/metas",
     label: "Metas",
     icon: Target,
-    roles: ["direccion", "jefe_tienda", "administracion"] as AppRol[],
+    roles: TODOS,
   },
   { to: "/tareas", label: "Tareas", icon: ListChecks, roles: TODOS },
   {

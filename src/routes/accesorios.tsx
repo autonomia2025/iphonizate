@@ -65,7 +65,7 @@ function AccesoriosPage() {
     queryKey: ["accesorios"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("accesorios")
+        .from("v_accesorios")
         .select("id, nombre, categoria, tipo, modelo, costo, precio, minimo")
         .order("nombre");
       if (error) throw error;

@@ -111,7 +111,7 @@ function ReservasPage() {
     queryKey: ["accesorios-pos"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("accesorios")
+        .from("v_accesorios")
         .select("id, nombre, categoria, modelo, precio, costo")
         .order("nombre");
       if (error) throw error;
