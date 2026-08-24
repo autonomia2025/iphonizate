@@ -27,9 +27,9 @@ const DESC = "Cierre diario por tienda: cuadre de dinero y conteo de equipos.";
 export const Route = createFileRoute("/caja")({
   head: () => ({
     meta: [
-      { title: "Caja · riff store OS" },
+      { title: "Caja · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Caja · riff store OS" },
+      { property: "og:title", content: "Caja · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

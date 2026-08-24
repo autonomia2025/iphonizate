@@ -8,13 +8,13 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Ingresar · riff store OS" },
+      { title: "Ingresar · iPhonizate OS" },
       {
         name: "description",
         content:
-          "Ingreso al panel de operaciones riff store OS con usuario y PIN de 6 dígitos.",
+          "Ingreso al panel de operaciones iPhonizate OS con usuario y PIN de 6 dígitos.",
       },
-      { property: "og:title", content: "Ingresar · riff store OS" },
+      { property: "og:title", content: "Ingresar · iPhonizate OS" },
       {
         property: "og:description",
         content: "Panel de operaciones multitienda de iPhones usados en Chile.",
@@ -90,7 +90,7 @@ function PantallaIngreso() {
             r
           </span>
           <span className="font-display text-[16px] font-semibold leading-tight tracking-tight">
-            riff store <span style={{ color: store.accent }}>OS</span>
+            iPhonizate <span style={{ color: store.accent }}>OS</span>
           </span>
         </div>
 

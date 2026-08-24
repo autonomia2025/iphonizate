@@ -19,12 +19,14 @@ export function NuevoClienteModal({
   abierto,
   onCerrar,
   onCreado,
+  tiendaId,
   telefonoInicial = "",
   nombreInicial = "",
 }: {
   abierto: boolean;
   onCerrar: () => void;
   onCreado: (cliente: ClienteBasico) => void;
+  tiendaId: string | null | undefined;
   telefonoInicial?: string;
   nombreInicial?: string;
 }) {
@@ -41,12 +43,17 @@ export function NuevoClienteModal({
       toast.error("El nombre del cliente es obligatorio");
       return;
     }
+    if (!tiendaId) {
+      toast.error("Selecciona una tienda antes de crear el cliente");
+      return;
+    }
     setGuardando(true);
     try {
       if (telefono.trim()) {
         const { data: existente } = await supabase
           .from("clientes")
           .select("id, nombre, telefono")
+          .eq("tienda_id", tiendaId)
           .eq("telefono", telefono.trim())
           .maybeSingle();
         if (existente) {
@@ -60,6 +67,7 @@ export function NuevoClienteModal({
         .from("clientes")
         .insert({
           nombre: nombre.trim(),
+          tienda_id: tiendaId,
           telefono: telefono.trim() || null,
           correo: correo.trim() || null,
           instagram: instagram.trim() || null,

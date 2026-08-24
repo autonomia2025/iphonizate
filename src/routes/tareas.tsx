@@ -23,9 +23,9 @@ const DESC = "Pendientes del equipo por urgencia y responsable.";
 export const Route = createFileRoute("/tareas")({
   head: () => ({
     meta: [
-      { title: "Tareas · riff store OS" },
+      { title: "Tareas · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Tareas · riff store OS" },
+      { property: "og:title", content: "Tareas · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

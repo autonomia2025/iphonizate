@@ -32,9 +32,9 @@ const DESC = "Punto de venta para registrar equipos, accesorios y formas de pago
 export const Route = createFileRoute("/vender")({
   head: () => ({
     meta: [
-      { title: "Vender · riff store OS" },
+      { title: "Vender · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Vender · riff store OS" },
+      { property: "og:title", content: "Vender · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),
@@ -202,13 +202,14 @@ function VenderPage() {
 
   /* clientes */
   const clientes = useQuery({
-    queryKey: ["clientes-pos", clienteQ],
-    enabled: clienteQ.trim().length >= 2 && !cliente,
+    queryKey: ["clientes-pos", clienteQ, tiendaActiva?.id],
+    enabled: clienteQ.trim().length >= 2 && !cliente && !!tiendaActiva?.id,
     queryFn: async () => {
       const q = clienteQ.trim();
       const { data, error } = await supabase
         .from("clientes")
         .select("id, nombre, telefono")
+        .eq("tienda_id", tiendaActiva!.id)
         .or(`nombre.ilike.%${q}%,telefono.ilike.%${q}%`)
         .limit(6);
       if (error) throw error;
@@ -770,6 +771,7 @@ function VenderPage() {
 
       <NuevoClienteModal
         abierto={modalCliente}
+        tiendaId={tiendaActiva?.id ?? null}
         onCerrar={() => setModalCliente(false)}
         onCreado={(c) => setCliente(c)}
         nombreInicial={/^[\d+\s]+$/.test(clienteQ) ? "" : clienteQ}

@@ -255,7 +255,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 transition={RESORTE_RAPIDO}
                 className="min-w-0 flex-1 truncate font-display text-[15px] font-semibold leading-tight tracking-tight"
               >
-                riff store <span style={{ color: store.accent }}>OS</span>
+                iPhonizate <span style={{ color: store.accent }}>OS</span>
               </motion.span>
             )}
           </AnimatePresence>

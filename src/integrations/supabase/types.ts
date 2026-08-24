@@ -218,6 +218,7 @@ export type Database = {
           instagram: string | null
           nombre: string
           telefono: string | null
+          tienda_id: string
         }
         Insert: {
           correo?: string | null
@@ -226,6 +227,7 @@ export type Database = {
           instagram?: string | null
           nombre: string
           telefono?: string | null
+          tienda_id: string
         }
         Update: {
           correo?: string | null
@@ -234,8 +236,17 @@ export type Database = {
           instagram?: string | null
           nombre?: string
           telefono?: string | null
+          tienda_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clientes_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       equipos: {
         Row: {

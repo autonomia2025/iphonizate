@@ -41,9 +41,9 @@ const DESC =
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard · riff store OS" },
+      { title: "Dashboard · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Dashboard · riff store OS" },
+      { property: "og:title", content: "Dashboard · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
