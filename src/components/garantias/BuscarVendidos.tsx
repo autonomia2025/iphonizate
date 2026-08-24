@@ -44,7 +44,7 @@ export function BuscarVendidos({
     queryKey: ["garantias-vendidos", busqueda],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("garantias_equipos_vendidos", {
-        _q: busqueda || null,
+        _q: busqueda || undefined,
         _limite: 40,
       });
       if (error) throw error;
