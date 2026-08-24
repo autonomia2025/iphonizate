@@ -78,6 +78,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "accesorios_stock_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "v_accesorios"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "accesorios_stock_tienda_id_fkey"
             columns: ["tienda_id"]
             isOneToOne: false
@@ -804,6 +811,38 @@ export type Database = {
           },
         ]
       }
+      permisos_usuario: {
+        Row: {
+          created_at: string
+          id: string
+          permiso: string
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permiso: string
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permiso?: string
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permisos_usuario_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       precios: {
         Row: {
           gb: number
@@ -870,6 +909,13 @@ export type Database = {
             columns: ["accesorio_id"]
             isOneToOne: false
             referencedRelation: "accesorios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reserva_items_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "v_accesorios"
             referencedColumns: ["id"]
           },
           {
@@ -1259,6 +1305,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "venta_items_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "v_accesorios"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "venta_items_equipo_id_fkey"
             columns: ["equipo_id"]
             isOneToOne: false
@@ -1388,6 +1441,42 @@ export type Database = {
       }
     }
     Views: {
+      v_accesorios: {
+        Row: {
+          categoria: Database["public"]["Enums"]["categoria_accesorio"] | null
+          costo: number | null
+          created_at: string | null
+          id: string | null
+          minimo: number | null
+          modelo: string | null
+          nombre: string | null
+          precio: number | null
+          tipo: string | null
+        }
+        Insert: {
+          categoria?: Database["public"]["Enums"]["categoria_accesorio"] | null
+          costo?: never
+          created_at?: string | null
+          id?: string | null
+          minimo?: number | null
+          modelo?: string | null
+          nombre?: string | null
+          precio?: number | null
+          tipo?: string | null
+        }
+        Update: {
+          categoria?: Database["public"]["Enums"]["categoria_accesorio"] | null
+          costo?: never
+          created_at?: string | null
+          id?: string | null
+          minimo?: number | null
+          modelo?: string | null
+          nombre?: string | null
+          precio?: number | null
+          tipo?: string | null
+        }
+        Relationships: []
+      }
       v_equipos_full: {
         Row: {
           bateria: number | null
@@ -1527,6 +1616,77 @@ export type Database = {
           },
         ]
       }
+      v_servicios_equipo: {
+        Row: {
+          asignado_at: string | null
+          costo: number | null
+          created_at: string | null
+          equipo_id: string | null
+          estado: string | null
+          id: string | null
+          listo_at: string | null
+          tecnico_id: string | null
+          tipo: Database["public"]["Enums"]["tipo_servicio"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "tecnicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["tecnico_id"]
+          },
+          {
+            foreignKeyName: "servicios_equipo_tecnico_id_fkey"
+            columns: ["tecnico_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["tecnico_id"]
+          },
+        ]
+      }
       v_stock: {
         Row: {
           bateria: number | null
@@ -1604,6 +1764,93 @@ export type Database = {
           total_servicios: number | null
         }
         Relationships: []
+      }
+      v_venta_items: {
+        Row: {
+          accesorio_id: string | null
+          anulada: boolean | null
+          costo_snapshot: number | null
+          equipo_id: string | null
+          fecha: string | null
+          gb: number | null
+          id: string | null
+          modelo: string | null
+          precio: number | null
+          tienda_id: string | null
+          venta_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venta_items_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "accesorios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_accesorio_id_fkey"
+            columns: ["accesorio_id"]
+            isOneToOne: false
+            referencedRelation: "v_accesorios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "venta_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "venta_items_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "v_ventas_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_ventas_full: {
         Row: {
@@ -1756,6 +2003,23 @@ export type Database = {
         Args: { _garantia: string; _servicios: Json }
         Returns: number
       }
+      garantias_equipos_vendidos: {
+        Args: { _limite?: number; _q?: string }
+        Returns: {
+          cliente_nombre: string
+          cliente_telefono: string
+          color: string
+          dias_desde_venta: number
+          equipo_id: string
+          estado: string
+          fecha_venta: string
+          gb: number
+          imei: string
+          modelo: string
+          tienda_venta: string
+          venta_id: string
+        }[]
+      }
       guardar_verificacion_equipo: {
         Args: { _datos: Json; _imei: string; _riesgo_aceptado?: boolean }
         Returns: string
@@ -1807,6 +2071,7 @@ export type Database = {
         Returns: undefined
       }
       servicio_listo: { Args: { _servicio_id: string }; Returns: string }
+      tiene_permiso: { Args: { _permiso: string }; Returns: boolean }
       trasladar_equipos: {
         Args: { _destino: string; _imeis: string[]; _origen: string }
         Returns: number
