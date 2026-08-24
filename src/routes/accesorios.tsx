@@ -21,9 +21,9 @@ const DESC = "Catálogo de accesorios con stock por tienda, mínimos y ajustes r
 export const Route = createFileRoute("/accesorios")({
   head: () => ({
     meta: [
-      { title: "Accesorios · riff store OS" },
+      { title: "Accesorios · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Accesorios · riff store OS" },
+      { property: "og:title", content: "Accesorios · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),

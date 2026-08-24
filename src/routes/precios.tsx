@@ -18,9 +18,9 @@ const DESC = "Precios sugeridos por modelo y capacidad, con control de actualiza
 export const Route = createFileRoute("/precios")({
   head: () => ({
     meta: [
-      { title: "Precios · riff store OS" },
+      { title: "Precios · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Precios · riff store OS" },
+      { property: "og:title", content: "Precios · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -17,9 +17,9 @@ const DESC = "Configuración de la verificación de IMEI: servicio, ambiente y s
 export const Route = createFileRoute("/configuracion")({
   head: () => ({
     meta: [
-      { title: "Configuración · riff store OS" },
+      { title: "Configuración · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Configuración · riff store OS" },
+      { property: "og:title", content: "Configuración · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

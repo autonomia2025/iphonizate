@@ -42,9 +42,9 @@ const DESC = "Ventas, margen y rotación por período y tienda.";
 export const Route = createFileRoute("/reportes")({
   head: () => ({
     meta: [
-      { title: "Reportes · riff store OS" },
+      { title: "Reportes · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Reportes · riff store OS" },
+      { property: "og:title", content: "Reportes · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

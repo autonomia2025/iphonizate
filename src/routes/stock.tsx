@@ -28,9 +28,9 @@ const EXTRAS: EquipoEstado[] = ["POR_REVISAR", "EN_TECNICO", "RESERVADO"];
 export const Route = createFileRoute("/stock")({
   head: () => ({
     meta: [
-      { title: "Stock · riff store OS" },
+      { title: "Stock · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Stock · riff store OS" },
+      { property: "og:title", content: "Stock · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),

@@ -4,9 +4,9 @@ import { SectionPage } from "@/components/SectionPage";
 export const Route = createFileRoute("/clientes")({
   head: () => ({
     meta: [
-      { title: "Clientes · riff store OS" },
+      { title: "Clientes · iPhonizate OS" },
       { name: "description", content: "Historial de compras, garantías y contacto." },
-      { property: "og:title", content: "Clientes · riff store OS" },
+      { property: "og:title", content: "Clientes · iPhonizate OS" },
       { property: "og:description", content: "Historial de compras, garantías y contacto." },
     ],
   }),

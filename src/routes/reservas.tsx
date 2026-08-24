@@ -26,9 +26,9 @@ const DESC = "Equipos apartados con abono: crea reservas, cobra el saldo o canc�
 export const Route = createFileRoute("/reservas")({
   head: () => ({
     meta: [
-      { title: "Reservas · riff store OS" },
+      { title: "Reservas · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Reservas · riff store OS" },
+      { property: "og:title", content: "Reservas · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -881,6 +881,7 @@ function ReservasPage() {
 
       <NuevoClienteModal
         abierto={modalCliente}
+        tiendaId={tiendaActiva?.id ?? null}
         onCerrar={() => setModalCliente(false)}
         onCreado={(c) => setCliente(c)}
         nombreInicial={/^[\d+\s]+$/.test(clienteQ) ? "" : clienteQ}

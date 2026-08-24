@@ -23,9 +23,9 @@ const NO_TRASLADABLES: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO"];
 export const Route = createFileRoute("/movimientos")({
   head: () => ({
     meta: [
-      { title: "Movimientos · riff store OS" },
+      { title: "Movimientos · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Movimientos · riff store OS" },
+      { property: "og:title", content: "Movimientos · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),

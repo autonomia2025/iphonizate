@@ -19,9 +19,9 @@ const DESC = "Arriendos, remuneraciones, publicidad y gastos operativos por tien
 export const Route = createFileRoute("/gastos")({
   head: () => ({
     meta: [
-      { title: "Gastos · riff store OS" },
+      { title: "Gastos · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Gastos · riff store OS" },
+      { property: "og:title", content: "Gastos · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

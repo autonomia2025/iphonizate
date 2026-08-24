@@ -41,9 +41,9 @@ const DESC = "Equipos de la cadena por IMEI, estado, ubicación y días en stock
 export const Route = createFileRoute("/inventario")({
   head: () => ({
     meta: [
-      { title: "Inventario · riff store OS" },
+      { title: "Inventario · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Inventario · riff store OS" },
+      { property: "og:title", content: "Inventario · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),

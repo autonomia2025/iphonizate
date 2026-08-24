@@ -32,9 +32,9 @@ const DESC = "Solicitudes de garantía, SLA de 72 horas y resoluciones por repar
 export const Route = createFileRoute("/garantias")({
   head: () => ({
     meta: [
-      { title: "Garantías · riff store OS" },
+      { title: "Garantías · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Garantías · riff store OS" },
+      { property: "og:title", content: "Garantías · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),

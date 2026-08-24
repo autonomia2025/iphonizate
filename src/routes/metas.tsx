@@ -25,9 +25,9 @@ const DESC = "Metas mensuales de equipos y ganancia por tienda, con avance real.
 export const Route = createFileRoute("/metas")({
   head: () => ({
     meta: [
-      { title: "Metas · riff store OS" },
+      { title: "Metas · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Metas · riff store OS" },
+      { property: "og:title", content: "Metas · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

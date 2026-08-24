@@ -32,9 +32,9 @@ const DESC = "Punto de venta para registrar equipos, accesorios y formas de pago
 export const Route = createFileRoute("/vender")({
   head: () => ({
     meta: [
-      { title: "Vender · riff store OS" },
+      { title: "Vender · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Vender · riff store OS" },
+      { property: "og:title", content: "Vender · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),
@@ -771,6 +771,7 @@ function VenderPage() {
 
       <NuevoClienteModal
         abierto={modalCliente}
+        tiendaId={tiendaActiva?.id ?? null}
         onCerrar={() => setModalCliente(false)}
         onCreado={(c) => setCliente(c)}
         nombreInicial={/^[\d+\s]+$/.test(clienteQ) ? "" : clienteQ}

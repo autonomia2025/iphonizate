@@ -16,9 +16,9 @@ const DESC = "Revisión de los pagos de cada venta: transferencias, montos y est
 export const Route = createFileRoute("/revision")({
   head: () => ({
     meta: [
-      { title: "Revisión de pagos · riff store OS" },
+      { title: "Revisión de pagos · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Revisión de pagos · riff store OS" },
+      { property: "og:title", content: "Revisión de pagos · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

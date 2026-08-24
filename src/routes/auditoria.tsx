@@ -23,9 +23,9 @@ const DESC = "Registro de cambios de precio, stock y accesos.";
 export const Route = createFileRoute("/auditoria")({
   head: () => ({
     meta: [
-      { title: "Auditoría · riff store OS" },
+      { title: "Auditoría · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Auditoría · riff store OS" },
+      { property: "og:title", content: "Auditoría · iPhonizate OS" },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

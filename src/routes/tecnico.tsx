@@ -29,9 +29,9 @@ const NO_TECNICO: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO"];
 export const Route = createFileRoute("/tecnico")({
   head: () => ({
     meta: [
-      { title: "Técnico · riff store OS" },
+      { title: "Técnico · iPhonizate OS" },
       { name: "description", content: DESC },
-      { property: "og:title", content: "Técnico · riff store OS" },
+      { property: "og:title", content: "Técnico · iPhonizate OS" },
       { property: "og:description", content: DESC },
     ],
   }),

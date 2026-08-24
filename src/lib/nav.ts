@@ -123,7 +123,7 @@ export const ROL_ETIQUETA: Record<AppRol, string> = {
 };
 
 export const tituloDeRuta = (pathname: string) =>
-  NAV.find((n) => n.to === pathname)?.label ?? "riff store OS";
+  NAV.find((n) => n.to === pathname)?.label ?? "iPhonizate OS";
 
 /* ---------------- Agrupación del sidebar ---------------- */
 
