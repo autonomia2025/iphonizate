@@ -32,20 +32,19 @@ echo ""
 TTY=""
 if [ -r /dev/tty ]; then TTY="/dev/tty"; fi
 
-preguntar() { # preguntar VARIABLE "texto"
-  local __resp=""
+preguntar() { # preguntar "texto" → deja la respuesta en RESPUESTA
+  RESPUESTA=""
   if [ -n "$TTY" ]; then
-    printf "%s" "$2" > /dev/tty
-    IFS= read -r __resp < /dev/tty || __resp=""
+    printf "%s" "$1" > /dev/tty
+    IFS= read -r RESPUESTA < /dev/tty || RESPUESTA=""
   fi
-  printf -v "$1" "%s" "$__resp" 2>/dev/null || eval "$1=\\"\\$__resp\\""
 }
 
 validar_clave() { # validar_clave CLAVE  → 0 si el servidor la acepta
   [ -n "$1" ] || return 1
   case "$1" in lec_*) ;; *) return 1 ;; esac
   curl -fsS -o /dev/null -X POST "$BASE/api/public/lector/verificar" \\
-    -H "x-lector-clave: $1" -H "content-length: 0" 2>/dev/null
+    -H "x-lector-clave: $1" --data '' 2>/dev/null
 }
 
 leer_json() { # leer_json ARCHIVO CAMPO
