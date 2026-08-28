@@ -29,6 +29,7 @@ import { Route as StockRouteImport } from './routes/stock'
 import { Route as TareasRouteImport } from './routes/tareas'
 import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as VenderRouteImport } from './routes/vender'
+import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/public/lector/agente[.]js'
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
 import { Route as ApiPublicLectorLecturaRouteImport } from './routes/api/public/lector/lectura'
 import { Route as ApiPublicLectorVersionRouteImport } from './routes/api/public/lector/version'
@@ -133,6 +134,12 @@ const VenderRoute = VenderRouteImport.update({
   path: '/vender',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLectorAgenteDotjsRoute =
+  ApiPublicLectorAgenteDotjsRouteImport.update({
+    id: '/api/public/lector/agente.js',
+    path: '/api/public/lector/agente.js',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicLectorEstadoRoute = ApiPublicLectorEstadoRouteImport.update({
   id: '/api/public/lector/estado',
   path: '/api/public/lector/estado',
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
@@ -195,6 +203,7 @@ export interface FileRoutesByTo {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
@@ -221,6 +230,7 @@ export interface FileRoutesById {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/lectura'
     | '/api/public/lector/version'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/lectura'
     | '/api/public/lector/version'
@@ -298,6 +310,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/lectura'
     | '/api/public/lector/version'
@@ -324,6 +337,7 @@ export interface RootRouteChildren {
   TareasRoute: typeof TareasRoute
   TecnicoRoute: typeof TecnicoRoute
   VenderRoute: typeof VenderRoute
+  ApiPublicLectorAgenteDotjsRoute: typeof ApiPublicLectorAgenteDotjsRoute
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
   ApiPublicLectorLecturaRoute: typeof ApiPublicLectorLecturaRoute
   ApiPublicLectorVersionRoute: typeof ApiPublicLectorVersionRoute
@@ -471,6 +485,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/lector/agente.js': {
+      id: '/api/public/lector/agente.js'
+      path: '/api/public/lector/agente.js'
+      fullPath: '/api/public/lector/agente.js'
+      preLoaderRoute: typeof ApiPublicLectorAgenteDotjsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/lector/estado': {
       id: '/api/public/lector/estado'
       path: '/api/public/lector/estado'
@@ -516,6 +537,7 @@ const rootRouteChildren: RootRouteChildren = {
   TareasRoute: TareasRoute,
   TecnicoRoute: TecnicoRoute,
   VenderRoute: VenderRoute,
+  ApiPublicLectorAgenteDotjsRoute: ApiPublicLectorAgenteDotjsRoute,
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
   ApiPublicLectorLecturaRoute: ApiPublicLectorLecturaRoute,
   ApiPublicLectorVersionRoute: ApiPublicLectorVersionRoute,
