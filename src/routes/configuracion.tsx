@@ -10,6 +10,7 @@ import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { saldoImeicheck, serviciosImeicheck } from "@/lib/imeicheck.functions";
+import { PanelLectores } from "@/components/configuracion/PanelLectores";
 import { SALDO_BAJO, fechaCorta, formatoUSD } from "@/lib/imeicheck";
 
 const DESC = "Configuración de la verificación de IMEI: servicio, ambiente y saldo de la cuenta.";
