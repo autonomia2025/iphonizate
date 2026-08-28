@@ -174,9 +174,6 @@ export function IngresarEquipoModal({
   const reiniciar = () => {
     setForm((f) => ({ ...vacio, ubicacion_id: f.ubicacion_id, categoria: f.categoria }));
     setServicios({});
-    setRiesgos([]);
-    setAceptoRiesgo(false);
-    setVerificado(false);
     setDuplicado(null);
     setLecturaAplicada(null);
     setTimeout(() => imeiRef.current?.focus(), 30);
