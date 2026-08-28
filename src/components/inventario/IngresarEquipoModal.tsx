@@ -84,8 +84,48 @@ export function IngresarEquipoModal({
   const avisoRef = useRef<HTMLDivElement>(null);
   const guardarVerificacion = useServerFn(verificarYGuardarImei);
 
+  /* Lector USB de la tienda donde se está ingresando el equipo */
+  const tiendaLector = form.ubicacion_id || tiendaPorDefecto || null;
+  const lector = useLectorUsb(tiendaLector, abierto);
+  const [lecturaAplicada, setLecturaAplicada] = useState<string | null>(null);
 
   const set = (k: keyof typeof vacio, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  /* Los datos leídos por USB llenan el formulario; el usuario siempre puede corregir */
+  const aplicarLectura = (l: Lectura) => {
+    setForm((f) => ({
+      ...f,
+      imei: l.imei && /^\d{15}$/.test(l.imei) ? l.imei : f.imei,
+      modelo: l.modelo || f.modelo,
+      gb: l.gb ? String(l.gb) : f.gb,
+      color: l.color_comercial && l.color_comercial !== COLOR_SIN_IDENTIFICAR ? l.color_comercial : f.color,
+      notas: (() => {
+        const extras = [
+          l.serie ? `Serie ${l.serie}` : null,
+          textoCiclos(l.bateria_ciclos),
+          l.icloud_bloqueado ? "iCloud bloqueado según lectura USB" : null,
+        ].filter(Boolean) as string[];
+        if (!extras.length) return f.notas;
+        const linea = `Lectura USB: ${extras.join(" · ")}`;
+        return f.notas.includes("Lectura USB:") ? f.notas : [f.notas, linea].filter(Boolean).join("\n");
+      })(),
+    }));
+    setLecturaAplicada(l.id);
+    toast.success("Datos del equipo leídos por USB", {
+      description: "Revisa y completa lo que falte antes de guardar.",
+    });
+  };
+
+  /* Autocompleta solo si el formulario está limpio: nunca pisa lo que alguien escribió */
+  useEffect(() => {
+    const nueva = lector.nuevaLectura;
+    if (!abierto || !nueva) return;
+    lector.limpiarNueva();
+    if (!form.imei && !form.modelo) aplicarLectura(nueva);
+    else toast.info("Llegó una lectura nueva del lector USB", { description: "Puedes aplicarla desde la barra del lector." });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lector.nuevaLectura, abierto]);
+
 
   useEffect(() => {
     if (!abierto) return;
