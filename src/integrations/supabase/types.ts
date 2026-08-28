@@ -2404,6 +2404,7 @@ export type Database = {
         Returns: undefined
       }
       servicio_listo: { Args: { _servicio_id: string }; Returns: string }
+      siguiente_comprobante: { Args: never; Returns: string }
       tiene_permiso: { Args: { _permiso: string }; Returns: boolean }
       trasladar_equipos: {
         Args: { _destino: string; _imeis: string[]; _origen: string }
