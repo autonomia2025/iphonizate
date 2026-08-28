@@ -352,7 +352,17 @@ export function IngresarEquipoModal({
             void guardar();
           }}
         >
+          <BarraLector
+            estado={lector.estado}
+            nombreAgente={lector.agente?.nombre ?? null}
+            detalle={lector.agente?.detalle_estado ?? null}
+            lectura={lector.lecturaUtil}
+            aplicada={!!lector.lecturaUtil && lector.lecturaUtil.id === lecturaAplicada}
+            onAplicar={() => lector.lecturaUtil && aplicarLectura(lector.lecturaUtil)}
+          />
+
           <div className="grid gap-4 sm:grid-cols-3">
+
             <div className="sm:col-span-2">
               <Label htmlFor="imei">IMEI</Label>
               <Input
