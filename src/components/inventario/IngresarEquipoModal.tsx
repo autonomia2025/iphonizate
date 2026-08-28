@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,9 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCLP } from "@/lib/stores";
-import { luhnValido } from "@/lib/imeicheck";
-import { verificarYGuardarImei } from "@/lib/imeicheck.functions";
-import { VerificarImeiPanel } from "@/components/inventario/VerificarImeiPanel";
+import { luhnValido } from "@/lib/imei";
 import { BarraLector } from "@/components/inventario/BarraLector";
 import { useLectorUsb } from "@/components/inventario/useLectorUsb";
 import { COLOR_SIN_IDENTIFICAR, textoCiclos, type Lectura } from "@/lib/lector";
