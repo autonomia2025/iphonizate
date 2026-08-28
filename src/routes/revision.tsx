@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
+import { BotonComprobante } from "@/components/vender/BotonComprobante";
 import { formatCLP } from "@/lib/stores";
 import { METODO_ETIQUETA, type MetodoPago } from "@/lib/pos";
 import type { AppRol } from "@/lib/nav";
@@ -335,6 +336,10 @@ function RevisionPage() {
                 <span>{venta.clientes?.nombre ?? "Sin cliente"}</span>
               </div>
               {venta.anulada && <p className="text-xs text-red-300">Esta venta está anulada.</p>}
+            </div>
+
+            <div className="mt-4">
+              <BotonComprobante ventaId={venta.id} />
             </div>
 
             <h3 className="mt-6 font-display text-base">Desglose de pagos</h3>
