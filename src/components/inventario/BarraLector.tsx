@@ -80,9 +80,12 @@ export function BarraLector({
       </div>
 
       {estado === "sin_contacto" && (
-        <p className="mt-2 opacity-80">
-          Este computador no tiene el lector corriendo. Puedes escribir los datos a mano igual.
-        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <p className="min-w-0 flex-1 opacity-80">
+            Este computador no tiene el lector corriendo. Puedes escribir los datos a mano igual.
+          </p>
+          <BotonInstalarLector />
+        </div>
       )}
 
       <AnimatePresence initial={false}>
