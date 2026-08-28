@@ -208,7 +208,7 @@ function VenderPage() {
       const q = clienteQ.trim();
       const { data, error } = await supabase
         .from("clientes")
-        .select("id, nombre, telefono")
+        .select("id, nombre, telefono, correo")
         .eq("tienda_id", tiendaActiva!.id)
         .or(`nombre.ilike.%${q}%,telefono.ilike.%${q}%`)
         .limit(6);
@@ -794,6 +794,7 @@ function VenderPage() {
             recargo,
             conBoleta,
             cliente: cliente?.nombre ?? null,
+            clienteCorreo: cliente?.correo ?? null,
             tienda: store.nombre,
             items: carrito,
             pagos: v.pagos,

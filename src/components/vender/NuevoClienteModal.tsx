@@ -13,6 +13,7 @@ export type ClienteBasico = {
   id: string;
   nombre: string;
   telefono: string | null;
+  correo?: string | null;
 };
 
 export function NuevoClienteModal({
@@ -52,7 +53,7 @@ export function NuevoClienteModal({
       if (telefono.trim()) {
         const { data: existente } = await supabase
           .from("clientes")
-          .select("id, nombre, telefono")
+          .select("id, nombre, telefono, correo")
           .eq("tienda_id", tiendaId)
           .eq("telefono", telefono.trim())
           .maybeSingle();
@@ -72,7 +73,7 @@ export function NuevoClienteModal({
           correo: correo.trim() || null,
           instagram: instagram.trim() || null,
         })
-        .select("id, nombre, telefono")
+        .select("id, nombre, telefono, correo")
         .single();
       if (error) throw error;
       toast.success("Cliente creado");
