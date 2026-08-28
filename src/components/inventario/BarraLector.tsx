@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BatteryWarning, Cable, CheckCircle2, Loader2, Lock, ShieldAlert, Usb } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { BotonInstalarLector } from "@/components/lector/InstruccionesLector";
 import { RESORTE_RAPIDO, SALIDA } from "@/lib/motion";
 import {
   COLOR_SIN_IDENTIFICAR,
