@@ -17,7 +17,7 @@ const path = require("node:path");
 const os = require("node:os");
 const crypto = require("node:crypto");
 
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 
 const DIR_CONFIG = path.join(
   os.homedir(),
@@ -27,6 +27,10 @@ const DIR_CONFIG = path.join(
 );
 const RUTA_CONFIG = path.join(DIR_CONFIG, "config.json");
 const RUTA_AGENTE = path.join(DIR_CONFIG, "lector.js");
+const RUNTIME_POR_DEFECTO = path.join(DIR_CONFIG, "runtime");
+
+/** Herramientas que el lector necesita, todas dentro de nuestro propio entorno. */
+const HERRAMIENTAS = ["idevice_id", "ideviceinfo", "idevicepair", "idevicediagnostics"];
 
 const INTERVALO_SONDEO = 2000;
 const INTERVALO_LATIDO = 60_000;
@@ -48,7 +52,13 @@ function leerConfig() {
   if (!base) return { error: "La configuración no tiene la dirección del servidor." };
   if (!clave) return { error: "La configuración no tiene la clave de la tienda." };
   if (!clave.startsWith("lec_")) return { error: "La clave de la tienda no tiene el formato esperado." };
-  return { cfg: { base_url: base, clave, nombre: cfg.nombre || os.hostname() } };
+  const runtime =
+    (typeof cfg.runtime === "string" && cfg.runtime.trim()) ||
+    process.env.LECTOR_RUNTIME ||
+    RUNTIME_POR_DEFECTO;
+  return {
+    cfg: { base_url: base, clave, nombre: cfg.nombre || os.hostname(), runtime },
+  };
 }
 
 let config = null;
@@ -71,17 +81,60 @@ let config = null;
   }
 }
 
-function correr(cmd, args, timeout = 25_000) {
-  return new Promise((resolve) => {
-    execFile(cmd, args, { timeout, maxBuffer: 8 * 1024 * 1024 }, (err, stdout, stderr) => {
-      resolve({
-        ok: !err,
-        salida: String(stdout || ""),
-        error: String((stderr || "") + (err ? ` ${err.message}` : "")).trim(),
-      });
-    });
+/* ---------- Entorno propio (sin Homebrew) ---------- */
+
+/**
+ * Ruta de una herramienta dentro del entorno del lector. Si se pidió el modo de
+ * soporte `LECTOR_ENTORNO_LOCAL=1`, se usa la del sistema (PATH).
+ */
+function rutaHerramienta(nombre) {
+  if (process.env.LECTOR_ENTORNO_LOCAL === "1") return nombre;
+  return path.join(config.runtime, "bin", nombre);
+}
+
+/** Devuelve la lista de herramientas que faltan en el entorno. */
+function herramientasFaltantes() {
+  if (process.env.LECTOR_ENTORNO_LOCAL === "1") return [];
+  return HERRAMIENTAS.filter((h) => {
+    try {
+      fs.accessSync(path.join(config.runtime, "bin", h), fs.constants.X_OK);
+      return false;
+    } catch {
+      return true;
+    }
   });
 }
+
+function entornoHerramientas() {
+  const lib = path.join(config.runtime, "lib");
+  const bin = path.join(config.runtime, "bin");
+  return {
+    ...process.env,
+    PATH: `${bin}:${process.env.PATH || "/usr/bin:/bin"}`,
+    // Los binarios traen rutas absolutas de Homebrew; macOS resuelve las
+    // librerías por nombre en nuestra carpeta con esta variable.
+    DYLD_FALLBACK_LIBRARY_PATH: `${lib}:/usr/local/lib:/usr/lib`,
+  };
+}
+
+function correr(cmd, args, timeout = 25_000) {
+  const ruta = cmd.includes("/") ? cmd : rutaHerramienta(cmd);
+  return new Promise((resolve) => {
+    execFile(
+      ruta,
+      args,
+      { timeout, maxBuffer: 8 * 1024 * 1024, env: entornoHerramientas() },
+      (err, stdout, stderr) => {
+        resolve({
+          ok: !err,
+          salida: String(stdout || ""),
+          error: String((stderr || "") + (err ? ` ${err.message}` : "")).trim(),
+        });
+      },
+    );
+  });
+}
+
 
 /* ---------- Parseo de la salida de ideviceinfo ---------- */
 
@@ -318,11 +371,27 @@ async function revisarActualizacion() {
 /* ---------- Bucle principal ---------- */
 
 async function ciclo() {
+  const faltan = herramientasFaltantes();
+  if (faltan.length > 0) {
+    if (estadoActual !== "error_runtime") {
+      udidActual = null;
+      fijarEstado("error_runtime", `Faltan las herramientas de lectura: ${faltan.join(", ")}`);
+    }
+    return;
+  }
+
   const lista = await correr("idevice_id", ["-l"], 8000);
+  if (!lista.ok && /dyld|Library not loaded|image not found|ENOENT/i.test(lista.error)) {
+    if (estadoActual !== "error_runtime") {
+      fijarEstado("error_runtime", "Las herramientas de lectura no se pudieron ejecutar");
+    }
+    return;
+  }
   const udids = lista.salida
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
+
 
   if (udids.length === 0) {
     if (udidActual !== null || estadoActual === "listo") {

@@ -29,6 +29,7 @@ const COLOR_ESTADO: Record<EstadoLector, string> = {
   esperando_confianza: "border-amber-400/30 bg-amber-500/10 text-amber-100",
   leyendo: "border-[var(--accent-store)]/40 bg-[var(--accent-store-soft)] text-foreground",
   listo: "border-emerald-400/30 bg-emerald-500/10 text-emerald-100",
+  error_runtime: "border-amber-400/30 bg-amber-500/10 text-amber-100",
   error: "border-red-400/30 bg-red-500/10 text-red-200",
 };
 
@@ -37,9 +38,10 @@ function IconoEstado({ estado }: { estado: EstadoLector }) {
   if (estado === "listo") return <CheckCircle2 className="size-4" />;
   if (estado === "esperando_confianza") return <Lock className="size-4" />;
   if (estado === "sin_equipo") return <Cable className="size-4" />;
-  if (estado === "error") return <ShieldAlert className="size-4" />;
+  if (estado === "error" || estado === "error_runtime") return <ShieldAlert className="size-4" />;
   return <Usb className="size-4" />;
 }
+
 
 export function BarraLector({
   estado,
@@ -80,14 +82,17 @@ export function BarraLector({
         )}
       </div>
 
-      {estado === "sin_contacto" && (
+      {(estado === "sin_contacto" || estado === "error_runtime") && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <p className="min-w-0 flex-1 opacity-80">
-            Este computador no tiene el lector corriendo. Puedes escribir los datos a mano igual.
+            {estado === "error_runtime"
+              ? "El lector está corriendo pero le faltan las herramientas para leer el iPhone. Vuelve a correr el instalador (no pide contraseña)."
+              : "Este computador no tiene el lector corriendo. Puedes escribir los datos a mano igual."}
           </p>
           <BotonInstalarLector />
         </div>
       )}
+
 
       <AnimatePresence initial={false}>
         {lectura && (

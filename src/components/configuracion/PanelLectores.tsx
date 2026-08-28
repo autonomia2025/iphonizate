@@ -215,13 +215,29 @@ export function PanelLectores({ puedeEditar }: { puedeEditar: boolean }) {
                   <td className="px-3 py-2">{nombreTienda(a.tienda_id)}</td>
                   <td className="px-3 py-2">
                     {a.activo ? (
-                      <span className={vivo ? "text-emerald-300" : "text-muted-foreground"}>
-                        {ESTADO_LECTOR_ETIQUETA[estado]}
-                      </span>
+                      <>
+                        <span
+                          className={
+                            estado === "error_runtime"
+                              ? "text-amber-300"
+                              : vivo
+                                ? "text-emerald-300"
+                                : "text-muted-foreground"
+                          }
+                        >
+                          {ESTADO_LECTOR_ETIQUETA[estado]}
+                        </span>
+                        {estado === "error_runtime" && (
+                          <span className="block text-[11px] text-muted-foreground">
+                            Vuelve a correr el instalador en ese Mac (no pide contraseña)
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <span className="text-red-300">Revocado</span>
                     )}
                   </td>
+
                   <td className="num px-3 py-2">{fecha(a.ultimo_latido)}</td>
                   <td className="num px-3 py-2">{a.version ?? "—"}</td>
                   {puedeEditar && (
