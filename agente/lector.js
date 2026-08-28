@@ -111,9 +111,11 @@ function entornoHerramientas() {
   return {
     ...process.env,
     PATH: `${bin}:${process.env.PATH || "/usr/bin:/bin"}`,
-    // Los binarios traen rutas absolutas de Homebrew; macOS resuelve las
-    // librerías por nombre en nuestra carpeta con esta variable.
+    // Los binarios traen rutas de Homebrew sin resolver; macOS busca cada
+    // librería por su nombre en nuestra carpeta con estas variables.
+    DYLD_LIBRARY_PATH: lib,
     DYLD_FALLBACK_LIBRARY_PATH: `${lib}:/usr/local/lib:/usr/lib`,
+
   };
 }
 
