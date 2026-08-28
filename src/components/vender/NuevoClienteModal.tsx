@@ -118,6 +118,22 @@ export function NuevoClienteModal({
               autoFocus
             />
           </div>
+          <div>
+            <label className={etiqueta} htmlFor="cli-correo">
+              Correo · para enviarle el comprobante
+            </label>
+            <input
+              id="cli-correo"
+              type="email"
+              className={`${campo} border-[var(--accent-store)]/40`}
+              value={correo}
+              placeholder="cliente@correo.cl"
+              onChange={(e) => setCorreo(e.target.value)}
+            />
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Si lo dejas vacío, el comprobante queda guardado en el sistema pero no se envía.
+            </p>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={etiqueta} htmlFor="cli-tel">
@@ -144,17 +160,7 @@ export function NuevoClienteModal({
               />
             </div>
           </div>
-          <div>
-            <label className={etiqueta} htmlFor="cli-correo">
-              Correo
-            </label>
-            <input
-              id="cli-correo"
-              className={campo}
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
-            />
-          </div>
+
         </div>
 
         <div className="mt-6 flex justify-end gap-2">
