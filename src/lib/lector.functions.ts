@@ -3,20 +3,6 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-/** Solo Dirección administra los Mac con lector instalado. */
-async function exigirDireccion(supabase: {
-  from: (t: string) => {
-    select: (c: string) => {
-      eq: (
-        c: string,
-        v: string,
-      ) => { maybeSingle: () => Promise<{ data: { id: string; rol: string } | null }> };
-    };
-  };
-}) {
-  const { data } = await supabase.from("usuarios").select("id, rol").eq("rol", "direccion").maybeSingle();
-  return data;
-}
 
 export const crearAgenteLector = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
