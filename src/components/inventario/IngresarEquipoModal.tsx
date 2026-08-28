@@ -206,12 +206,6 @@ export function IngresarEquipoModal({
       fallar("Selecciona la ubicación del equipo.");
       return;
     }
-    if (riesgos.length > 0 && !aceptoRiesgo) {
-      fallar(
-        "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
-      );
-      return;
-    }
 
 
 
