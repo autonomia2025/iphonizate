@@ -3,7 +3,7 @@
  * Sin dependencias del navegador ni del servidor: se puede importar en ambos.
  */
 
-export const VERSION_AGENTE = "1.0.0";
+export const VERSION_AGENTE = "1.1.0";
 
 export type EstadoLector =
   | "sin_contacto"
@@ -11,6 +11,7 @@ export type EstadoLector =
   | "esperando_confianza"
   | "leyendo"
   | "listo"
+  | "error_runtime"
   | "error";
 
 export const ESTADO_LECTOR_ETIQUETA: Record<EstadoLector, string> = {
@@ -19,6 +20,7 @@ export const ESTADO_LECTOR_ETIQUETA: Record<EstadoLector, string> = {
   esperando_confianza: "Desbloquea el iPhone y toca Confiar",
   leyendo: "Leyendo el equipo…",
   listo: "Lectura lista",
+  error_runtime: "Faltan las herramientas de lectura",
   error: "El lector tuvo un problema",
 };
 
@@ -28,8 +30,10 @@ export const ESTADOS_LECTOR: EstadoLector[] = [
   "esperando_confianza",
   "leyendo",
   "listo",
+  "error_runtime",
   "error",
 ];
+
 
 /** Un agente sin latido reciente se considera desconectado. */
 export const LATIDO_VIGENTE_MS = 3 * 60_000;

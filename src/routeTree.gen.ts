@@ -33,6 +33,7 @@ import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/pub
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
 import { Route as ApiPublicLectorInstalarDotshRouteImport } from './routes/api/public/lector/instalar[.]sh'
 import { Route as ApiPublicLectorLecturaRouteImport } from './routes/api/public/lector/lectura'
+import { Route as ApiPublicLectorRuntimeRouteImport } from './routes/api/public/lector/runtime'
 import { Route as ApiPublicLectorVerificarRouteImport } from './routes/api/public/lector/verificar'
 import { Route as ApiPublicLectorVersionRouteImport } from './routes/api/public/lector/version'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -159,6 +160,11 @@ const ApiPublicLectorLecturaRoute = ApiPublicLectorLecturaRouteImport.update({
   path: '/api/public/lector/lectura',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLectorRuntimeRoute = ApiPublicLectorRuntimeRouteImport.update({
+  id: '/api/public/lector/runtime',
+  path: '/api/public/lector/runtime',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLectorVerificarRoute =
   ApiPublicLectorVerificarRouteImport.update({
     id: '/api/public/lector/verificar',
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
+  '/api/public/lector/runtime': typeof ApiPublicLectorRuntimeRoute
   '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByTo {
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
+  '/api/public/lector/runtime': typeof ApiPublicLectorRuntimeRoute
   '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
+  '/api/public/lector/runtime': typeof ApiPublicLectorRuntimeRoute
   '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
+    | '/api/public/lector/runtime'
     | '/api/public/lector/verificar'
     | '/api/public/lector/version'
     | '/lovable/email/transactional/preview'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
+    | '/api/public/lector/runtime'
     | '/api/public/lector/verificar'
     | '/api/public/lector/version'
     | '/lovable/email/transactional/preview'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
+    | '/api/public/lector/runtime'
     | '/api/public/lector/verificar'
     | '/api/public/lector/version'
     | '/lovable/email/transactional/preview'
@@ -380,6 +392,7 @@ export interface RootRouteChildren {
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
   ApiPublicLectorInstalarDotshRoute: typeof ApiPublicLectorInstalarDotshRoute
   ApiPublicLectorLecturaRoute: typeof ApiPublicLectorLecturaRoute
+  ApiPublicLectorRuntimeRoute: typeof ApiPublicLectorRuntimeRoute
   ApiPublicLectorVerificarRoute: typeof ApiPublicLectorVerificarRoute
   ApiPublicLectorVersionRoute: typeof ApiPublicLectorVersionRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -555,6 +568,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLectorLecturaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/lector/runtime': {
+      id: '/api/public/lector/runtime'
+      path: '/api/public/lector/runtime'
+      fullPath: '/api/public/lector/runtime'
+      preLoaderRoute: typeof ApiPublicLectorRuntimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/lector/verificar': {
       id: '/api/public/lector/verificar'
       path: '/api/public/lector/verificar'
@@ -604,6 +624,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
   ApiPublicLectorInstalarDotshRoute: ApiPublicLectorInstalarDotshRoute,
   ApiPublicLectorLecturaRoute: ApiPublicLectorLecturaRoute,
+  ApiPublicLectorRuntimeRoute: ApiPublicLectorRuntimeRoute,
   ApiPublicLectorVerificarRoute: ApiPublicLectorVerificarRoute,
   ApiPublicLectorVersionRoute: ApiPublicLectorVersionRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

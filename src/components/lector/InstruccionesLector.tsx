@@ -77,15 +77,15 @@ export function InstruccionesLector({ conEnlaceConfig = true }: { conEnlaceConfi
             Para pegar en la Terminal usa <Tecla>Cmd</Tecla> + <Tecla>V</Tecla>.
           </span>
         </Paso>
-        <Paso n={4} titulo="Escribe la contraseña del Mac si la pide">
-          Es la misma con la que inicias sesión en el computador. Mientras la escribes no se ve nada
-          en la pantalla: es normal. Termina con <Tecla>Enter</Tecla>.
-        </Paso>
-        <Paso n={5} titulo="Pega la clave de la tienda cuando la pida">
+        <Paso n={4} titulo="Pega la clave de la tienda cuando la pida">
           Cuando diga <i>“Pega la clave que te dio la oficina”</i>, pega la clave y aprieta{" "}
           <Tecla>Enter</Tecla>. El instalador la comprueba con el servidor: si no sirve, te la vuelve
           a pedir y no instala nada a medias. Después pide un nombre para este Mac (por ejemplo{" "}
           <b>Mostrador 1</b>); si aprietas <Tecla>Enter</Tecla> usa el nombre del computador.
+        </Paso>
+        <Paso n={5} titulo="Espera a que diga “✓ Listo”">
+          El instalador baja todo lo que necesita y al final prueba las herramientas de lectura en
+          este Mac. Si la prueba falla te lo dice y no deja nada a medias.
         </Paso>
         <Paso n={6} titulo="Listo: conecta el iPhone">
           Conéctalo con cable, desbloquéalo y toca <b>Confiar</b> en la pantalla del iPhone. Los
@@ -93,10 +93,17 @@ export function InstruccionesLector({ conEnlaceConfig = true }: { conEnlaceConfi
         </Paso>
       </ol>
 
-      <p className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-2.5 text-amber-100">
-        La primera instalación puede tardar varios minutos: descarga las herramientas para leer el
-        iPhone. Deja la Terminal abierta hasta que diga <b>“✓ Listo”</b>.
+      <p className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-2.5 text-emerald-100">
+        La instalación <b>no pide la contraseña del Mac</b> y no necesita permisos de administrador:
+        todo queda dentro de tu carpeta personal. Puede tardar unos minutos porque descarga las
+        herramientas para leer el iPhone. Deja la Terminal abierta hasta que diga <b>“✓ Listo”</b>.
       </p>
+
+      <p className="opacity-60">
+        El lector usa software libre (libimobiledevice, libplist, libusbmuxd, libtatsu, libtasn1 y
+        OpenSSL) descargado del repositorio público de paquetes de Mac, y Node.js desde nodejs.org.
+      </p>
+
     </div>
   );
 }
