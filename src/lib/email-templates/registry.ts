@@ -1,5 +1,7 @@
 import type { ComponentType } from 'react'
 
+import { template as comprobanteVenta } from './comprobante-venta'
+
 export interface TemplateEntry {
   component: ComponentType<any>
   subject: string | ((data: Record<string, any>) => string)
