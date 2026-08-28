@@ -27,6 +27,9 @@ const globalAuth = globalThis as { __authCtx?: React.Context<Ctx | null> };
 const AuthCtx = globalAuth.__authCtx ?? createContext<Ctx | null>(null);
 globalAuth.__authCtx = AuthCtx;
 
+/** La sesión se cierra sola tras 12 horas sin actividad. */
+const INACTIVIDAD_MS = 12 * 60 * 60 * 1000;
+
 async function cargarUsuario(): Promise<UsuarioSesion | null> {
   const { data: sesion } = await supabase.auth.getSession();
   if (!sesion.session) return null;
