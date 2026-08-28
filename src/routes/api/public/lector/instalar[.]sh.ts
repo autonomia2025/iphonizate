@@ -83,7 +83,8 @@ if [ -z "$CLAVE" ]; then
   while [ "$INTENTOS" -lt 3 ]; do
     INTENTOS=$((INTENTOS + 1))
     echo ""
-    preguntar CLAVE "Pega la clave que te dio la oficina (empieza con lec_): "
+    preguntar "Pega la clave que te dio la oficina (empieza con lec_): "
+    CLAVE="$RESPUESTA"
     if validar_clave "$CLAVE"; then
       echo "  ✓ Clave verificada con el servidor"
       break
