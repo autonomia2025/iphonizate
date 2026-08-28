@@ -103,7 +103,7 @@ const Email = ({
 
 export const template = {
   component: Email,
-  subject: (d: Record<string, any>) => `Comprobante ${d?.numero ?? ""} · ${d?.tienda ?? "iPhonizate"}`,
+  subject: (d: Record<string, any>) => `Comprobante ${d?.["numero"] ?? ""} · ${d?.["tienda"] ?? "iPhonizate"}`,
   displayName: "Comprobante de venta",
   previewData: {
     numero: "BPP-000124",
