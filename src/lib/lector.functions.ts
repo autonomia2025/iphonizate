@@ -73,3 +73,29 @@ export const regenerarClaveLector = createServerFn({ method: "POST" })
     }
     return { ok: true as const, clave };
   });
+
+export const revocarAgenteLector = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: yo } = await context.supabase
+      .from("usuarios")
+      .select("id, rol")
+      .eq("auth_user_id", context.userId)
+      .maybeSingle();
+    if (!yo || yo.rol !== "direccion") {
+      return { ok: false as const, mensaje: "Solo Dirección puede revocar un Mac." };
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("lector_agentes")
+      .update({ activo: false })
+      .eq("id", data.id);
+
+    if (error) {
+      console.error("revocarAgenteLector", error);
+      return { ok: false as const, mensaje: "No pudimos revocar el Mac." };
+    }
+    return { ok: true as const };
+  });
