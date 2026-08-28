@@ -105,7 +105,8 @@ if [ -z "$NOMBRE" ] && [ -f "$CFG" ]; then
   case "$NOMBRE" in \\#*|"") NOMBRE="" ;; esac
 fi
 if [ -z "$NOMBRE" ] && [ -n "$TTY" ]; then
-  preguntar NOMBRE "Nombre de este Mac (ej: Mostrador 1) [Enter para usar el del sistema]: "
+  preguntar "Nombre de este Mac (ej: Mostrador 1) [Enter para usar el del sistema]: "
+  NOMBRE="$RESPUESTA"
 fi
 case "$NOMBRE" in \\#*) NOMBRE="" ;; esac
 if [ -z "$NOMBRE" ]; then
