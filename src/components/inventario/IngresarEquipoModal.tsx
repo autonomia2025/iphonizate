@@ -11,6 +11,9 @@ import { formatCLP } from "@/lib/stores";
 import { luhnValido } from "@/lib/imeicheck";
 import { verificarYGuardarImei } from "@/lib/imeicheck.functions";
 import { VerificarImeiPanel } from "@/components/inventario/VerificarImeiPanel";
+import { BarraLector } from "@/components/inventario/BarraLector";
+import { useLectorUsb } from "@/components/inventario/useLectorUsb";
+import { COLOR_SIN_IDENTIFICAR, textoCiclos, type Lectura } from "@/lib/lector";
 
 import {
   CATEGORIAS,
