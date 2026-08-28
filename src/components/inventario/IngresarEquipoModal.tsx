@@ -69,17 +69,12 @@ export function IngresarEquipoModal({
     | { tipo: "error"; texto: string }
     | null
   >(null);
-  /* Riesgos bloqueantes detectados por imeicheck (iCloud activo, lista negra) */
-  const [riesgos, setRiesgos] = useState<string[]>([]);
-  const [aceptoRiesgo, setAceptoRiesgo] = useState(false);
-  const [verificado, setVerificado] = useState(false);
   /* Aviso temprano: si el IMEI ya está activo en la cadena, se dice al tipear */
   const [duplicado, setDuplicado] = useState<{ estado: EquipoEstado; tienda: string | null } | null>(
     null,
   );
   const imeiRef = useRef<HTMLInputElement>(null);
   const avisoRef = useRef<HTMLDivElement>(null);
-  const guardarVerificacion = useServerFn(verificarYGuardarImei);
 
   /* Lector USB de la tienda donde se está ingresando el equipo */
   const tiendaLector = form.ubicacion_id || tiendaPorDefecto || null;
