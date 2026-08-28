@@ -1683,6 +1683,11 @@ export type Database = {
         Row: {
           anulada: boolean
           cliente_id: string | null
+          comprobante_email: string | null
+          comprobante_email_at: string | null
+          comprobante_email_estado: string | null
+          comprobante_numero: string | null
+          comprobante_ruta: string | null
           con_boleta: boolean
           fecha: string
           fecha_anulacion: string | null
@@ -1698,6 +1703,11 @@ export type Database = {
         Insert: {
           anulada?: boolean
           cliente_id?: string | null
+          comprobante_email?: string | null
+          comprobante_email_at?: string | null
+          comprobante_email_estado?: string | null
+          comprobante_numero?: string | null
+          comprobante_ruta?: string | null
           con_boleta?: boolean
           fecha?: string
           fecha_anulacion?: string | null
@@ -1713,6 +1723,11 @@ export type Database = {
         Update: {
           anulada?: boolean
           cliente_id?: string | null
+          comprobante_email?: string | null
+          comprobante_email_at?: string | null
+          comprobante_email_estado?: string | null
+          comprobante_numero?: string | null
+          comprobante_ruta?: string | null
           con_boleta?: boolean
           fecha?: string
           fecha_anulacion?: string | null
@@ -2359,6 +2374,7 @@ export type Database = {
       mi_rol: { Args: never; Returns: Database["public"]["Enums"]["app_rol"] }
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
+      puede_cartera: { Args: { _tienda: string }; Returns: boolean }
       puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
       registrar_riesgo_imei: {
