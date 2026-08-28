@@ -81,10 +81,11 @@ export function InstruccionesLector({ conEnlaceConfig = true }: { conEnlaceConfi
           Es la misma con la que inicias sesión en el computador. Mientras la escribes no se ve nada
           en la pantalla: es normal. Termina con <Tecla>Enter</Tecla>.
         </Paso>
-        <Paso n={5} titulo="Pega la clave de la tienda al final">
+        <Paso n={5} titulo="Pega la clave de la tienda cuando la pida">
           Cuando diga <i>“Pega la clave que te dio la oficina”</i>, pega la clave y aprieta{" "}
-          <Tecla>Enter</Tecla>. Después pide un nombre para este Mac (por ejemplo{" "}
-          <b>Mostrador 1</b>).
+          <Tecla>Enter</Tecla>. El instalador la comprueba con el servidor: si no sirve, te la vuelve
+          a pedir y no instala nada a medias. Después pide un nombre para este Mac (por ejemplo{" "}
+          <b>Mostrador 1</b>); si aprietas <Tecla>Enter</Tecla> usa el nombre del computador.
         </Paso>
         <Paso n={6} titulo="Listo: conecta el iPhone">
           Conéctalo con cable, desbloquéalo y toca <b>Confiar</b> en la pantalla del iPhone. Los

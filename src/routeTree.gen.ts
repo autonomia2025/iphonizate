@@ -33,6 +33,7 @@ import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/pub
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
 import { Route as ApiPublicLectorInstalarDotshRouteImport } from './routes/api/public/lector/instalar[.]sh'
 import { Route as ApiPublicLectorLecturaRouteImport } from './routes/api/public/lector/lectura'
+import { Route as ApiPublicLectorVerificarRouteImport } from './routes/api/public/lector/verificar'
 import { Route as ApiPublicLectorVersionRouteImport } from './routes/api/public/lector/version'
 
 const IndexRoute = IndexRouteImport.update({
@@ -157,6 +158,12 @@ const ApiPublicLectorLecturaRoute = ApiPublicLectorLecturaRouteImport.update({
   path: '/api/public/lector/lectura',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLectorVerificarRoute =
+  ApiPublicLectorVerificarRouteImport.update({
+    id: '/api/public/lector/verificar',
+    path: '/api/public/lector/verificar',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicLectorVersionRoute = ApiPublicLectorVersionRouteImport.update({
   id: '/api/public/lector/version',
   path: '/api/public/lector/version',
@@ -188,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
+  '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
 }
 export interface FileRoutesByTo {
@@ -215,6 +223,7 @@ export interface FileRoutesByTo {
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
+  '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
 }
 export interface FileRoutesById {
@@ -243,6 +252,7 @@ export interface FileRoutesById {
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
+  '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
 }
 export interface FileRouteTypes {
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
+    | '/api/public/lector/verificar'
     | '/api/public/lector/version'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
+    | '/api/public/lector/verificar'
     | '/api/public/lector/version'
   id:
     | '__root__'
@@ -326,6 +338,7 @@ export interface FileRouteTypes {
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
+    | '/api/public/lector/verificar'
     | '/api/public/lector/version'
   fileRoutesById: FileRoutesById
 }
@@ -354,6 +367,7 @@ export interface RootRouteChildren {
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
   ApiPublicLectorInstalarDotshRoute: typeof ApiPublicLectorInstalarDotshRoute
   ApiPublicLectorLecturaRoute: typeof ApiPublicLectorLecturaRoute
+  ApiPublicLectorVerificarRoute: typeof ApiPublicLectorVerificarRoute
   ApiPublicLectorVersionRoute: typeof ApiPublicLectorVersionRoute
 }
 
@@ -527,6 +541,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLectorLecturaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/lector/verificar': {
+      id: '/api/public/lector/verificar'
+      path: '/api/public/lector/verificar'
+      fullPath: '/api/public/lector/verificar'
+      preLoaderRoute: typeof ApiPublicLectorVerificarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/lector/version': {
       id: '/api/public/lector/version'
       path: '/api/public/lector/version'
@@ -562,6 +583,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
   ApiPublicLectorInstalarDotshRoute: ApiPublicLectorInstalarDotshRoute,
   ApiPublicLectorLecturaRoute: ApiPublicLectorLecturaRoute,
+  ApiPublicLectorVerificarRoute: ApiPublicLectorVerificarRoute,
   ApiPublicLectorVersionRoute: ApiPublicLectorVersionRoute,
 }
 export const routeTree = rootRouteImport

@@ -37,19 +37,39 @@ function log(...args) {
 }
 
 function leerConfig() {
+  let cfg;
   try {
-    const cfg = JSON.parse(fs.readFileSync(RUTA_CONFIG, "utf8"));
-    if (!cfg.base_url || !cfg.clave) throw new Error("config incompleta");
-    return cfg;
-  } catch (e) {
-    console.error(
-      `No pude leer la configuración en ${RUTA_CONFIG}. Vuelve a correr el instalador.`,
-    );
-    process.exit(1);
+    cfg = JSON.parse(fs.readFileSync(RUTA_CONFIG, "utf8"));
+  } catch {
+    return { error: `No pude leer ${RUTA_CONFIG} (falta o está dañado).` };
   }
+  const base = typeof cfg.base_url === "string" ? cfg.base_url.trim() : "";
+  const clave = typeof cfg.clave === "string" ? cfg.clave.trim() : "";
+  if (!base) return { error: "La configuración no tiene la dirección del servidor." };
+  if (!clave) return { error: "La configuración no tiene la clave de la tienda." };
+  if (!clave.startsWith("lec_")) return { error: "La clave de la tienda no tiene el formato esperado." };
+  return { cfg: { base_url: base, clave, nombre: cfg.nombre || os.hostname() } };
 }
 
-const config = leerConfig();
+let config = null;
+{
+  const r = leerConfig();
+  if (r.cfg) {
+    config = r.cfg;
+  } else {
+    // No morimos: launchd nos reiniciaría en bucle. Esperamos a que el
+    // instalador deje una configuración válida y seguimos.
+    log(`${r.error} Corre de nuevo el instalador del lector.`);
+    const espera = setInterval(() => {
+      const otra = leerConfig();
+      if (otra.cfg) {
+        log("configuración corregida, reiniciando el lector");
+        clearInterval(espera);
+        process.exit(0); // launchd lo levanta de nuevo, ya con config válida
+      }
+    }, 15_000);
+  }
+}
 
 function correr(cmd, args, timeout = 25_000) {
   return new Promise((resolve) => {
@@ -318,20 +338,22 @@ async function ciclo() {
   await leerEquipo(udid);
 }
 
-log(`lector iPhonizate OS v${VERSION} · ${os.hostname()}`);
-void latido();
-void revisarActualizacion();
+if (config) {
+  log(`lector iPhonizate OS v${VERSION} · ${os.hostname()}`);
+  void latido();
+  void revisarActualizacion();
 
-let corriendo = false;
-setInterval(() => {
-  if (corriendo) return;
-  corriendo = true;
-  ciclo()
-    .catch((e) => log("error en el ciclo:", e.message))
-    .finally(() => {
-      corriendo = false;
-    });
-}, INTERVALO_SONDEO);
+  let corriendo = false;
+  setInterval(() => {
+    if (corriendo) return;
+    corriendo = true;
+    ciclo()
+      .catch((e) => log("error en el ciclo:", e.message))
+      .finally(() => {
+        corriendo = false;
+      });
+  }, INTERVALO_SONDEO);
 
-setInterval(() => void latido(), INTERVALO_LATIDO);
-setInterval(() => void revisarActualizacion(), INTERVALO_ACTUALIZACION);
+  setInterval(() => void latido(), INTERVALO_LATIDO);
+  setInterval(() => void revisarActualizacion(), INTERVALO_ACTUALIZACION);
+}
