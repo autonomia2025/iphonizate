@@ -248,6 +248,44 @@ export type Database = {
           },
         ]
       }
+      colores_apple: {
+        Row: {
+          color_comercial: string
+          created_at: string
+          created_by: string | null
+          device_color: string
+          id: string
+          product_type: string
+          updated_at: string
+        }
+        Insert: {
+          color_comercial: string
+          created_at?: string
+          created_by?: string | null
+          device_color: string
+          id?: string
+          product_type: string
+          updated_at?: string
+        }
+        Update: {
+          color_comercial?: string
+          created_at?: string
+          created_by?: string | null
+          device_color?: string
+          id?: string
+          product_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "colores_apple_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipos: {
         Row: {
           bateria: number | null
@@ -420,6 +458,79 @@ export type Database = {
           {
             foreignKeyName: "equipos_historial_usuario_id_fkey"
             columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipos_reportes: {
+        Row: {
+          created_at: string
+          equipo_id: string | null
+          id: string
+          imei: string
+          nombre_archivo: string | null
+          ruta: string
+          subido_por: string | null
+        }
+        Insert: {
+          created_at?: string
+          equipo_id?: string | null
+          id?: string
+          imei: string
+          nombre_archivo?: string | null
+          ruta: string
+          subido_por?: string | null
+        }
+        Update: {
+          created_at?: string
+          equipo_id?: string | null
+          id?: string
+          imei?: string
+          nombre_archivo?: string | null
+          ruta?: string
+          subido_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipos_reportes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_reportes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_reportes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_reportes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "equipos_reportes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "equipos_reportes_subido_por_fkey"
+            columns: ["subido_por"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -654,6 +765,180 @@ export type Database = {
           },
         ]
       }
+      lector_agentes: {
+        Row: {
+          activo: boolean
+          clave_hash: string
+          created_at: string
+          created_by: string | null
+          detalle_estado: string | null
+          estado: string
+          hostname: string | null
+          id: string
+          nombre: string
+          tienda_id: string
+          udid_actual: string | null
+          ultima_lectura: string | null
+          ultimo_latido: string | null
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          activo?: boolean
+          clave_hash: string
+          created_at?: string
+          created_by?: string | null
+          detalle_estado?: string | null
+          estado?: string
+          hostname?: string | null
+          id?: string
+          nombre: string
+          tienda_id: string
+          udid_actual?: string | null
+          ultima_lectura?: string | null
+          ultimo_latido?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          activo?: boolean
+          clave_hash?: string
+          created_at?: string
+          created_by?: string | null
+          detalle_estado?: string | null
+          estado?: string
+          hostname?: string | null
+          id?: string
+          nombre?: string
+          tienda_id?: string
+          udid_actual?: string | null
+          ultima_lectura?: string | null
+          ultimo_latido?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lector_agentes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lector_agentes_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lecturas_equipo: {
+        Row: {
+          activado: boolean | null
+          agente_id: string
+          bateria_capacidad_disenio: number | null
+          bateria_ciclos: number | null
+          bluetooth_mac: string | null
+          color_codigo: string | null
+          color_comercial: string | null
+          crudo: Json
+          fecha: string
+          gb: number | null
+          icloud_bloqueado: boolean | null
+          icloud_cuenta_enmascarada: string | null
+          id: string
+          imei: string | null
+          imei2: string | null
+          ios_version: string | null
+          meid: string | null
+          model_number: string | null
+          modelo: string | null
+          operador: string | null
+          product_type: string | null
+          region: string | null
+          serie: string | null
+          serie_placa: string | null
+          tienda_id: string
+          udid: string | null
+          wifi_mac: string | null
+        }
+        Insert: {
+          activado?: boolean | null
+          agente_id: string
+          bateria_capacidad_disenio?: number | null
+          bateria_ciclos?: number | null
+          bluetooth_mac?: string | null
+          color_codigo?: string | null
+          color_comercial?: string | null
+          crudo?: Json
+          fecha?: string
+          gb?: number | null
+          icloud_bloqueado?: boolean | null
+          icloud_cuenta_enmascarada?: string | null
+          id?: string
+          imei?: string | null
+          imei2?: string | null
+          ios_version?: string | null
+          meid?: string | null
+          model_number?: string | null
+          modelo?: string | null
+          operador?: string | null
+          product_type?: string | null
+          region?: string | null
+          serie?: string | null
+          serie_placa?: string | null
+          tienda_id: string
+          udid?: string | null
+          wifi_mac?: string | null
+        }
+        Update: {
+          activado?: boolean | null
+          agente_id?: string
+          bateria_capacidad_disenio?: number | null
+          bateria_ciclos?: number | null
+          bluetooth_mac?: string | null
+          color_codigo?: string | null
+          color_comercial?: string | null
+          crudo?: Json
+          fecha?: string
+          gb?: number | null
+          icloud_bloqueado?: boolean | null
+          icloud_cuenta_enmascarada?: string | null
+          id?: string
+          imei?: string | null
+          imei2?: string | null
+          ios_version?: string | null
+          meid?: string | null
+          model_number?: string | null
+          modelo?: string | null
+          operador?: string | null
+          product_type?: string | null
+          region?: string | null
+          serie?: string | null
+          serie_placa?: string | null
+          tienda_id?: string
+          udid?: string | null
+          wifi_mac?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecturas_equipo_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "lector_agentes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lecturas_equipo_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metas: {
         Row: {
           equipos_objetivo: number
@@ -685,6 +970,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      modelos_apple: {
+        Row: {
+          created_at: string
+          modelo_comercial: string
+          product_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          modelo_comercial: string
+          product_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          modelo_comercial?: string
+          product_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       movimientos: {
         Row: {
