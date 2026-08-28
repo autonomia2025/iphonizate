@@ -288,24 +288,29 @@ export function AppShell({ children }: { children: ReactNode }) {
               {iniciales(usuario?.nombre ?? "")}
             </span>
             {!colapsado && (
-              <>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px]">{usuario?.nombre}</span>
-                  <span className="block text-[11px] text-muted-foreground">
-                    {usuario ? ROL_ETIQUETA[usuario.rol] : ""}
-                  </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px]">{usuario?.nombre}</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  {usuario ? ROL_ETIQUETA[usuario.rol] : ""}
                 </span>
-                <button
-                  onClick={() => void cerrarSesion()}
-                  aria-label="Cerrar sesión"
-                  className="rounded-lg p-1.5 text-muted-foreground transition-colors duration-200 hover:bg-white/[0.07] hover:text-foreground"
-                >
-                  <LogOut className="size-4" />
-                </button>
-              </>
+              </span>
             )}
           </div>
+          {/* Cerrar sesión siempre visible: nadie tiene que buscarlo */}
+          <button
+            onClick={() => void cerrarSesion()}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            className={cn(
+              "flex w-full items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-[13px] text-muted-foreground transition-colors duration-200 hover:border-white/[0.12] hover:bg-white/[0.07] hover:text-foreground",
+              colapsado && "justify-center px-0",
+            )}
+          >
+            <LogOut className="size-4 shrink-0" />
+            {!colapsado && <span>Cerrar sesión</span>}
+          </button>
         </div>
+
       </motion.aside>
 
       <div className="flex min-w-0 flex-1 flex-col">

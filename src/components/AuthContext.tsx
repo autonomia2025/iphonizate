@@ -27,6 +27,9 @@ const globalAuth = globalThis as { __authCtx?: React.Context<Ctx | null> };
 const AuthCtx = globalAuth.__authCtx ?? createContext<Ctx | null>(null);
 globalAuth.__authCtx = AuthCtx;
 
+/** La sesión se cierra sola tras 12 horas sin actividad. */
+const INACTIVIDAD_MS = 12 * 60 * 60 * 1000;
+
 async function cargarUsuario(): Promise<UsuarioSesion | null> {
   const { data: sesion } = await supabase.auth.getSession();
   if (!sesion.session) return null;
@@ -96,6 +99,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setUsuario(null);
   };
+
+  /* Cierre por inactividad a las 12 horas: cubre el turno completo sin cortar la jornada */
+  useEffect(() => {
+    if (!usuario) return;
+    let temporizador: ReturnType<typeof setTimeout>;
+    const reiniciar = () => {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(() => void salir(), INACTIVIDAD_MS);
+    };
+    const eventos = ["pointerdown", "keydown", "wheel", "visibilitychange"] as const;
+    eventos.forEach((e) => window.addEventListener(e, reiniciar, { passive: true }));
+    reiniciar();
+    return () => {
+      clearTimeout(temporizador);
+      eventos.forEach((e) => window.removeEventListener(e, reiniciar));
+    };
+  }, [usuario]);
+
 
   return (
     <AuthCtx.Provider value={{ usuario, cargando, refrescar, ingresar, cambiarPin, salir }}>
