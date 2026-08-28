@@ -34,7 +34,7 @@ Endpoints públicos autenticados por clave de agente (no por sesión de usuario)
 
 - `POST /api/public/lector/lectura` — recibe la lectura, resuelve el modelo comercial y el color, guarda parseado + crudo.
 - `POST /api/public/lector/estado` — latido y estado de emparejamiento/lectura.
-- `GET /api/public/lector/version` — versión vigente para la autoactualización.
+- `GET /api/public/lector/version` — versión vigente **más el checksum SHA-256 del tarball**, para la autoactualización y el instalador.
 - `GET /api/public/lector/instalar.sh` — instalador público de una línea.
 
 Tablas nuevas:
