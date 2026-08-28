@@ -41,6 +41,27 @@ sha256() { # sha256 ARCHIVO
   fi
 }
 
+# --- Modo diagnóstico (para soporte): muestra qué hay instalado y termina ---
+if [ "\${1:-}" = "--diagnostico" ] || [ "\${LECTOR_DIAGNOSTICO:-}" = "1" ]; then
+  echo "  Diagnóstico del lector"
+  echo "  arquitectura: $(uname -m) · macOS $(sw_vers -productVersion 2>/dev/null)"
+  echo "  carpeta: $RT"
+  echo "  node: $("$RT/node/bin/node" -v 2>/dev/null || echo 'no instalado')"
+  for H in idevice_id ideviceinfo idevicepair idevicediagnostics; do
+    if [ -x "$RT/bin/$H" ]; then
+      SAL="$(DYLD_LIBRARY_PATH="$RT/lib" DYLD_FALLBACK_LIBRARY_PATH="$RT/lib:/usr/local/lib:/usr/lib" "$RT/bin/$H" --version 2>&1 | head -1)"
+      echo "  $H: $SAL"
+    else
+      echo "  $H: falta"
+    fi
+  done
+  echo "  configuración: $([ -f "$CFG" ] && echo presente || echo 'falta')"
+  echo "  arranque: $(launchctl list 2>/dev/null | grep -c app.iphonizate.lector) servicio(s)"
+  exit 0
+fi
+
+
+
 # --- Entrada interactiva incluso cuando el script llega por una tubería ---
 TTY=""
 if [ -r /dev/tty ] && { : > /dev/tty; } 2>/dev/null; then TTY="/dev/tty"; fi
