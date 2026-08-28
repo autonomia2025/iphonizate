@@ -102,7 +102,7 @@ export const Route = createFileRoute("/api/public/lector/lectura")({
             bateria_capacidad_disenio: l.bateria_capacidad_disenio ?? null,
             icloud_bloqueado: l.icloud_bloqueado ?? null,
             icloud_cuenta_enmascarada: l.icloud_cuenta_enmascarada ?? null,
-            crudo: l.crudo,
+            crudo: (l.crudo ?? {}) as never,
           })
           .select("id")
           .single();
