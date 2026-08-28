@@ -26,7 +26,7 @@ Alertas: iCloud bloqueado en rojo mostrando la cuenta enmascarada; más de 800 c
 - **No** intenta salud de batería, ni color traducido, ni seriales de componentes.
 - Manda todo al backend con su clave de Mac, más la salida cruda íntegra de los tres comandos.
 - Latido cada 60 s con versión, hostname y estado.
-- **Autoactualización**: una vez al día consulta el endpoint de versión; si hay una nueva, la descarga, verifica y se reinicia solo. La versión corriendo queda registrada por Mac.
+- **Autoactualización**: una vez al día consulta el endpoint de versión; si hay una nueva, descarga el tarball, **verifica su checksum SHA-256** contra el que entrega el endpoint y solo entonces instala y se reinicia. Si el checksum no calza, aborta, avisa y sigue corriendo la versión anterior. La versión corriendo queda registrada por Mac.
 
 ### 2. Backend
 
@@ -34,7 +34,7 @@ Endpoints públicos autenticados por clave de agente (no por sesión de usuario)
 
 - `POST /api/public/lector/lectura` — recibe la lectura, resuelve el modelo comercial y el color, guarda parseado + crudo.
 - `POST /api/public/lector/estado` — latido y estado de emparejamiento/lectura.
-- `GET /api/public/lector/version` — versión vigente para la autoactualización.
+- `GET /api/public/lector/version` — versión vigente **más el checksum SHA-256 del tarball**, para la autoactualización y el instalador.
 - `GET /api/public/lector/instalar.sh` — instalador público de una línea.
 
 Tablas nuevas:
@@ -56,11 +56,14 @@ Reglas de acceso: las lecturas se ven solo desde la tienda dueña del agente (Di
 
 ## Instalación
 
-Una línea pegada en la Terminal: instala Homebrew si falta, instala `libimobiledevice`, instala el agente, lo registra en launchd y al final pide la clave de la tienda para guardarla en el archivo de configuración local.
+Una línea pegada en la Terminal: instala Homebrew si falta, instala `libimobiledevice`, descarga el tarball del agente, **verifica su SHA-256 contra el checksum del endpoint de versión y aborta con un mensaje claro si no calza**, lo instala, lo registra en launchd y al final pide la clave de la tienda para guardarla en el archivo de configuración local.
 
-## Sesiones que se caían
+## Sesiones
 
-Se ajusta la sesión para que no caduque por inactividad: el token de acceso se renueva solo en segundo plano y la sesión se mantiene mientras el navegador del Mac conserve sus datos, sin volver a pedir el PIN. También se maneja el caso de token no renovable para que la app pida PIN de forma clara en vez de quedar en blanco.
+- Caducidad por inactividad en **12 horas**: cubre un turno completo sin volver a pedir PIN y al día siguiente arranca limpio. No se desactiva, porque son computadores de mostrador compartidos y la trazabilidad por persona depende de eso.
+- Refresco automático del token de acceso en segundo plano, para que no se caiga a mitad de turno.
+- Token no renovable: se limpia la sesión y se manda al login con el mensaje "Tu sesión expiró, vuelve a entrar". Nunca pantalla en blanco.
+- Botón **Cerrar sesión** visible en el sidebar, para salir al terminar el turno sin cerrar el navegador.
 
 ## Detalles técnicos
 
@@ -69,4 +72,5 @@ Se ajusta la sesión para que no caduque por inactividad: el token de acceso se 
 - El agente vive en `agente/` dentro del repo (Node puro, sin dependencias nativas), servido como tarball versionado desde la ruta pública.
 - GB comerciales: se redondea `TotalDiskCapacity` a la escala 64/128/256/512/1024.
 - Se guarda siempre el crudo, así cualquier dato futuro se recupera sin reconectar el equipo.
-- Auth: `sessions.inactivity_timeout` desactivado y refresco rotativo activo.
+- Auth: `sessions.inactivity_timeout` en 12 h, refresco rotativo activo y manejo explícito de `refresh_token_not_found` → limpiar caché y navegar a `/auth` con aviso.
+- Checksum SHA-256 del tarball calculado en build y servido junto a la versión; verificado con `shasum -a 256` en el instalador y con `crypto` en la autoactualización.
