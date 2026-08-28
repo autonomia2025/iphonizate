@@ -15,6 +15,13 @@
       "when": 1787953772174,
       "tag": "0001_siguiente_comprobante",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787957077011,
+      "tag": "0002_reset_datos_operativos",
+      "breakpoints": true
     }
   ]
 }

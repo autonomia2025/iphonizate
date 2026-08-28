@@ -304,7 +304,7 @@ export function EquipoDetalle({
               </div>
             )}
 
-            <VerificacionEquipo equipo={equipo} onActualizado={refrescar} />
+            <VerificacionEquipo equipo={equipo} />
 
 
             <section className="mt-6">

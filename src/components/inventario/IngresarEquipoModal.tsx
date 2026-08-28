@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,9 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCLP } from "@/lib/stores";
-import { luhnValido } from "@/lib/imeicheck";
-import { verificarYGuardarImei } from "@/lib/imeicheck.functions";
-import { VerificarImeiPanel } from "@/components/inventario/VerificarImeiPanel";
+import { luhnValido } from "@/lib/imei";
 import { BarraLector } from "@/components/inventario/BarraLector";
 import { useLectorUsb } from "@/components/inventario/useLectorUsb";
 import { COLOR_SIN_IDENTIFICAR, textoCiclos, type Lectura } from "@/lib/lector";
@@ -72,17 +69,12 @@ export function IngresarEquipoModal({
     | { tipo: "error"; texto: string }
     | null
   >(null);
-  /* Riesgos bloqueantes detectados por imeicheck (iCloud activo, lista negra) */
-  const [riesgos, setRiesgos] = useState<string[]>([]);
-  const [aceptoRiesgo, setAceptoRiesgo] = useState(false);
-  const [verificado, setVerificado] = useState(false);
   /* Aviso temprano: si el IMEI ya está activo en la cadena, se dice al tipear */
   const [duplicado, setDuplicado] = useState<{ estado: EquipoEstado; tienda: string | null } | null>(
     null,
   );
   const imeiRef = useRef<HTMLInputElement>(null);
   const avisoRef = useRef<HTMLDivElement>(null);
-  const guardarVerificacion = useServerFn(verificarYGuardarImei);
 
   /* Lector USB de la tienda donde se está ingresando el equipo */
   const tiendaLector = form.ubicacion_id || tiendaPorDefecto || null;
@@ -177,9 +169,6 @@ export function IngresarEquipoModal({
   const reiniciar = () => {
     setForm((f) => ({ ...vacio, ubicacion_id: f.ubicacion_id, categoria: f.categoria }));
     setServicios({});
-    setRiesgos([]);
-    setAceptoRiesgo(false);
-    setVerificado(false);
     setDuplicado(null);
     setLecturaAplicada(null);
     setTimeout(() => imeiRef.current?.focus(), 30);
@@ -207,12 +196,6 @@ export function IngresarEquipoModal({
     }
     if (!form.ubicacion_id) {
       fallar("Selecciona la ubicación del equipo.");
-      return;
-    }
-    if (riesgos.length > 0 && !aceptoRiesgo) {
-      fallar(
-        "Este equipo tiene un riesgo grave según la verificación. Marca la casilla de aceptación para poder ingresarlo.",
-      );
       return;
     }
 
@@ -285,26 +268,6 @@ export function IngresarEquipoModal({
             costo: puedeCostos ? Number(servicios[tipo] || 0) : 0,
           })),
         );
-      }
-
-      /* Queda en la auditoría quién aceptó ingresar un equipo con riesgo */
-      if (riesgos.length > 0) {
-        await supabase.rpc("registrar_riesgo_imei", {
-          _imei: form.imei,
-          _motivos: riesgos,
-          _detalle: { modelo: form.modelo.trim(), ubicacion_id: form.ubicacion_id },
-        });
-      }
-
-      /* La verificación queda grabada en la fila: reusa la caché, no gasta otra consulta */
-      if (verificado) {
-        try {
-          await guardarVerificacion({
-            data: { imei: form.imei, riesgoAceptado: riesgos.length > 0 && aceptoRiesgo },
-          });
-        } catch {
-          toast.warning("El equipo quedó guardado, pero no pudimos grabar la verificación.");
-        }
       }
 
 
@@ -415,14 +378,6 @@ export function IngresarEquipoModal({
             </div>
           </div>
 
-          <VerificarImeiPanel
-            imei={form.imei}
-            onUsarModelo={(modelo) => set("modelo", modelo)}
-            onRiesgos={setRiesgos}
-            aceptoRiesgo={aceptoRiesgo}
-            onAceptoRiesgo={setAceptoRiesgo}
-            onVerificado={setVerificado}
-          />
 
 
 

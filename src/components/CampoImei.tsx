@@ -1,7 +1,7 @@
 import { useState, type RefObject } from "react";
 import { ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { luhnValido } from "@/lib/imeicheck";
+import { luhnValido } from "@/lib/imei";
 import { cn } from "@/lib/utils";
 
 export const AYUDA_IMEI = "Escanea o escribe el IMEI y presiona Enter";
