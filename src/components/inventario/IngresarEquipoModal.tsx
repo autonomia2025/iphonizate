@@ -284,26 +284,6 @@ export function IngresarEquipoModal({
         );
       }
 
-      /* Queda en la auditoría quién aceptó ingresar un equipo con riesgo */
-      if (riesgos.length > 0) {
-        await supabase.rpc("registrar_riesgo_imei", {
-          _imei: form.imei,
-          _motivos: riesgos,
-          _detalle: { modelo: form.modelo.trim(), ubicacion_id: form.ubicacion_id },
-        });
-      }
-
-      /* La verificación queda grabada en la fila: reusa la caché, no gasta otra consulta */
-      if (verificado) {
-        try {
-          await guardarVerificacion({
-            data: { imei: form.imei, riesgoAceptado: riesgos.length > 0 && aceptoRiesgo },
-          });
-        } catch {
-          toast.warning("El equipo quedó guardado, pero no pudimos grabar la verificación.");
-        }
-      }
-
 
 
 
