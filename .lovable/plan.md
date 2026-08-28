@@ -56,11 +56,14 @@ Reglas de acceso: las lecturas se ven solo desde la tienda dueña del agente (Di
 
 ## Instalación
 
-Una línea pegada en la Terminal: instala Homebrew si falta, instala `libimobiledevice`, instala el agente, lo registra en launchd y al final pide la clave de la tienda para guardarla en el archivo de configuración local.
+Una línea pegada en la Terminal: instala Homebrew si falta, instala `libimobiledevice`, descarga el tarball del agente, **verifica su SHA-256 contra el checksum del endpoint de versión y aborta con un mensaje claro si no calza**, lo instala, lo registra en launchd y al final pide la clave de la tienda para guardarla en el archivo de configuración local.
 
-## Sesiones que se caían
+## Sesiones
 
-Se ajusta la sesión para que no caduque por inactividad: el token de acceso se renueva solo en segundo plano y la sesión se mantiene mientras el navegador del Mac conserve sus datos, sin volver a pedir el PIN. También se maneja el caso de token no renovable para que la app pida PIN de forma clara en vez de quedar en blanco.
+- Caducidad por inactividad en **12 horas**: cubre un turno completo sin volver a pedir PIN y al día siguiente arranca limpio. No se desactiva, porque son computadores de mostrador compartidos y la trazabilidad por persona depende de eso.
+- Refresco automático del token de acceso en segundo plano, para que no se caiga a mitad de turno.
+- Token no renovable: se limpia la sesión y se manda al login con el mensaje "Tu sesión expiró, vuelve a entrar". Nunca pantalla en blanco.
+- Botón **Cerrar sesión** visible en el sidebar, para salir al terminar el turno sin cerrar el navegador.
 
 ## Detalles técnicos
 
