@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatCLP } from "@/lib/stores";
+import { ComprobanteVenta } from "@/components/vender/ComprobanteVenta";
 import { METODO_ETIQUETA, aNumero, type ItemCarrito, type PagoFila } from "@/lib/pos";
 
 export type VentaResumen = {
@@ -13,6 +14,7 @@ export type VentaResumen = {
   recargo: number;
   conBoleta: boolean;
   cliente: string | null;
+  clienteCorreo?: string | null;
   tienda: string;
   items: ItemCarrito[];
   pagos: PagoFila[];
@@ -126,6 +128,10 @@ export function VentaExito({
             ))}
           </div>
         </div>
+
+        {!anulada && (
+          <ComprobanteVenta ventaId={venta.id} correoCliente={venta.clienteCorreo ?? null} />
+        )}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <Button
