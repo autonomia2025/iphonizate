@@ -270,7 +270,9 @@ cat > "$PLIST" <<PL
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key><string>$RT/bin:$RT/node/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>DYLD_LIBRARY_PATH</key><string>$RT/lib</string>
     <key>DYLD_FALLBACK_LIBRARY_PATH</key><string>$RT/lib:/usr/local/lib:/usr/lib</string>
+
     <key>LECTOR_RUNTIME</key><string>$RT</string>
     <key>HOME</key><string>$HOME</string>
   </dict>
