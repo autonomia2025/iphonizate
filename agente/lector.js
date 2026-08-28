@@ -338,20 +338,22 @@ async function ciclo() {
   await leerEquipo(udid);
 }
 
-log(`lector iPhonizate OS v${VERSION} · ${os.hostname()}`);
-void latido();
-void revisarActualizacion();
+if (config) {
+  log(`lector iPhonizate OS v${VERSION} · ${os.hostname()}`);
+  void latido();
+  void revisarActualizacion();
 
-let corriendo = false;
-setInterval(() => {
-  if (corriendo) return;
-  corriendo = true;
-  ciclo()
-    .catch((e) => log("error en el ciclo:", e.message))
-    .finally(() => {
-      corriendo = false;
-    });
-}, INTERVALO_SONDEO);
+  let corriendo = false;
+  setInterval(() => {
+    if (corriendo) return;
+    corriendo = true;
+    ciclo()
+      .catch((e) => log("error en el ciclo:", e.message))
+      .finally(() => {
+        corriendo = false;
+      });
+  }, INTERVALO_SONDEO);
 
-setInterval(() => void latido(), INTERVALO_LATIDO);
-setInterval(() => void revisarActualizacion(), INTERVALO_ACTUALIZACION);
+  setInterval(() => void latido(), INTERVALO_LATIDO);
+  setInterval(() => void revisarActualizacion(), INTERVALO_ACTUALIZACION);
+}
