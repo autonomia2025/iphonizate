@@ -31,6 +31,7 @@ import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as VenderRouteImport } from './routes/vender'
 import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/public/lector/agente[.]js'
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
+import { Route as ApiPublicLectorInstalarDotshRouteImport } from './routes/api/public/lector/instalar[.]sh'
 import { Route as ApiPublicLectorLecturaRouteImport } from './routes/api/public/lector/lectura'
 import { Route as ApiPublicLectorVersionRouteImport } from './routes/api/public/lector/version'
 
@@ -145,6 +146,12 @@ const ApiPublicLectorEstadoRoute = ApiPublicLectorEstadoRouteImport.update({
   path: '/api/public/lector/estado',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLectorInstalarDotshRoute =
+  ApiPublicLectorInstalarDotshRouteImport.update({
+    id: '/api/public/lector/instalar.sh',
+    path: '/api/public/lector/instalar.sh',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicLectorLecturaRoute = ApiPublicLectorLecturaRouteImport.update({
   id: '/api/public/lector/lectura',
   path: '/api/public/lector/lectura',
@@ -179,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/vender': typeof VenderRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
+  '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
 }
@@ -205,6 +213,7 @@ export interface FileRoutesByTo {
   '/vender': typeof VenderRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
+  '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
 }
@@ -232,6 +241,7 @@ export interface FileRoutesById {
   '/vender': typeof VenderRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
+  '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
   '/api/public/lector/lectura': typeof ApiPublicLectorLecturaRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
 }
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/vender'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
+    | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
     | '/api/public/lector/version'
   fileRoutesByTo: FileRoutesByTo
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/vender'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
+    | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
     | '/api/public/lector/version'
   id:
@@ -312,6 +324,7 @@ export interface FileRouteTypes {
     | '/vender'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
+    | '/api/public/lector/instalar.sh'
     | '/api/public/lector/lectura'
     | '/api/public/lector/version'
   fileRoutesById: FileRoutesById
@@ -339,6 +352,7 @@ export interface RootRouteChildren {
   VenderRoute: typeof VenderRoute
   ApiPublicLectorAgenteDotjsRoute: typeof ApiPublicLectorAgenteDotjsRoute
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
+  ApiPublicLectorInstalarDotshRoute: typeof ApiPublicLectorInstalarDotshRoute
   ApiPublicLectorLecturaRoute: typeof ApiPublicLectorLecturaRoute
   ApiPublicLectorVersionRoute: typeof ApiPublicLectorVersionRoute
 }
@@ -499,6 +513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLectorEstadoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/lector/instalar.sh': {
+      id: '/api/public/lector/instalar.sh'
+      path: '/api/public/lector/instalar.sh'
+      fullPath: '/api/public/lector/instalar.sh'
+      preLoaderRoute: typeof ApiPublicLectorInstalarDotshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/lector/lectura': {
       id: '/api/public/lector/lectura'
       path: '/api/public/lector/lectura'
@@ -539,6 +560,7 @@ const rootRouteChildren: RootRouteChildren = {
   VenderRoute: VenderRoute,
   ApiPublicLectorAgenteDotjsRoute: ApiPublicLectorAgenteDotjsRoute,
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
+  ApiPublicLectorInstalarDotshRoute: ApiPublicLectorInstalarDotshRoute,
   ApiPublicLectorLecturaRoute: ApiPublicLectorLecturaRoute,
   ApiPublicLectorVersionRoute: ApiPublicLectorVersionRoute,
 }
