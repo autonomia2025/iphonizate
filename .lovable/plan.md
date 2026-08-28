@@ -26,7 +26,7 @@ Alertas: iCloud bloqueado en rojo mostrando la cuenta enmascarada; más de 800 c
 - **No** intenta salud de batería, ni color traducido, ni seriales de componentes.
 - Manda todo al backend con su clave de Mac, más la salida cruda íntegra de los tres comandos.
 - Latido cada 60 s con versión, hostname y estado.
-- **Autoactualización**: una vez al día consulta el endpoint de versión; si hay una nueva, la descarga, verifica y se reinicia solo. La versión corriendo queda registrada por Mac.
+- **Autoactualización**: una vez al día consulta el endpoint de versión; si hay una nueva, descarga el tarball, **verifica su checksum SHA-256** contra el que entrega el endpoint y solo entonces instala y se reinicia. Si el checksum no calza, aborta, avisa y sigue corriendo la versión anterior. La versión corriendo queda registrada por Mac.
 
 ### 2. Backend
 
