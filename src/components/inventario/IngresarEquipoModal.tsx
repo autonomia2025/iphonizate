@@ -181,6 +181,7 @@ export function IngresarEquipoModal({
     setAceptoRiesgo(false);
     setVerificado(false);
     setDuplicado(null);
+    setLecturaAplicada(null);
     setTimeout(() => imeiRef.current?.focus(), 30);
 
   };
