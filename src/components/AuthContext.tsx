@@ -97,6 +97,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(null);
   };
 
+  /* Cierre por inactividad a las 12 horas: cubre el turno completo sin cortar la jornada */
+  useEffect(() => {
+    if (!usuario) return;
+    let temporizador: ReturnType<typeof setTimeout>;
+    const reiniciar = () => {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(() => void salir(), INACTIVIDAD_MS);
+    };
+    const eventos = ["pointerdown", "keydown", "wheel", "visibilitychange"] as const;
+    eventos.forEach((e) => window.addEventListener(e, reiniciar, { passive: true }));
+    reiniciar();
+    return () => {
+      clearTimeout(temporizador);
+      eventos.forEach((e) => window.removeEventListener(e, reiniciar));
+    };
+  }, [usuario]);
+
+
   return (
     <AuthCtx.Provider value={{ usuario, cargando, refrescar, ingresar, cambiarPin, salir }}>
       {children}
