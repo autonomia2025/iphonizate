@@ -40,7 +40,7 @@ mkdir -p "$DIR" "$HOME/Library/LaunchAgents"
 echo "→ Descargando el lector"
 TMP="$(mktemp -t lector)"
 curl -fsSL "$BASE/api/public/lector/agente.js" -o "$TMP"
-ESPERADO="$(curl -fsSL "$BASE/api/public/lector/version" | /usr/bin/python3 -c 'import json,sys;print(json.load(sys.stdin)["sha256"])')"
+ESPERADO="$(curl -fsSL "$BASE/api/public/lector/version" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>process.stdout.write(JSON.parse(d).sha256))')"
 OBTENIDO="$(shasum -a 256 "$TMP" | awk '{print $1}')"
 
 if [ "$ESPERADO" != "$OBTENIDO" ]; then
