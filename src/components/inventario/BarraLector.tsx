@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BatteryWarning, Cable, CheckCircle2, Loader2, Lock, ShieldAlert, Usb } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { BotonInstalarLector } from "@/components/lector/InstruccionesLector";
 import { RESORTE_RAPIDO, SALIDA } from "@/lib/motion";
 import {
   COLOR_SIN_IDENTIFICAR,
@@ -80,9 +81,12 @@ export function BarraLector({
       </div>
 
       {estado === "sin_contacto" && (
-        <p className="mt-2 opacity-80">
-          Este computador no tiene el lector corriendo. Puedes escribir los datos a mano igual.
-        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <p className="min-w-0 flex-1 opacity-80">
+            Este computador no tiene el lector corriendo. Puedes escribir los datos a mano igual.
+          </p>
+          <BotonInstalarLector />
+        </div>
       )}
 
       <AnimatePresence initial={false}>
