@@ -244,7 +244,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="grid size-8 shrink-0 place-items-center rounded-xl font-display text-sm font-bold text-background"
             style={{ background: store.accent, boxShadow: `0 0 22px -6px ${store.hex}` }}
           >
-            r
+            i
           </motion.span>
           <AnimatePresence initial={false}>
             {!colapsado && (
