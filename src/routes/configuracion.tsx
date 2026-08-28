@@ -113,9 +113,13 @@ function ConfiguracionPage() {
       <header>
         <h1 className="font-display text-2xl">Configuración</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Verificación de IMEI: qué servicio se usa, en qué ambiente y cuánto saldo queda.
+          Verificación de IMEI y los Mac que leen los equipos por USB.
         </p>
       </header>
+
+      <PanelLectores puedeEditar={puedeEditar} />
+
+
 
       <section className="glass rounded-2xl p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
