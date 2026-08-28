@@ -72,4 +72,5 @@ Una línea pegada en la Terminal: instala Homebrew si falta, instala `libimobile
 - El agente vive en `agente/` dentro del repo (Node puro, sin dependencias nativas), servido como tarball versionado desde la ruta pública.
 - GB comerciales: se redondea `TotalDiskCapacity` a la escala 64/128/256/512/1024.
 - Se guarda siempre el crudo, así cualquier dato futuro se recupera sin reconectar el equipo.
-- Auth: `sessions.inactivity_timeout` desactivado y refresco rotativo activo.
+- Auth: `sessions.inactivity_timeout` en 12 h, refresco rotativo activo y manejo explícito de `refresh_token_not_found` → limpiar caché y navegar a `/auth` con aviso.
+- Checksum SHA-256 del tarball calculado en build y servido junto a la versión; verificado con `shasum -a 256` en el instalador y con `crypto` en la autoactualización.
