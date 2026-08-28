@@ -412,14 +412,6 @@ export function IngresarEquipoModal({
             </div>
           </div>
 
-          <VerificarImeiPanel
-            imei={form.imei}
-            onUsarModelo={(modelo) => set("modelo", modelo)}
-            onRiesgos={setRiesgos}
-            aceptoRiesgo={aceptoRiesgo}
-            onAceptoRiesgo={setAceptoRiesgo}
-            onVerificado={setVerificado}
-          />
 
 
 
