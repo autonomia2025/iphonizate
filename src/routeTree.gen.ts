@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CajaRouteImport } from './routes/caja'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
+import { Route as EscanearRouteImport } from './routes/escanear'
 import { Route as GarantiasRouteImport } from './routes/garantias'
 import { Route as GastosRouteImport } from './routes/gastos'
 import { Route as InventarioRouteImport } from './routes/inventario'
@@ -71,6 +72,11 @@ const ClientesRoute = ClientesRouteImport.update({
 const ConfiguracionRoute = ConfiguracionRouteImport.update({
   id: '/configuracion',
   path: '/configuracion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EscanearRoute = EscanearRouteImport.update({
+  id: '/escanear',
+  path: '/escanear',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GarantiasRoute = GarantiasRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
   '/inventario': typeof InventarioRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
   '/inventario': typeof InventarioRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
   '/inventario': typeof InventarioRoute
@@ -284,6 +293,7 @@ export interface FileRouteTypes {
     | '/caja'
     | '/clientes'
     | '/configuracion'
+    | '/escanear'
     | '/garantias'
     | '/gastos'
     | '/inventario'
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/caja'
     | '/clientes'
     | '/configuracion'
+    | '/escanear'
     | '/garantias'
     | '/gastos'
     | '/inventario'
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/caja'
     | '/clientes'
     | '/configuracion'
+    | '/escanear'
     | '/garantias'
     | '/gastos'
     | '/inventario'
@@ -375,6 +387,7 @@ export interface RootRouteChildren {
   CajaRoute: typeof CajaRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
+  EscanearRoute: typeof EscanearRoute
   GarantiasRoute: typeof GarantiasRoute
   GastosRoute: typeof GastosRoute
   InventarioRoute: typeof InventarioRoute
@@ -447,6 +460,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracion'
       fullPath: '/configuracion'
       preLoaderRoute: typeof ConfiguracionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/escanear': {
+      id: '/escanear'
+      path: '/escanear'
+      fullPath: '/escanear'
+      preLoaderRoute: typeof EscanearRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/garantias': {
@@ -607,6 +627,7 @@ const rootRouteChildren: RootRouteChildren = {
   CajaRoute: CajaRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracionRoute: ConfiguracionRoute,
+  EscanearRoute: EscanearRoute,
   GarantiasRoute: GarantiasRoute,
   GastosRoute: GastosRoute,
   InventarioRoute: InventarioRoute,
