@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
+import { EquipoTimeline } from "@/components/inventario/EquipoTimeline";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
