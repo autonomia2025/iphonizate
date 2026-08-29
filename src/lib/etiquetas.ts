@@ -157,6 +157,7 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
   .texto { text-align: center; line-height: 1.15; }
   .modelo { font-size: 7.5pt; font-weight: 700; }
   .imei { font-size: 8pt; font-family: "Courier New", monospace; letter-spacing: 0.4pt; }
+  .etapa { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3pt; }
 </style></head><body>${cuerpo}</body></html>`;
 }
 
