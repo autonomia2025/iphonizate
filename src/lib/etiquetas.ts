@@ -77,7 +77,12 @@ export type EquipoEtiqueta = {
   modelo?: string | null;
   gb?: number | null;
   color?: string | null;
+  /** Etapa del flujo (ingreso, traslado, técnico…) que se imprime bajo el IMEI. */
+  etapa?: string | null;
 };
+
+const fechaCorta = () =>
+  new Date().toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "2-digit" });
 
 /** Ancho de módulo real: se reparte el ancho útil y nunca baja del mínimo legible. */
 export function anchoModulo(medida: MedidaEtiqueta, modulos: number) {
