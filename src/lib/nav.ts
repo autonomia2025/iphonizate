@@ -18,6 +18,8 @@ import {
   BarChart3,
   ScrollText,
   Settings,
+  ScanLine,
+  FileText,
 } from "lucide-react";
 
 export type AppRol = "direccion" | "jefe_tienda" | "administracion" | "operaciones" | "vendedor";
@@ -33,6 +35,7 @@ export const NAV = [
     roles: ["direccion", "jefe_tienda", "vendedor"] as AppRol[],
   },
   { to: "/stock", label: "Stock", icon: Boxes, roles: TODOS },
+  { to: "/escanear", label: "Escanear", icon: ScanLine, roles: TODOS },
   {
     to: "/inventario",
     label: "Inventario",
@@ -62,6 +65,12 @@ export const NAV = [
     to: "/caja",
     label: "Caja",
     icon: Banknote,
+    roles: ["direccion", "jefe_tienda", "administracion", "vendedor"] as AppRol[],
+  },
+  {
+    to: "/comprobantes",
+    label: "Comprobantes",
+    icon: FileText,
     roles: ["direccion", "jefe_tienda", "administracion", "vendedor"] as AppRol[],
   },
   {
