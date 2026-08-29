@@ -20,6 +20,12 @@ import {
   Settings,
   ScanLine,
   FileText,
+  HandCoins,
+  Landmark,
+  CalendarClock,
+  PieChart,
+  IdCard,
+  Wallet,
 } from "lucide-react";
 
 export type AppRol = "direccion" | "jefe_tienda" | "administracion" | "operaciones" | "vendedor";
@@ -113,6 +119,42 @@ export const NAV = [
     roles: ["direccion", "administracion"] as AppRol[],
   },
   {
+    to: "/finanzas/remuneraciones",
+    label: "Remuneraciones",
+    icon: HandCoins,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
+  {
+    to: "/finanzas/gastos",
+    label: "Gastos fijos y variables",
+    icon: Wallet,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
+  {
+    to: "/finanzas/impuestos",
+    label: "Impuestos",
+    icon: Landmark,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
+  {
+    to: "/finanzas/calendario",
+    label: "Calendario de pagos",
+    icon: CalendarClock,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
+  {
+    to: "/finanzas/resumen",
+    label: "Resumen financiero",
+    icon: PieChart,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
+  {
+    to: "/finanzas/personal",
+    label: "Personal",
+    icon: IdCard,
+    roles: ["direccion", "administracion"] as AppRol[],
+  },
+  {
     to: "/configuracion",
     label: "Configuración",
     icon: Settings,
@@ -136,7 +178,7 @@ export const tituloDeRuta = (pathname: string) =>
 
 /* ---------------- Agrupación del sidebar ---------------- */
 
-export type GrupoNav = "Operación" | "Inventario" | "Administración";
+export type GrupoNav = "Operación" | "Inventario" | "Administración" | "Finanzas";
 
 const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
   "/vender": "Operación",
@@ -159,9 +201,20 @@ const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
   "/reportes": "Administración",
   "/auditoria": "Administración",
   "/configuracion": "Administración",
+  "/finanzas/remuneraciones": "Finanzas",
+  "/finanzas/gastos": "Finanzas",
+  "/finanzas/impuestos": "Finanzas",
+  "/finanzas/calendario": "Finanzas",
+  "/finanzas/resumen": "Finanzas",
+  "/finanzas/personal": "Finanzas",
 };
 
-export const ORDEN_GRUPOS: GrupoNav[] = ["Operación", "Inventario", "Administración"];
+export const ORDEN_GRUPOS: GrupoNav[] = [
+  "Operación",
+  "Inventario",
+  "Administración",
+  "Finanzas",
+];
 
 export type ItemNav = (typeof NAV)[number];
 
