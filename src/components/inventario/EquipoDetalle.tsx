@@ -146,7 +146,8 @@ export function EquipoDetalle({
     }
     toast.success("Equipo disponible", { description: `${equipo.modelo} · IMEI ${equipo.imei}` });
     refrescar();
-    onCerrar();
+    setEtapaEtiqueta("Disponible");
+    setEtiquetaAbierta(true);
   };
 
   const devolverBodega = async () => {
