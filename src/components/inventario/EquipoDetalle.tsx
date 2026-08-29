@@ -73,6 +73,7 @@ export function EquipoDetalle({
   const queryClient = useQueryClient();
   const [accion, setAccion] = useState<null | "disponible" | "bodega">(null);
   const [etiquetaAbierta, setEtiquetaAbierta] = useState(false);
+  const [etapaEtiqueta, setEtapaEtiqueta] = useState<string | null>(null);
 
   const servicios = useQuery({
     queryKey: ["servicios_equipo", id],
