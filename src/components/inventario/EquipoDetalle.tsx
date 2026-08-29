@@ -331,23 +331,7 @@ export function EquipoDetalle({
               )}
             </section>
 
-            <section className="mt-6 pb-6">
-              <h3 className="text-sm font-semibold">Historial</h3>
-              {historial.data && historial.data.length > 0 ? (
-                <ol className="mt-2 space-y-2">
-                  {historial.data.map((h) => (
-                    <li key={h.id} className="border-l border-white/10 pl-3 text-sm">
-                      <p>{h.evento}</p>
-                      <p className="num text-xs text-muted-foreground">{fechaLarga(h.fecha)}</p>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {historial.isLoading ? "Cargando…" : "Sin movimientos registrados."}
-                </p>
-              )}
-            </section>
+            <EquipoTimeline equipoId={equipo.id} />
           </>
         )}
       </SheetContent>
