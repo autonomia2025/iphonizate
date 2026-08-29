@@ -294,6 +294,13 @@ export function IngresarEquipoModal({
           description: `${form.modelo.trim()} · IMEI ${form.imei} · ${ESTADO_ETIQUETA[estadoNuevo]}`,
         },
       );
+      setEtiquetaNueva({
+        imei: form.imei,
+        modelo: form.modelo.trim(),
+        gb: form.gb ? Number(form.gb) : null,
+        color: form.color?.trim() || null,
+        etapa: ESTADO_ETIQUETA[estadoNuevo],
+      });
       onGuardado();
       reiniciar();
     } finally {
