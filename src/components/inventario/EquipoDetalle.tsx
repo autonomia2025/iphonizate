@@ -168,7 +168,8 @@ export function EquipoDetalle({
     toast.success(`Equipo devuelto a ${bodega.nombre}`, { description: `IMEI ${equipo.imei}` });
     void queryClient.invalidateQueries({ queryKey: ["v_movimientos"] });
     refrescar();
-    onCerrar();
+    setEtapaEtiqueta(`En ${bodega.nombre}`);
+    setEtiquetaAbierta(true);
   };
 
   return (
