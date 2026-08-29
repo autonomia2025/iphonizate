@@ -88,19 +88,6 @@ export function EquipoDetalle({
     },
   });
 
-  const historial = useQuery({
-    queryKey: ["equipos_historial", id],
-    enabled: !!id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("equipos_historial")
-        .select("id, evento, fecha")
-        .eq("equipo_id", id!)
-        .order("fecha", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
 
   const tiendas = useQuery({
     queryKey: ["tiendas"],
