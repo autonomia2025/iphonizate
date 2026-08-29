@@ -134,6 +134,7 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
         <div class="texto">
           <div class="modelo">${escapar(descripcionEquipo(e))}</div>
           <div class="imei">${escapar(e.imei)}</div>
+          ${e.etapa ? `<div class="etapa">${escapar(`${e.etapa} · ${fechaCorta()}`)}</div>` : ""}
         </div>
       </section>`;
     })
