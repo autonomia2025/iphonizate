@@ -206,9 +206,13 @@ export function EquipoDetalle({
                   modelo: equipo.modelo,
                   gb: equipo.gb ?? null,
                   color: equipo.color ?? null,
+                  etapa: etapaEtiqueta ?? ESTADO_ETIQUETA[equipo.estado],
                 },
               ]}
-              onCerrar={() => setEtiquetaAbierta(false)}
+              onCerrar={() => {
+                setEtiquetaAbierta(false);
+                setEtapaEtiqueta(null);
+              }}
             />
 
             {(puedeMarcarDisponible || puedeDevolverBodega) && (
