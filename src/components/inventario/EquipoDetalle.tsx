@@ -128,7 +128,7 @@ export function EquipoDetalle({
 
   const refrescar = () => {
     void servicios.refetch();
-    void historial.refetch();
+    void queryClient.invalidateQueries({ queryKey: ["v_equipo_timeline"] });
     void queryClient.invalidateQueries({ queryKey: ["v_stock"] });
     onCambio?.();
   };
