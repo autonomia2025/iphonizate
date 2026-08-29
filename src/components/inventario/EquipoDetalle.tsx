@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
+import { EquipoTimeline } from "@/components/inventario/EquipoTimeline";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
@@ -73,6 +74,7 @@ export function EquipoDetalle({
   const queryClient = useQueryClient();
   const [accion, setAccion] = useState<null | "disponible" | "bodega">(null);
   const [etiquetaAbierta, setEtiquetaAbierta] = useState(false);
+  const [etapaEtiqueta, setEtapaEtiqueta] = useState<string | null>(null);
 
   const servicios = useQuery({
     queryKey: ["servicios_equipo", id],
@@ -88,19 +90,6 @@ export function EquipoDetalle({
     },
   });
 
-  const historial = useQuery({
-    queryKey: ["equipos_historial", id],
-    enabled: !!id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("equipos_historial")
-        .select("id, evento, fecha")
-        .eq("equipo_id", id!)
-        .order("fecha", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
 
   const tiendas = useQuery({
     queryKey: ["tiendas"],
@@ -141,7 +130,7 @@ export function EquipoDetalle({
 
   const refrescar = () => {
     void servicios.refetch();
-    void historial.refetch();
+    void queryClient.invalidateQueries({ queryKey: ["v_equipo_timeline"] });
     void queryClient.invalidateQueries({ queryKey: ["v_stock"] });
     onCambio?.();
   };
@@ -159,7 +148,8 @@ export function EquipoDetalle({
     }
     toast.success("Equipo disponible", { description: `${equipo.modelo} · IMEI ${equipo.imei}` });
     refrescar();
-    onCerrar();
+    setEtapaEtiqueta("Disponible");
+    setEtiquetaAbierta(true);
   };
 
   const devolverBodega = async () => {
@@ -180,7 +170,8 @@ export function EquipoDetalle({
     toast.success(`Equipo devuelto a ${bodega.nombre}`, { description: `IMEI ${equipo.imei}` });
     void queryClient.invalidateQueries({ queryKey: ["v_movimientos"] });
     refrescar();
-    onCerrar();
+    setEtapaEtiqueta(`En ${bodega.nombre}`);
+    setEtiquetaAbierta(true);
   };
 
   return (
@@ -217,9 +208,13 @@ export function EquipoDetalle({
                   modelo: equipo.modelo,
                   gb: equipo.gb ?? null,
                   color: equipo.color ?? null,
+                  etapa: etapaEtiqueta ?? ESTADO_ETIQUETA[equipo.estado],
                 },
               ]}
-              onCerrar={() => setEtiquetaAbierta(false)}
+              onCerrar={() => {
+                setEtiquetaAbierta(false);
+                setEtapaEtiqueta(null);
+              }}
             />
 
             {(puedeMarcarDisponible || puedeDevolverBodega) && (
@@ -337,23 +332,7 @@ export function EquipoDetalle({
               )}
             </section>
 
-            <section className="mt-6 pb-6">
-              <h3 className="text-sm font-semibold">Historial</h3>
-              {historial.data && historial.data.length > 0 ? (
-                <ol className="mt-2 space-y-2">
-                  {historial.data.map((h) => (
-                    <li key={h.id} className="border-l border-white/10 pl-3 text-sm">
-                      <p>{h.evento}</p>
-                      <p className="num text-xs text-muted-foreground">{fechaLarga(h.fecha)}</p>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {historial.isLoading ? "Cargando…" : "Sin movimientos registrados."}
-                </p>
-              )}
-            </section>
+            <EquipoTimeline equipoId={equipo.id} />
           </>
         )}
       </SheetContent>

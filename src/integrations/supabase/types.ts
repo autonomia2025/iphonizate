@@ -397,6 +397,86 @@ export type Database = {
           },
         ]
       }
+      equipos_bitacora: {
+        Row: {
+          comentario: string
+          equipo_id: string
+          fecha: string
+          id: string
+          rol: string | null
+          tienda_id: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          comentario: string
+          equipo_id: string
+          fecha?: string
+          id?: string
+          rol?: string | null
+          tienda_id?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          comentario?: string
+          equipo_id?: string
+          fecha?: string
+          id?: string
+          rol?: string | null
+          tienda_id?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipos_bitacora_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_bitacora_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_bitacora_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_bitacora_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "equipos_bitacora_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "equipos_bitacora_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipos_bitacora_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipos_historial: {
         Row: {
           equipo_id: string
@@ -1116,6 +1196,13 @@ export type Database = {
             foreignKeyName: "pagos_venta_id_fkey"
             columns: ["venta_id"]
             isOneToOne: false
+            referencedRelation: "v_comprobantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
             referencedRelation: "v_ventas_full"
             referencedColumns: ["id"]
           },
@@ -1667,6 +1754,13 @@ export type Database = {
             foreignKeyName: "venta_items_venta_id_fkey"
             columns: ["venta_id"]
             isOneToOne: false
+            referencedRelation: "v_comprobantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
             referencedRelation: "v_ventas_full"
             referencedColumns: ["id"]
           },
@@ -1806,6 +1900,49 @@ export type Database = {
           nombre?: string | null
           precio?: number | null
           tipo?: string | null
+        }
+        Relationships: []
+      }
+      v_comprobantes: {
+        Row: {
+          anulada: boolean | null
+          cliente: string | null
+          cliente_correo: string | null
+          comprobante_email: string | null
+          comprobante_email_at: string | null
+          comprobante_email_estado: string | null
+          comprobante_numero: string | null
+          con_boleta: boolean | null
+          fecha: string | null
+          id: string | null
+          imeis: string | null
+          modelos: string | null
+          tienda: string | null
+          tienda_id: string | null
+          tiene_pdf: boolean | null
+          total: number | null
+          vendedor: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_equipo_timeline: {
+        Row: {
+          autor: string | null
+          detalle: string | null
+          equipo_id: string | null
+          fecha: string | null
+          fuente: string | null
+          id: string | null
+          tienda: string | null
+          titulo: string | null
         }
         Relationships: []
       }
@@ -2165,6 +2302,13 @@ export type Database = {
             foreignKeyName: "venta_items_venta_id_fkey"
             columns: ["venta_id"]
             isOneToOne: false
+            referencedRelation: "v_comprobantes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
             referencedRelation: "v_ventas_full"
             referencedColumns: ["id"]
           },
@@ -2263,6 +2407,10 @@ export type Database = {
       }
     }
     Functions: {
+      agregar_comentario_equipo: {
+        Args: { _equipo: string; _texto: string }
+        Returns: string
+      }
       agregar_servicios_equipo: {
         Args: { _equipo: string; _servicios: Json }
         Returns: number

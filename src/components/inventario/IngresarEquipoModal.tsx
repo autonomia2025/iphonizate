@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCLP } from "@/lib/stores";
 import { luhnValido } from "@/lib/imei";
 import { BarraLector } from "@/components/inventario/BarraLector";
+import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
+import type { EquipoEtiqueta } from "@/lib/etiquetas";
 import { useLectorUsb } from "@/components/inventario/useLectorUsb";
 import { COLOR_SIN_IDENTIFICAR, textoCiclos, type Lectura } from "@/lib/lector";
 
@@ -73,6 +75,8 @@ export function IngresarEquipoModal({
   const [duplicado, setDuplicado] = useState<{ estado: EquipoEstado; tienda: string | null } | null>(
     null,
   );
+  /* Etiqueta lista para pegar atrás del equipo recién ingresado */
+  const [etiquetaNueva, setEtiquetaNueva] = useState<EquipoEtiqueta | null>(null);
   const imeiRef = useRef<HTMLInputElement>(null);
   const avisoRef = useRef<HTMLDivElement>(null);
 
@@ -294,6 +298,13 @@ export function IngresarEquipoModal({
           description: `${form.modelo.trim()} · IMEI ${form.imei} · ${ESTADO_ETIQUETA[estadoNuevo]}`,
         },
       );
+      setEtiquetaNueva({
+        imei: form.imei,
+        modelo: form.modelo.trim(),
+        gb: form.gb ? Number(form.gb) : null,
+        color: form.color?.trim() || null,
+        etapa: ESTADO_ETIQUETA[estadoNuevo],
+      });
       onGuardado();
       reiniciar();
     } finally {
@@ -605,6 +616,11 @@ export function IngresarEquipoModal({
 
         </form>
       </DialogContent>
+      <EtiquetasModal
+        abierto={!!etiquetaNueva}
+        equipos={etiquetaNueva ? [etiquetaNueva] : []}
+        onCerrar={() => setEtiquetaNueva(null)}
+      />
     </Dialog>
   );
 }

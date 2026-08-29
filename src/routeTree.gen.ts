@@ -15,7 +15,9 @@ import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CajaRouteImport } from './routes/caja'
 import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as ComprobantesRouteImport } from './routes/comprobantes'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
+import { Route as EscanearRouteImport } from './routes/escanear'
 import { Route as GarantiasRouteImport } from './routes/garantias'
 import { Route as GastosRouteImport } from './routes/gastos'
 import { Route as InventarioRouteImport } from './routes/inventario'
@@ -68,9 +70,19 @@ const ClientesRoute = ClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComprobantesRoute = ComprobantesRouteImport.update({
+  id: '/comprobantes',
+  path: '/comprobantes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiguracionRoute = ConfiguracionRouteImport.update({
   id: '/configuracion',
   path: '/configuracion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EscanearRoute = EscanearRouteImport.update({
+  id: '/escanear',
+  path: '/escanear',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GarantiasRoute = GarantiasRouteImport.update({
@@ -190,7 +202,9 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
+  '/comprobantes': typeof ComprobantesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
   '/inventario': typeof InventarioRoute
@@ -220,7 +234,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
+  '/comprobantes': typeof ComprobantesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
   '/inventario': typeof InventarioRoute
@@ -251,7 +267,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
   '/clientes': typeof ClientesRoute
+  '/comprobantes': typeof ComprobantesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
   '/inventario': typeof InventarioRoute
@@ -283,7 +301,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/caja'
     | '/clientes'
+    | '/comprobantes'
     | '/configuracion'
+    | '/escanear'
     | '/garantias'
     | '/gastos'
     | '/inventario'
@@ -313,7 +333,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/caja'
     | '/clientes'
+    | '/comprobantes'
     | '/configuracion'
+    | '/escanear'
     | '/garantias'
     | '/gastos'
     | '/inventario'
@@ -343,7 +365,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/caja'
     | '/clientes'
+    | '/comprobantes'
     | '/configuracion'
+    | '/escanear'
     | '/garantias'
     | '/gastos'
     | '/inventario'
@@ -374,7 +398,9 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CajaRoute: typeof CajaRoute
   ClientesRoute: typeof ClientesRoute
+  ComprobantesRoute: typeof ComprobantesRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
+  EscanearRoute: typeof EscanearRoute
   GarantiasRoute: typeof GarantiasRoute
   GastosRoute: typeof GastosRoute
   InventarioRoute: typeof InventarioRoute
@@ -442,11 +468,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comprobantes': {
+      id: '/comprobantes'
+      path: '/comprobantes'
+      fullPath: '/comprobantes'
+      preLoaderRoute: typeof ComprobantesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/configuracion': {
       id: '/configuracion'
       path: '/configuracion'
       fullPath: '/configuracion'
       preLoaderRoute: typeof ConfiguracionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/escanear': {
+      id: '/escanear'
+      path: '/escanear'
+      fullPath: '/escanear'
+      preLoaderRoute: typeof EscanearRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/garantias': {
@@ -606,7 +646,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CajaRoute: CajaRoute,
   ClientesRoute: ClientesRoute,
+  ComprobantesRoute: ComprobantesRoute,
   ConfiguracionRoute: ConfiguracionRoute,
+  EscanearRoute: EscanearRoute,
   GarantiasRoute: GarantiasRoute,
   GastosRoute: GastosRoute,
   InventarioRoute: InventarioRoute,

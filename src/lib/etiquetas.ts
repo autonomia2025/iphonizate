@@ -77,7 +77,12 @@ export type EquipoEtiqueta = {
   modelo?: string | null;
   gb?: number | null;
   color?: string | null;
+  /** Etapa del flujo (ingreso, traslado, técnico…) que se imprime bajo el IMEI. */
+  etapa?: string | null;
 };
+
+const fechaCorta = () =>
+  new Date().toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "2-digit" });
 
 /** Ancho de módulo real: se reparte el ancho útil y nunca baja del mínimo legible. */
 export function anchoModulo(medida: MedidaEtiqueta, modulos: number) {
@@ -129,6 +134,7 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
         <div class="texto">
           <div class="modelo">${escapar(descripcionEquipo(e))}</div>
           <div class="imei">${escapar(e.imei)}</div>
+          ${e.etapa ? `<div class="etapa">${escapar(`${e.etapa} · ${fechaCorta()}`)}</div>` : ""}
         </div>
       </section>`;
     })
@@ -151,6 +157,7 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
   .texto { text-align: center; line-height: 1.15; }
   .modelo { font-size: 7.5pt; font-weight: 700; }
   .imei { font-size: 8pt; font-family: "Courier New", monospace; letter-spacing: 0.4pt; }
+  .etapa { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3pt; }
 </style></head><body>${cuerpo}</body></html>`;
 }
 
