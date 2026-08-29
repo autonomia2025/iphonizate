@@ -723,33 +723,61 @@ export type Database = {
       }
       gastos: {
         Row: {
+          asignacion: string | null
           categoria: string
           descripcion: string | null
+          detalle: string | null
           fecha: string
+          fecha_pago: string | null
           id: string
           monto: number
+          pagado: boolean
+          periodo: string | null
+          plantilla_id: string | null
           tienda_id: string | null
+          tipo: Database["public"]["Enums"]["tipo_gasto"]
           usuario_id: string | null
         }
         Insert: {
+          asignacion?: string | null
           categoria: string
           descripcion?: string | null
+          detalle?: string | null
           fecha: string
+          fecha_pago?: string | null
           id?: string
           monto: number
+          pagado?: boolean
+          periodo?: string | null
+          plantilla_id?: string | null
           tienda_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_gasto"]
           usuario_id?: string | null
         }
         Update: {
+          asignacion?: string | null
           categoria?: string
           descripcion?: string | null
+          detalle?: string | null
           fecha?: string
+          fecha_pago?: string | null
           id?: string
           monto?: number
+          pagado?: boolean
+          periodo?: string | null
+          plantilla_id?: string | null
           tienda_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_gasto"]
           usuario_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "gastos_plantilla_id_fkey"
+            columns: ["plantilla_id"]
+            isOneToOne: false
+            referencedRelation: "gastos_plantilla"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gastos_tienda_id_fkey"
             columns: ["tienda_id"]
@@ -765,6 +793,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gastos_plantilla: {
+        Row: {
+          activo: boolean
+          asignacion: string
+          categoria: string
+          created_at: string
+          detalle: string
+          id: string
+          monto_referencia: number
+          notas: string | null
+          tipo: Database["public"]["Enums"]["tipo_gasto"]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          asignacion?: string
+          categoria: string
+          created_at?: string
+          detalle: string
+          id?: string
+          monto_referencia?: number
+          notas?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_gasto"]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          asignacion?: string
+          categoria?: string
+          created_at?: string
+          detalle?: string
+          id?: string
+          monto_referencia?: number
+          notas?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_gasto"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       imei_verificaciones: {
         Row: {
@@ -844,6 +911,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      impuestos_mensuales: {
+        Row: {
+          concepto: string
+          created_at: string
+          fecha_maxima: string | null
+          id: string
+          monto: number
+          notas: string | null
+          pagado: boolean
+          periodo: string
+          updated_at: string
+        }
+        Insert: {
+          concepto: string
+          created_at?: string
+          fecha_maxima?: string | null
+          id?: string
+          monto?: number
+          notas?: string | null
+          pagado?: boolean
+          periodo: string
+          updated_at?: string
+        }
+        Update: {
+          concepto?: string
+          created_at?: string
+          fecha_maxima?: string | null
+          id?: string
+          monto?: number
+          notas?: string | null
+          pagado?: boolean
+          periodo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       lector_agentes: {
         Row: {
@@ -1156,6 +1259,65 @@ export type Database = {
           },
         ]
       }
+      nomina_mensual: {
+        Row: {
+          atrasos: number
+          bonificacion_extra: number
+          bono_base: number
+          created_at: string
+          faltas: number
+          id: string
+          liquido_liquidacion: number
+          notas: string | null
+          otros_descuentos: number
+          pagado_fin_mes: boolean
+          pagado_quincena: boolean
+          periodo: string
+          personal_id: string
+          updated_at: string
+        }
+        Insert: {
+          atrasos?: number
+          bonificacion_extra?: number
+          bono_base?: number
+          created_at?: string
+          faltas?: number
+          id?: string
+          liquido_liquidacion?: number
+          notas?: string | null
+          otros_descuentos?: number
+          pagado_fin_mes?: boolean
+          pagado_quincena?: boolean
+          periodo: string
+          personal_id: string
+          updated_at?: string
+        }
+        Update: {
+          atrasos?: number
+          bonificacion_extra?: number
+          bono_base?: number
+          created_at?: string
+          faltas?: number
+          id?: string
+          liquido_liquidacion?: number
+          notas?: string | null
+          otros_descuentos?: number
+          pagado_fin_mes?: boolean
+          pagado_quincena?: boolean
+          periodo?: string
+          personal_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nomina_mensual_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "personal"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pagos: {
         Row: {
           fecha: string
@@ -1215,6 +1377,44 @@ export type Database = {
           },
         ]
       }
+      parametros_finanzas: {
+        Row: {
+          clave: string
+          etiqueta: string
+          nota: string | null
+          unidad: string | null
+          updated_at: string
+          updated_by: string | null
+          valor: number
+        }
+        Insert: {
+          clave: string
+          etiqueta: string
+          nota?: string | null
+          unidad?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+        }
+        Update: {
+          clave?: string
+          etiqueta?: string
+          nota?: string | null
+          unidad?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parametros_finanzas_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permisos_usuario: {
         Row: {
           created_at: string
@@ -1240,6 +1440,86 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "permisos_usuario_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personal: {
+        Row: {
+          afp: string | null
+          area: string | null
+          asignacion: string
+          bonificacion_extra: number
+          bono_variable_referencia: number
+          cargo: string | null
+          created_at: string
+          empresa_rut: string | null
+          estado: Database["public"]["Enums"]["estado_personal"]
+          fecha_ingreso: string | null
+          id: string
+          liquido_liquidacion: number
+          nombre: string
+          notas: string | null
+          revisar: boolean
+          rut: string | null
+          salud: string | null
+          sueldo_base: number
+          tipo: Database["public"]["Enums"]["tipo_personal"]
+          updated_at: string
+          usuario_id: string | null
+        }
+        Insert: {
+          afp?: string | null
+          area?: string | null
+          asignacion?: string
+          bonificacion_extra?: number
+          bono_variable_referencia?: number
+          cargo?: string | null
+          created_at?: string
+          empresa_rut?: string | null
+          estado?: Database["public"]["Enums"]["estado_personal"]
+          fecha_ingreso?: string | null
+          id?: string
+          liquido_liquidacion?: number
+          nombre: string
+          notas?: string | null
+          revisar?: boolean
+          rut?: string | null
+          salud?: string | null
+          sueldo_base?: number
+          tipo?: Database["public"]["Enums"]["tipo_personal"]
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          afp?: string | null
+          area?: string | null
+          asignacion?: string
+          bonificacion_extra?: number
+          bono_variable_referencia?: number
+          cargo?: string | null
+          created_at?: string
+          empresa_rut?: string | null
+          estado?: Database["public"]["Enums"]["estado_personal"]
+          fecha_ingreso?: string | null
+          id?: string
+          liquido_liquidacion?: number
+          nombre?: string
+          notas?: string | null
+          revisar?: boolean
+          rut?: string | null
+          salud?: string | null
+          sueldo_base?: number
+          tipo?: Database["public"]["Enums"]["tipo_personal"]
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
@@ -2500,6 +2780,13 @@ export type Database = {
           venta_id: string
         }[]
       }
+      generar_gastos_periodo: {
+        Args: {
+          _periodo: string
+          _tipo: Database["public"]["Enums"]["tipo_gasto"]
+        }
+        Returns: number
+      }
       guardar_verificacion_equipo: {
         Args: { _datos: Json; _imei: string; _riesgo_aceptado?: boolean }
         Returns: string
@@ -2525,6 +2812,10 @@ export type Database = {
       puede_cartera: { Args: { _tienda: string }; Returns: boolean }
       puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
+      registrar_acceso_finanzas: {
+        Args: { _seccion: string }
+        Returns: undefined
+      }
       registrar_riesgo_imei: {
         Args: { _detalle?: Json; _imei: string; _motivos: string[] }
         Returns: undefined
@@ -2559,6 +2850,7 @@ export type Database = {
         Returns: number
       }
       ve_costos: { Args: { _tienda?: string }; Returns: boolean }
+      ve_finanzas: { Args: never; Returns: boolean }
       ve_ganancias: { Args: { _tienda?: string }; Returns: boolean }
       ve_todas_tiendas: { Args: never; Returns: boolean }
     }
@@ -2584,7 +2876,14 @@ export type Database = {
         | "VENDIDO"
         | "ENTREGADO"
         | "GARANTIA"
+      estado_personal: "activo" | "inactivo"
       metodo_pago: "efectivo" | "transferencia" | "credito" | "partePago"
+      tipo_gasto: "fijo" | "variable" | "operativo"
+      tipo_personal:
+        | "contrato"
+        | "honorarios"
+        | "sin_contrato"
+        | "por_contratar"
       tipo_servicio:
         | "bateria"
         | "pantalla"
@@ -2741,7 +3040,15 @@ export const Constants = {
         "ENTREGADO",
         "GARANTIA",
       ],
+      estado_personal: ["activo", "inactivo"],
       metodo_pago: ["efectivo", "transferencia", "credito", "partePago"],
+      tipo_gasto: ["fijo", "variable", "operativo"],
+      tipo_personal: [
+        "contrato",
+        "honorarios",
+        "sin_contrato",
+        "por_contratar",
+      ],
       tipo_servicio: [
         "bateria",
         "pantalla",
