@@ -184,10 +184,9 @@ function RemuneracionesPage() {
   const marcarTodos = async (campo: "pagado_quincena" | "pagado_fin_mes", valor: boolean) => {
     const ids = (nomina.data ?? []).map((f) => f.id);
     if (!ids.length) return;
-    const { error } = await supabase
-      .from("nomina_mensual")
-      .update({ [campo]: valor })
-      .in("id", ids);
+    const cambio =
+      campo === "pagado_quincena" ? { pagado_quincena: valor } : { pagado_fin_mes: valor };
+    const { error } = await supabase.from("nomina_mensual").update(cambio).in("id", ids);
     if (error) { toast.error(error.message); return; }
     void nomina.refetch();
   };
