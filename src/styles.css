@@ -126,6 +126,11 @@
     color-scheme: dark;
   }
 
+  select option {
+    background-color: #16131f;
+    color: #f4f2fa;
+  }
+
   body {
     background-color: var(--color-background);
     background-image:
