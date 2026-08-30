@@ -224,7 +224,7 @@ export function PagoModal({
                       actualizar(p.key, { metodo: e.target.value as MetodoPago, nombre: "" })
                     }
                   >
-                    {metodosRapidos.map((m) => (
+                    {METODOS.map((m) => (
                       <option key={m.valor} value={m.valor} className="bg-[#16131F]">
                         {m.label}
                       </option>
