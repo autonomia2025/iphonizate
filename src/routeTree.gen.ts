@@ -31,6 +31,7 @@ import { Route as StockRouteImport } from './routes/stock'
 import { Route as TareasRouteImport } from './routes/tareas'
 import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as VenderRouteImport } from './routes/vender'
+import { Route as FinanzasRemuneracionesRouteImport } from './routes/finanzas/remuneraciones'
 import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/public/lector/agente[.]js'
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
 import { Route as ApiPublicLectorInstalarDotshRouteImport } from './routes/api/public/lector/instalar[.]sh'
@@ -150,6 +151,11 @@ const VenderRoute = VenderRouteImport.update({
   path: '/vender',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanzasRemuneracionesRoute = FinanzasRemuneracionesRouteImport.update({
+  id: '/finanzas/remuneraciones',
+  path: '/finanzas/remuneraciones',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLectorAgenteDotjsRoute =
   ApiPublicLectorAgenteDotjsRouteImport.update({
     id: '/api/public/lector/agente.js',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
@@ -283,6 +291,7 @@ export interface FileRoutesById {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
@@ -349,6 +359,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
@@ -414,6 +426,7 @@ export interface RootRouteChildren {
   TareasRoute: typeof TareasRoute
   TecnicoRoute: typeof TecnicoRoute
   VenderRoute: typeof VenderRoute
+  FinanzasRemuneracionesRoute: typeof FinanzasRemuneracionesRoute
   ApiPublicLectorAgenteDotjsRoute: typeof ApiPublicLectorAgenteDotjsRoute
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
   ApiPublicLectorInstalarDotshRoute: typeof ApiPublicLectorInstalarDotshRoute
@@ -580,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finanzas/remuneraciones': {
+      id: '/finanzas/remuneraciones'
+      path: '/finanzas/remuneraciones'
+      fullPath: '/finanzas/remuneraciones'
+      preLoaderRoute: typeof FinanzasRemuneracionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/lector/agente.js': {
       id: '/api/public/lector/agente.js'
       path: '/api/public/lector/agente.js'
@@ -662,6 +682,7 @@ const rootRouteChildren: RootRouteChildren = {
   TareasRoute: TareasRoute,
   TecnicoRoute: TecnicoRoute,
   VenderRoute: VenderRoute,
+  FinanzasRemuneracionesRoute: FinanzasRemuneracionesRoute,
   ApiPublicLectorAgenteDotjsRoute: ApiPublicLectorAgenteDotjsRoute,
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
   ApiPublicLectorInstalarDotshRoute: ApiPublicLectorInstalarDotshRoute,
