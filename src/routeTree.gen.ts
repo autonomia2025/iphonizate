@@ -31,6 +31,12 @@ import { Route as StockRouteImport } from './routes/stock'
 import { Route as TareasRouteImport } from './routes/tareas'
 import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as VenderRouteImport } from './routes/vender'
+import { Route as FinanzasCalendarioRouteImport } from './routes/finanzas/calendario'
+import { Route as FinanzasGastosRouteImport } from './routes/finanzas/gastos'
+import { Route as FinanzasImpuestosRouteImport } from './routes/finanzas/impuestos'
+import { Route as FinanzasPersonalRouteImport } from './routes/finanzas/personal'
+import { Route as FinanzasRemuneracionesRouteImport } from './routes/finanzas/remuneraciones'
+import { Route as FinanzasResumenRouteImport } from './routes/finanzas/resumen'
 import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/public/lector/agente[.]js'
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
 import { Route as ApiPublicLectorInstalarDotshRouteImport } from './routes/api/public/lector/instalar[.]sh'
@@ -150,6 +156,36 @@ const VenderRoute = VenderRouteImport.update({
   path: '/vender',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanzasCalendarioRoute = FinanzasCalendarioRouteImport.update({
+  id: '/finanzas/calendario',
+  path: '/finanzas/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanzasGastosRoute = FinanzasGastosRouteImport.update({
+  id: '/finanzas/gastos',
+  path: '/finanzas/gastos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanzasImpuestosRoute = FinanzasImpuestosRouteImport.update({
+  id: '/finanzas/impuestos',
+  path: '/finanzas/impuestos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanzasPersonalRoute = FinanzasPersonalRouteImport.update({
+  id: '/finanzas/personal',
+  path: '/finanzas/personal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanzasRemuneracionesRoute = FinanzasRemuneracionesRouteImport.update({
+  id: '/finanzas/remuneraciones',
+  path: '/finanzas/remuneraciones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanzasResumenRoute = FinanzasResumenRouteImport.update({
+  id: '/finanzas/resumen',
+  path: '/finanzas/resumen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLectorAgenteDotjsRoute =
   ApiPublicLectorAgenteDotjsRouteImport.update({
     id: '/api/public/lector/agente.js',
@@ -218,6 +254,12 @@ export interface FileRoutesByFullPath {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/calendario': typeof FinanzasCalendarioRoute
+  '/finanzas/gastos': typeof FinanzasGastosRoute
+  '/finanzas/impuestos': typeof FinanzasImpuestosRoute
+  '/finanzas/personal': typeof FinanzasPersonalRoute
+  '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
+  '/finanzas/resumen': typeof FinanzasResumenRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
@@ -250,6 +292,12 @@ export interface FileRoutesByTo {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/calendario': typeof FinanzasCalendarioRoute
+  '/finanzas/gastos': typeof FinanzasGastosRoute
+  '/finanzas/impuestos': typeof FinanzasImpuestosRoute
+  '/finanzas/personal': typeof FinanzasPersonalRoute
+  '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
+  '/finanzas/resumen': typeof FinanzasResumenRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
@@ -283,6 +331,12 @@ export interface FileRoutesById {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/calendario': typeof FinanzasCalendarioRoute
+  '/finanzas/gastos': typeof FinanzasGastosRoute
+  '/finanzas/impuestos': typeof FinanzasImpuestosRoute
+  '/finanzas/personal': typeof FinanzasPersonalRoute
+  '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
+  '/finanzas/resumen': typeof FinanzasResumenRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
   '/api/public/lector/instalar.sh': typeof ApiPublicLectorInstalarDotshRoute
@@ -317,6 +371,12 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/calendario'
+    | '/finanzas/gastos'
+    | '/finanzas/impuestos'
+    | '/finanzas/personal'
+    | '/finanzas/remuneraciones'
+    | '/finanzas/resumen'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
@@ -349,6 +409,12 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/calendario'
+    | '/finanzas/gastos'
+    | '/finanzas/impuestos'
+    | '/finanzas/personal'
+    | '/finanzas/remuneraciones'
+    | '/finanzas/resumen'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
@@ -381,6 +447,12 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/calendario'
+    | '/finanzas/gastos'
+    | '/finanzas/impuestos'
+    | '/finanzas/personal'
+    | '/finanzas/remuneraciones'
+    | '/finanzas/resumen'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
     | '/api/public/lector/instalar.sh'
@@ -414,6 +486,12 @@ export interface RootRouteChildren {
   TareasRoute: typeof TareasRoute
   TecnicoRoute: typeof TecnicoRoute
   VenderRoute: typeof VenderRoute
+  FinanzasCalendarioRoute: typeof FinanzasCalendarioRoute
+  FinanzasGastosRoute: typeof FinanzasGastosRoute
+  FinanzasImpuestosRoute: typeof FinanzasImpuestosRoute
+  FinanzasPersonalRoute: typeof FinanzasPersonalRoute
+  FinanzasRemuneracionesRoute: typeof FinanzasRemuneracionesRoute
+  FinanzasResumenRoute: typeof FinanzasResumenRoute
   ApiPublicLectorAgenteDotjsRoute: typeof ApiPublicLectorAgenteDotjsRoute
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
   ApiPublicLectorInstalarDotshRoute: typeof ApiPublicLectorInstalarDotshRoute
@@ -580,6 +658,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finanzas/calendario': {
+      id: '/finanzas/calendario'
+      path: '/finanzas/calendario'
+      fullPath: '/finanzas/calendario'
+      preLoaderRoute: typeof FinanzasCalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finanzas/gastos': {
+      id: '/finanzas/gastos'
+      path: '/finanzas/gastos'
+      fullPath: '/finanzas/gastos'
+      preLoaderRoute: typeof FinanzasGastosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finanzas/impuestos': {
+      id: '/finanzas/impuestos'
+      path: '/finanzas/impuestos'
+      fullPath: '/finanzas/impuestos'
+      preLoaderRoute: typeof FinanzasImpuestosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finanzas/personal': {
+      id: '/finanzas/personal'
+      path: '/finanzas/personal'
+      fullPath: '/finanzas/personal'
+      preLoaderRoute: typeof FinanzasPersonalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finanzas/remuneraciones': {
+      id: '/finanzas/remuneraciones'
+      path: '/finanzas/remuneraciones'
+      fullPath: '/finanzas/remuneraciones'
+      preLoaderRoute: typeof FinanzasRemuneracionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finanzas/resumen': {
+      id: '/finanzas/resumen'
+      path: '/finanzas/resumen'
+      fullPath: '/finanzas/resumen'
+      preLoaderRoute: typeof FinanzasResumenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/lector/agente.js': {
       id: '/api/public/lector/agente.js'
       path: '/api/public/lector/agente.js'
@@ -662,6 +782,12 @@ const rootRouteChildren: RootRouteChildren = {
   TareasRoute: TareasRoute,
   TecnicoRoute: TecnicoRoute,
   VenderRoute: VenderRoute,
+  FinanzasCalendarioRoute: FinanzasCalendarioRoute,
+  FinanzasGastosRoute: FinanzasGastosRoute,
+  FinanzasImpuestosRoute: FinanzasImpuestosRoute,
+  FinanzasPersonalRoute: FinanzasPersonalRoute,
+  FinanzasRemuneracionesRoute: FinanzasRemuneracionesRoute,
+  FinanzasResumenRoute: FinanzasResumenRoute,
   ApiPublicLectorAgenteDotjsRoute: ApiPublicLectorAgenteDotjsRoute,
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
   ApiPublicLectorInstalarDotshRoute: ApiPublicLectorInstalarDotshRoute,

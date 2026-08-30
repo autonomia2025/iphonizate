@@ -29,6 +29,13 @@
       "when": 1788045613316,
       "tag": "0003_bitacora_equipos_timeline",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788047616094,
+      "tag": "0004_finanzas_remuneraciones",
+      "breakpoints": true
     }
   ]
 }
