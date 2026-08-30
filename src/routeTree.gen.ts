@@ -34,6 +34,7 @@ import { Route as VenderRouteImport } from './routes/vender'
 import { Route as FinanzasCalendarioRouteImport } from './routes/finanzas/calendario'
 import { Route as FinanzasGastosRouteImport } from './routes/finanzas/gastos'
 import { Route as FinanzasImpuestosRouteImport } from './routes/finanzas/impuestos'
+import { Route as FinanzasPersonalRouteImport } from './routes/finanzas/personal'
 import { Route as FinanzasRemuneracionesRouteImport } from './routes/finanzas/remuneraciones'
 import { Route as FinanzasResumenRouteImport } from './routes/finanzas/resumen'
 import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/public/lector/agente[.]js'
@@ -170,6 +171,11 @@ const FinanzasImpuestosRoute = FinanzasImpuestosRouteImport.update({
   path: '/finanzas/impuestos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanzasPersonalRoute = FinanzasPersonalRouteImport.update({
+  id: '/finanzas/personal',
+  path: '/finanzas/personal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanzasRemuneracionesRoute = FinanzasRemuneracionesRouteImport.update({
   id: '/finanzas/remuneraciones',
   path: '/finanzas/remuneraciones',
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/finanzas/calendario': typeof FinanzasCalendarioRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/impuestos': typeof FinanzasImpuestosRoute
+  '/finanzas/personal': typeof FinanzasPersonalRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/finanzas/resumen': typeof FinanzasResumenRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
@@ -288,6 +295,7 @@ export interface FileRoutesByTo {
   '/finanzas/calendario': typeof FinanzasCalendarioRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/impuestos': typeof FinanzasImpuestosRoute
+  '/finanzas/personal': typeof FinanzasPersonalRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/finanzas/resumen': typeof FinanzasResumenRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
@@ -326,6 +334,7 @@ export interface FileRoutesById {
   '/finanzas/calendario': typeof FinanzasCalendarioRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/impuestos': typeof FinanzasImpuestosRoute
+  '/finanzas/personal': typeof FinanzasPersonalRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/finanzas/resumen': typeof FinanzasResumenRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
     | '/finanzas/calendario'
     | '/finanzas/gastos'
     | '/finanzas/impuestos'
+    | '/finanzas/personal'
     | '/finanzas/remuneraciones'
     | '/finanzas/resumen'
     | '/api/public/lector/agente.js'
@@ -402,6 +412,7 @@ export interface FileRouteTypes {
     | '/finanzas/calendario'
     | '/finanzas/gastos'
     | '/finanzas/impuestos'
+    | '/finanzas/personal'
     | '/finanzas/remuneraciones'
     | '/finanzas/resumen'
     | '/api/public/lector/agente.js'
@@ -439,6 +450,7 @@ export interface FileRouteTypes {
     | '/finanzas/calendario'
     | '/finanzas/gastos'
     | '/finanzas/impuestos'
+    | '/finanzas/personal'
     | '/finanzas/remuneraciones'
     | '/finanzas/resumen'
     | '/api/public/lector/agente.js'
@@ -477,6 +489,7 @@ export interface RootRouteChildren {
   FinanzasCalendarioRoute: typeof FinanzasCalendarioRoute
   FinanzasGastosRoute: typeof FinanzasGastosRoute
   FinanzasImpuestosRoute: typeof FinanzasImpuestosRoute
+  FinanzasPersonalRoute: typeof FinanzasPersonalRoute
   FinanzasRemuneracionesRoute: typeof FinanzasRemuneracionesRoute
   FinanzasResumenRoute: typeof FinanzasResumenRoute
   ApiPublicLectorAgenteDotjsRoute: typeof ApiPublicLectorAgenteDotjsRoute
@@ -666,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanzasImpuestosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finanzas/personal': {
+      id: '/finanzas/personal'
+      path: '/finanzas/personal'
+      fullPath: '/finanzas/personal'
+      preLoaderRoute: typeof FinanzasPersonalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/finanzas/remuneraciones': {
       id: '/finanzas/remuneraciones'
       path: '/finanzas/remuneraciones'
@@ -765,6 +785,7 @@ const rootRouteChildren: RootRouteChildren = {
   FinanzasCalendarioRoute: FinanzasCalendarioRoute,
   FinanzasGastosRoute: FinanzasGastosRoute,
   FinanzasImpuestosRoute: FinanzasImpuestosRoute,
+  FinanzasPersonalRoute: FinanzasPersonalRoute,
   FinanzasRemuneracionesRoute: FinanzasRemuneracionesRoute,
   FinanzasResumenRoute: FinanzasResumenRoute,
   ApiPublicLectorAgenteDotjsRoute: ApiPublicLectorAgenteDotjsRoute,
