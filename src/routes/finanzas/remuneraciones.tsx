@@ -188,7 +188,7 @@ function RemuneracionesPage() {
       .from("nomina_mensual")
       .update({ [campo]: valor })
       .in("id", ids);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     void nomina.refetch();
   };
 
@@ -201,7 +201,7 @@ function RemuneracionesPage() {
       .eq("periodo", anterior);
     if (errPrevio) {
       setGuardando(false);
-      return toast.error(errPrevio.message);
+      { toast.error(errPrevio.message); return; }
     }
     const fuente = (previo ?? []).length
       ? (previo ?? []).map((r) => ({
@@ -227,7 +227,7 @@ function RemuneracionesPage() {
     }
     const { error } = await supabase.from("nomina_mensual").insert(nuevas);
     setGuardando(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${mesTexto(periodo)} abierto con faltas y atrasos en cero`);
     void nomina.refetch();
     void periodosCargados.refetch();
