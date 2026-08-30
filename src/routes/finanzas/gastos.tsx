@@ -51,7 +51,7 @@ type GastoFin = {
   periodo: string | null;
   fecha_pago: string | null;
   pagado: boolean;
-  notas: string | null;
+  
 };
 
 function GastosFinanzasPage() {
