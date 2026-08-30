@@ -32,6 +32,7 @@ import { Route as TareasRouteImport } from './routes/tareas'
 import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as VenderRouteImport } from './routes/vender'
 import { Route as FinanzasGastosRouteImport } from './routes/finanzas/gastos'
+import { Route as FinanzasImpuestosRouteImport } from './routes/finanzas/impuestos'
 import { Route as FinanzasRemuneracionesRouteImport } from './routes/finanzas/remuneraciones'
 import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/public/lector/agente[.]js'
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
@@ -157,6 +158,11 @@ const FinanzasGastosRoute = FinanzasGastosRouteImport.update({
   path: '/finanzas/gastos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanzasImpuestosRoute = FinanzasImpuestosRouteImport.update({
+  id: '/finanzas/impuestos',
+  path: '/finanzas/impuestos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanzasRemuneracionesRoute = FinanzasRemuneracionesRouteImport.update({
   id: '/finanzas/remuneraciones',
   path: '/finanzas/remuneraciones',
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
+  '/finanzas/impuestos': typeof FinanzasImpuestosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
+  '/finanzas/impuestos': typeof FinanzasImpuestosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
+  '/finanzas/impuestos': typeof FinanzasImpuestosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
@@ -336,6 +345,7 @@ export interface FileRouteTypes {
     | '/tecnico'
     | '/vender'
     | '/finanzas/gastos'
+    | '/finanzas/impuestos'
     | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/tecnico'
     | '/vender'
     | '/finanzas/gastos'
+    | '/finanzas/impuestos'
     | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
@@ -404,6 +415,7 @@ export interface FileRouteTypes {
     | '/tecnico'
     | '/vender'
     | '/finanzas/gastos'
+    | '/finanzas/impuestos'
     | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
@@ -439,6 +451,7 @@ export interface RootRouteChildren {
   TecnicoRoute: typeof TecnicoRoute
   VenderRoute: typeof VenderRoute
   FinanzasGastosRoute: typeof FinanzasGastosRoute
+  FinanzasImpuestosRoute: typeof FinanzasImpuestosRoute
   FinanzasRemuneracionesRoute: typeof FinanzasRemuneracionesRoute
   ApiPublicLectorAgenteDotjsRoute: typeof ApiPublicLectorAgenteDotjsRoute
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
@@ -613,6 +626,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanzasGastosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finanzas/impuestos': {
+      id: '/finanzas/impuestos'
+      path: '/finanzas/impuestos'
+      fullPath: '/finanzas/impuestos'
+      preLoaderRoute: typeof FinanzasImpuestosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/finanzas/remuneraciones': {
       id: '/finanzas/remuneraciones'
       path: '/finanzas/remuneraciones'
@@ -703,6 +723,7 @@ const rootRouteChildren: RootRouteChildren = {
   TecnicoRoute: TecnicoRoute,
   VenderRoute: VenderRoute,
   FinanzasGastosRoute: FinanzasGastosRoute,
+  FinanzasImpuestosRoute: FinanzasImpuestosRoute,
   FinanzasRemuneracionesRoute: FinanzasRemuneracionesRoute,
   ApiPublicLectorAgenteDotjsRoute: ApiPublicLectorAgenteDotjsRoute,
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
