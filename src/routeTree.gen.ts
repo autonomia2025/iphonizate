@@ -31,6 +31,7 @@ import { Route as StockRouteImport } from './routes/stock'
 import { Route as TareasRouteImport } from './routes/tareas'
 import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as VenderRouteImport } from './routes/vender'
+import { Route as FinanzasCalendarioRouteImport } from './routes/finanzas/calendario'
 import { Route as FinanzasGastosRouteImport } from './routes/finanzas/gastos'
 import { Route as FinanzasImpuestosRouteImport } from './routes/finanzas/impuestos'
 import { Route as FinanzasRemuneracionesRouteImport } from './routes/finanzas/remuneraciones'
@@ -153,6 +154,11 @@ const VenderRoute = VenderRouteImport.update({
   path: '/vender',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanzasCalendarioRoute = FinanzasCalendarioRouteImport.update({
+  id: '/finanzas/calendario',
+  path: '/finanzas/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanzasGastosRoute = FinanzasGastosRouteImport.update({
   id: '/finanzas/gastos',
   path: '/finanzas/gastos',
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/calendario': typeof FinanzasCalendarioRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/impuestos': typeof FinanzasImpuestosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
@@ -271,6 +278,7 @@ export interface FileRoutesByTo {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/calendario': typeof FinanzasCalendarioRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/impuestos': typeof FinanzasImpuestosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
@@ -307,6 +315,7 @@ export interface FileRoutesById {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/calendario': typeof FinanzasCalendarioRoute
   '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/impuestos': typeof FinanzasImpuestosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
@@ -344,6 +353,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/calendario'
     | '/finanzas/gastos'
     | '/finanzas/impuestos'
     | '/finanzas/remuneraciones'
@@ -379,6 +389,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/calendario'
     | '/finanzas/gastos'
     | '/finanzas/impuestos'
     | '/finanzas/remuneraciones'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/calendario'
     | '/finanzas/gastos'
     | '/finanzas/impuestos'
     | '/finanzas/remuneraciones'
@@ -450,6 +462,7 @@ export interface RootRouteChildren {
   TareasRoute: typeof TareasRoute
   TecnicoRoute: typeof TecnicoRoute
   VenderRoute: typeof VenderRoute
+  FinanzasCalendarioRoute: typeof FinanzasCalendarioRoute
   FinanzasGastosRoute: typeof FinanzasGastosRoute
   FinanzasImpuestosRoute: typeof FinanzasImpuestosRoute
   FinanzasRemuneracionesRoute: typeof FinanzasRemuneracionesRoute
@@ -619,6 +632,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finanzas/calendario': {
+      id: '/finanzas/calendario'
+      path: '/finanzas/calendario'
+      fullPath: '/finanzas/calendario'
+      preLoaderRoute: typeof FinanzasCalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/finanzas/gastos': {
       id: '/finanzas/gastos'
       path: '/finanzas/gastos'
@@ -722,6 +742,7 @@ const rootRouteChildren: RootRouteChildren = {
   TareasRoute: TareasRoute,
   TecnicoRoute: TecnicoRoute,
   VenderRoute: VenderRoute,
+  FinanzasCalendarioRoute: FinanzasCalendarioRoute,
   FinanzasGastosRoute: FinanzasGastosRoute,
   FinanzasImpuestosRoute: FinanzasImpuestosRoute,
   FinanzasRemuneracionesRoute: FinanzasRemuneracionesRoute,
