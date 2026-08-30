@@ -31,6 +31,7 @@ import { Route as StockRouteImport } from './routes/stock'
 import { Route as TareasRouteImport } from './routes/tareas'
 import { Route as TecnicoRouteImport } from './routes/tecnico'
 import { Route as VenderRouteImport } from './routes/vender'
+import { Route as FinanzasGastosRouteImport } from './routes/finanzas/gastos'
 import { Route as FinanzasRemuneracionesRouteImport } from './routes/finanzas/remuneraciones'
 import { Route as ApiPublicLectorAgenteDotjsRouteImport } from './routes/api/public/lector/agente[.]js'
 import { Route as ApiPublicLectorEstadoRouteImport } from './routes/api/public/lector/estado'
@@ -151,6 +152,11 @@ const VenderRoute = VenderRouteImport.update({
   path: '/vender',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanzasGastosRoute = FinanzasGastosRouteImport.update({
+  id: '/finanzas/gastos',
+  path: '/finanzas/gastos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanzasRemuneracionesRoute = FinanzasRemuneracionesRouteImport.update({
   id: '/finanzas/remuneraciones',
   path: '/finanzas/remuneraciones',
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
@@ -257,6 +264,7 @@ export interface FileRoutesByTo {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
   '/vender': typeof VenderRoute
+  '/finanzas/gastos': typeof FinanzasGastosRoute
   '/finanzas/remuneraciones': typeof FinanzasRemuneracionesRoute
   '/api/public/lector/agente.js': typeof ApiPublicLectorAgenteDotjsRoute
   '/api/public/lector/estado': typeof ApiPublicLectorEstadoRoute
@@ -326,6 +335,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/gastos'
     | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/gastos'
     | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/tareas'
     | '/tecnico'
     | '/vender'
+    | '/finanzas/gastos'
     | '/finanzas/remuneraciones'
     | '/api/public/lector/agente.js'
     | '/api/public/lector/estado'
@@ -426,6 +438,7 @@ export interface RootRouteChildren {
   TareasRoute: typeof TareasRoute
   TecnicoRoute: typeof TecnicoRoute
   VenderRoute: typeof VenderRoute
+  FinanzasGastosRoute: typeof FinanzasGastosRoute
   FinanzasRemuneracionesRoute: typeof FinanzasRemuneracionesRoute
   ApiPublicLectorAgenteDotjsRoute: typeof ApiPublicLectorAgenteDotjsRoute
   ApiPublicLectorEstadoRoute: typeof ApiPublicLectorEstadoRoute
@@ -593,6 +606,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VenderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finanzas/gastos': {
+      id: '/finanzas/gastos'
+      path: '/finanzas/gastos'
+      fullPath: '/finanzas/gastos'
+      preLoaderRoute: typeof FinanzasGastosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/finanzas/remuneraciones': {
       id: '/finanzas/remuneraciones'
       path: '/finanzas/remuneraciones'
@@ -682,6 +702,7 @@ const rootRouteChildren: RootRouteChildren = {
   TareasRoute: TareasRoute,
   TecnicoRoute: TecnicoRoute,
   VenderRoute: VenderRoute,
+  FinanzasGastosRoute: FinanzasGastosRoute,
   FinanzasRemuneracionesRoute: FinanzasRemuneracionesRoute,
   ApiPublicLectorAgenteDotjsRoute: ApiPublicLectorAgenteDotjsRoute,
   ApiPublicLectorEstadoRoute: ApiPublicLectorEstadoRoute,
