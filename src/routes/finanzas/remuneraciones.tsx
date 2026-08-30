@@ -222,7 +222,8 @@ function RemuneracionesPage() {
     const nuevas = fuente.filter((f) => !porPersona.has(f.personal_id));
     if (!nuevas.length) {
       setGuardando(false);
-      return toast.info("El mes ya está abierto para todo el personal");
+      toast.info("El mes ya está abierto para todo el personal");
+      return;
     }
     const { error } = await supabase.from("nomina_mensual").insert(nuevas);
     setGuardando(false);
