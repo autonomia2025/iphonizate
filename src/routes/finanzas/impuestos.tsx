@@ -83,7 +83,7 @@ function ImpuestosPage() {
 
   const actualizar = async (id: string, cambios: Partial<Impuesto>) => {
     const { error } = await supabase.from("impuestos_mensuales").update(cambios).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     void impuestos.refetch();
   };
 
@@ -97,7 +97,7 @@ function ImpuestosPage() {
       fecha_maxima: `${periodo}-${String(Math.round(dia)).padStart(2, "0")}`,
       monto: 0,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setAgregar(false);
     void impuestos.refetch();
   };

@@ -51,7 +51,7 @@ type GastoFin = {
   periodo: string | null;
   fecha_pago: string | null;
   pagado: boolean;
-  notas: string | null;
+  
 };
 
 function GastosFinanzasPage() {
@@ -122,7 +122,7 @@ function GastosFinanzasPage() {
       _tipo: tipo,
     });
     setGenerando(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     const n = Number(data ?? 0);
     toast[n ? "success" : "info"](
       n
@@ -135,14 +135,14 @@ function GastosFinanzasPage() {
 
   const actualizar = async (id: string, cambios: Partial<GastoFin>) => {
     const { error } = await supabase.from("gastos").update(cambios).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     void gastos.refetch();
   };
 
   const crear = async () => {
     if (!nuevo) return;
     if (!form.categoria.trim() || !form.detalle.trim()) {
-      return toast.error("Categoría y detalle son obligatorios");
+      { toast.error("Categoría y detalle son obligatorios"); return; }
     }
     const tiendaId =
       form.asignacion === "compartido"
@@ -161,7 +161,7 @@ function GastosFinanzasPage() {
       tienda_id: tiendaId,
       fecha: `${periodo}-01T12:00:00`,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Gasto agregado");
     setNuevo(null);
     setForm({ categoria: "", detalle: "", asignacion: "compartido", monto: "" });

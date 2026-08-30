@@ -153,7 +153,7 @@ function PersonalPage() {
   };
 
   const guardar = async () => {
-    if (!form.nombre.trim()) return toast.error("El nombre es obligatorio");
+    if (!form.nombre.trim()) { toast.error("El nombre es obligatorio"); return; }
     setGuardando(true);
     const payload = {
       nombre: form.nombre.trim(),
@@ -178,7 +178,7 @@ function PersonalPage() {
       ? await supabase.from("personal").update(payload).eq("id", editando)
       : await supabase.from("personal").insert(payload);
     setGuardando(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(editando ? "Ficha actualizada" : "Persona agregada");
     setAbierto(false);
     void personal.refetch();
@@ -187,7 +187,7 @@ function PersonalPage() {
   const cambiarEstado = async (p: PersonaFinanzas) => {
     const nuevo = p.estado === "activo" ? "inactivo" : "activo";
     const { error } = await supabase.from("personal").update({ estado: nuevo }).eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(
       nuevo === "inactivo"
         ? `${p.nombre} quedó inactivo. Sus meses anteriores no se tocan.`
