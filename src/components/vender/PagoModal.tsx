@@ -204,7 +204,7 @@ export function PagoModal({
 
           {pagos.map((p) => {
             const enCero = aNumero(p.monto) === 0;
-            const metodosRapidos: { valor: MetodoPago; label: string }[] = METODOS;
+            
             return (
               <div
                 key={p.key}
