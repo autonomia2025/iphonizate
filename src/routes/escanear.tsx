@@ -129,6 +129,22 @@ function EscanearPage() {
       return new Map((data ?? []).map((fila) => [fila.tipo, String(fila.costo)]));
     },
   });
+
+  useEffect(() => {
+    if (!costosArreglo.data) return;
+    setArreglos((prev) => {
+      const next = { ...prev };
+      let cambio = false;
+      Object.keys(next).forEach((tipo) => {
+        if (!next[tipo] && costosArreglo.data?.get(tipo as ServicioTipo)) {
+          next[tipo] = costosArreglo.data.get(tipo as ServicioTipo) ?? "";
+          cambio = true;
+        }
+      });
+      return cambio ? next : prev;
+    });
+  }, [costosArreglo.data]);
+
   const pendientes = (servicios.data ?? []).filter((s) => s.estado !== "listo");
 
   const cargar = async (imeiCrudo: string) => {

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SERVICIOS, type ServicioTipo } from "@/lib/inventario";
 import { formatCLP } from "@/lib/stores";
@@ -123,7 +122,7 @@ function CostosArregloPage() {
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-white/10 bg-[#16131F] shadow-xl shadow-black/10">
+      <section className="solid-panel overflow-hidden shadow-xl shadow-black/10">
         <div className="flex items-center gap-2 border-b border-white/8 px-5 py-3 text-sm text-muted-foreground">
           <Wrench className="size-4 text-[var(--accent-store)]" />
           <span>{filas.length} modelos · {SERVICIOS.length} tipos de arreglo</span>
@@ -133,14 +132,14 @@ function CostosArregloPage() {
           <table className="min-w-[1120px] w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-wide text-muted-foreground">
-                <th className="sticky left-0 z-10 bg-[#16131F] px-5 py-3 font-medium">Modelo</th>
+                <th className="sticky left-0 z-10 bg-surface px-5 py-3 font-medium">Modelo</th>
                 {SERVICIOS.map((servicio) => <th key={servicio.tipo} className="min-w-28 px-3 py-3 font-medium">{servicio.label}</th>)}
               </tr>
             </thead>
             <tbody>
               {filas.map((modelo) => (
                 <tr key={modelo} className="border-b border-white/6 last:border-0 hover:bg-white/[0.025]">
-                  <th className="sticky left-0 z-10 bg-[#16131F] px-5 py-3 text-left font-medium whitespace-nowrap">{modelo}</th>
+                  <th className="sticky left-0 z-10 bg-surface px-5 py-3 text-left font-medium whitespace-nowrap">{modelo}</th>
                   {SERVICIOS.map((servicio) => {
                     const clave = `${modelo}::${servicio.tipo}`;
                     const costo = costoPorClave.get(clave);

@@ -161,6 +161,19 @@ export function IngresarEquipoModal({
     };
   }, [abierto, imeiOk, form.imei]);
 
+  const modelosApple = useQuery({
+    queryKey: ["modelos_apple"],
+    enabled: abierto,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("modelos_apple")
+        .select("modelo_comercial")
+        .order("modelo_comercial");
+      if (error) throw error;
+      return [...new Set((data ?? []).map((fila) => fila.modelo_comercial))];
+    },
+  });
+
   const costosArreglo = useQuery({
     queryKey: ["costos_arreglo", form.modelo.trim()],
     enabled: abierto && puedeCostos && !!form.modelo.trim(),
@@ -173,6 +186,21 @@ export function IngresarEquipoModal({
       return new Map((data ?? []).map((fila) => [fila.tipo, String(fila.costo)]));
     },
   });
+
+  useEffect(() => {
+    if (!costosArreglo.data) return;
+    setServicios((prev) => {
+      const next = { ...prev };
+      let cambio = false;
+      Object.keys(next).forEach((tipo) => {
+        if (!next[tipo] && costosArreglo.data?.get(tipo as ServicioTipo)) {
+          next[tipo] = costosArreglo.data.get(tipo as ServicioTipo) ?? "";
+          cambio = true;
+        }
+      });
+      return cambio ? next : prev;
+    });
+  }, [costosArreglo.data]);
 
   const serviciosMarcados = useMemo(() => Object.keys(servicios) as ServicioTipo[], [servicios]);
 
@@ -395,11 +423,17 @@ export function IngresarEquipoModal({
               <Label htmlFor="modelo">Modelo</Label>
               <Input
                 id="modelo"
+                list="modelos-apple"
                 className="mt-1"
                 placeholder="ej: iPhone 13 Pro"
                 value={form.modelo}
                 onChange={(e) => set("modelo", e.target.value)}
               />
+              <datalist id="modelos-apple">
+                {(modelosApple.data ?? []).map((modelo) => (
+                  <option key={modelo} value={modelo} />
+                ))}
+              </datalist>
             </div>
           </div>
 
