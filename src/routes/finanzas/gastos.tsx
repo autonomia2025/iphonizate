@@ -50,7 +50,12 @@ type GastoFin = {
 };
 
 function GastosFinanzasPage() {
-  const { autorizado, params } = useFinanzas("gastos");
+  const { autorizado, params, marcas } = useFinanzas("gastos");
+  const asignacionesDisponibles = [
+    { valor: "compartido", label: "Compartido" },
+    ...marcas,
+  ];
+
   const [periodo, setPeriodo] = useState("2026-08");
   const [generando, setGenerando] = useState(false);
   const [nuevo, setNuevo] = useState<{ tipo: "fijo" | "variable" } | null>(null);
