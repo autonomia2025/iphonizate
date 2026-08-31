@@ -135,9 +135,10 @@ function EscanearPage() {
     setArreglos((prev) => {
       const next = { ...prev };
       let cambio = false;
-      Object.keys(next).forEach((tipo) => {
-        if (!next[tipo] && costosArreglo.data?.get(tipo as ServicioTipo)) {
-          next[tipo] = costosArreglo.data.get(tipo as ServicioTipo) ?? "";
+      (Object.keys(next) as ServicioTipo[]).forEach((tipo) => {
+        const costo = costosArreglo.data?.get(tipo);
+        if (!next[tipo] && costo) {
+          next[tipo] = costo;
           cambio = true;
         }
       });
