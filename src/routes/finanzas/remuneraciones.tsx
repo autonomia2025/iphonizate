@@ -7,16 +7,17 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatCLP } from "@/lib/stores";
+import { aMonto } from "@/lib/caja";
 import {
+  TIPOS_PERSONAL,
   calcularNomina,
-  etiquetaAsignacion,
-  etiquetaTipo,
   mesTexto,
   periodoActualFinanzas,
   periodoAnterior,
   type FilaNomina,
   type PersonaFinanzas,
 } from "@/lib/finanzas";
+
 import {
   EncabezadoFinanzas,
   SelectorPeriodo,
