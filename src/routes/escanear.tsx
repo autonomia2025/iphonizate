@@ -116,6 +116,19 @@ function EscanearPage() {
       return data ?? [];
     },
   });
+
+  const costosArreglo = useQuery({
+    queryKey: ["costos_arreglo", ficha?.modelo],
+    enabled: conCostos && !!ficha?.modelo,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("costos_arreglo")
+        .select("tipo, costo")
+        .eq("modelo", ficha!.modelo);
+      if (error) throw error;
+      return new Map((data ?? []).map((fila) => [fila.tipo, String(fila.costo)]));
+    },
+  });
   const pendientes = (servicios.data ?? []).filter((s) => s.estado !== "listo");
 
   const cargar = async (imeiCrudo: string) => {
@@ -441,7 +454,7 @@ function EscanearPage() {
                             onChange={(e) =>
                               setArreglos((prev) => {
                                 const copia = { ...prev };
-                                if (e.target.checked) copia[s.tipo] = "";
+                                if (e.target.checked) copia[s.tipo] = costosArreglo.data?.get(s.tipo) ?? "";
                                 else delete copia[s.tipo];
                                 return copia;
                               })
@@ -450,15 +463,18 @@ function EscanearPage() {
                           {s.label}
                         </label>
                         {marcado && conCostos && (
-                          <Input
-                            className="h-8 w-28"
-                            inputMode="numeric"
-                            placeholder="Costo"
-                            value={arreglos[s.tipo] ?? ""}
-                            onChange={(e) =>
-                              setArreglos((prev) => ({ ...prev, [s.tipo]: e.target.value }))
-                            }
-                          />
+                           <div>
+                             <Input
+                               className="h-8 w-28"
+                               inputMode="numeric"
+                               placeholder="Costo"
+                               value={arreglos[s.tipo] ?? ""}
+                               onChange={(e) =>
+                                 setArreglos((prev) => ({ ...prev, [s.tipo]: e.target.value.replace(/\D/g, "") }))
+                               }
+                             />
+                             {!arreglos[s.tipo] && <p className="mt-1 text-[10px] text-amber-300">Sin costo cargado</p>}
+                           </div>
                         )}
                       </div>
                     );

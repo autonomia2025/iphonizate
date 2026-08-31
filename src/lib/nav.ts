@@ -13,7 +13,6 @@ import {
   Headphones,
   Users,
   Tags,
-  Wrench,
   Target,
   ListChecks,
   BarChart3,

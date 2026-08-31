@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -160,13 +161,26 @@ export function IngresarEquipoModal({
     };
   }, [abierto, imeiOk, form.imei]);
 
+  const costosArreglo = useQuery({
+    queryKey: ["costos_arreglo", form.modelo.trim()],
+    enabled: abierto && puedeCostos && !!form.modelo.trim(),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("costos_arreglo")
+        .select("tipo, costo")
+        .eq("modelo", form.modelo.trim());
+      if (error) throw error;
+      return new Map((data ?? []).map((fila) => [fila.tipo, String(fila.costo)]));
+    },
+  });
+
   const serviciosMarcados = useMemo(() => Object.keys(servicios) as ServicioTipo[], [servicios]);
 
   const toggleServicio = (tipo: ServicioTipo) =>
     setServicios((s) => {
       const next = { ...s };
       if (tipo in next) delete next[tipo];
-      else next[tipo] = "";
+      else next[tipo] = costosArreglo.data?.get(tipo) ?? "";
       return next;
     });
 
@@ -570,6 +584,9 @@ export function IngresarEquipoModal({
                         }))
                       }
                     />
+                    {puedeCostos && !servicios[tipo] && (
+                      <p className="mt-1 text-[11px] text-amber-300">Sin costo cargado para este modelo</p>
+                    )}
                   </div>
                 ))}
               </div>
