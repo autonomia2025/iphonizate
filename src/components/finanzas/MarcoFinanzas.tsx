@@ -39,8 +39,25 @@ export function useFinanzas(seccion: string) {
     (parametros.data ?? []).map((p) => [p.clave, Number(p.valor)]),
   );
 
-  return { usuario, autorizado, params, parametros };
+  /** Marcas en operación: se usan para repartir los gastos compartidos. */
+  const tiendas = useQuery({
+    queryKey: ["finanzas-tiendas-marcas"],
+    enabled: autorizado,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tiendas").select("slug, es_bodega");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const marcas = marcasActivas(
+    (tiendas.data ?? []).filter((t) => !t.es_bodega).map((t) => t.slug),
+  );
+
+  return { usuario, autorizado, params, parametros, marcas };
 }
+
 
 export function SinAccesoFinanzas() {
   return (
