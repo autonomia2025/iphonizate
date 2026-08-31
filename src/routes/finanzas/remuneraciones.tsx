@@ -55,7 +55,9 @@ const PERIODOS_BASE = [
 ];
 
 function RemuneracionesPage() {
-  const { autorizado, params } = useFinanzas("remuneraciones");
+  const { autorizado, params, marcas } = useFinanzas("remuneraciones");
+  const asignacionesDisponibles = [{ valor: "compartido", label: "Compartido" }, ...marcas];
+
   const [periodo, setPeriodo] = useState("2026-08");
   const [guardando, setGuardando] = useState(false);
 
