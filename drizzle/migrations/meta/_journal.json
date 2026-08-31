@@ -36,6 +36,13 @@
       "when": 1788047616094,
       "tag": "0004_finanzas_remuneraciones",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788202673663,
+      "tag": "0005_create_costos_arreglo",
+      "breakpoints": true
     }
   ]
 }

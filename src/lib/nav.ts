@@ -100,6 +100,12 @@ export const NAV = [
   },
   { to: "/precios", label: "Precios", icon: Tags, roles: TODOS },
   {
+    to: "/costos-arreglo",
+    label: "Costos de arreglo",
+    icon: Wrench,
+    roles: ["direccion", "jefe_tienda", "administracion"] as AppRol[],
+  },
+  {
     to: "/metas",
     label: "Metas",
     icon: Target,
@@ -193,6 +199,7 @@ const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
   "/tecnico": "Inventario",
   "/accesorios": "Inventario",
   "/precios": "Inventario",
+  "/costos-arreglo": "Inventario",
   "/caja": "Administración",
   "/comprobantes": "Administración",
   "/revision": "Administración",

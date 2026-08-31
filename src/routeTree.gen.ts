@@ -17,6 +17,7 @@ import { Route as CajaRouteImport } from './routes/caja'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as ComprobantesRouteImport } from './routes/comprobantes'
 import { Route as ConfiguracionRouteImport } from './routes/configuracion'
+import { Route as CostosArregloRouteImport } from './routes/costos-arreglo'
 import { Route as EscanearRouteImport } from './routes/escanear'
 import { Route as GarantiasRouteImport } from './routes/garantias'
 import { Route as GastosRouteImport } from './routes/gastos'
@@ -84,6 +85,11 @@ const ComprobantesRoute = ComprobantesRouteImport.update({
 const ConfiguracionRoute = ConfiguracionRouteImport.update({
   id: '/configuracion',
   path: '/configuracion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CostosArregloRoute = CostosArregloRouteImport.update({
+  id: '/costos-arreglo',
+  path: '/costos-arreglo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EscanearRoute = EscanearRouteImport.update({
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/clientes': typeof ClientesRoute
   '/comprobantes': typeof ComprobantesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/costos-arreglo': typeof CostosArregloRoute
   '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByTo {
   '/clientes': typeof ClientesRoute
   '/comprobantes': typeof ComprobantesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/costos-arreglo': typeof CostosArregloRoute
   '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/clientes': typeof ClientesRoute
   '/comprobantes': typeof ComprobantesRoute
   '/configuracion': typeof ConfiguracionRoute
+  '/costos-arreglo': typeof CostosArregloRoute
   '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/comprobantes'
     | '/configuracion'
+    | '/costos-arreglo'
     | '/escanear'
     | '/garantias'
     | '/gastos'
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/comprobantes'
     | '/configuracion'
+    | '/costos-arreglo'
     | '/escanear'
     | '/garantias'
     | '/gastos'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/comprobantes'
     | '/configuracion'
+    | '/costos-arreglo'
     | '/escanear'
     | '/garantias'
     | '/gastos'
@@ -472,6 +484,7 @@ export interface RootRouteChildren {
   ClientesRoute: typeof ClientesRoute
   ComprobantesRoute: typeof ComprobantesRoute
   ConfiguracionRoute: typeof ConfiguracionRoute
+  CostosArregloRoute: typeof CostosArregloRoute
   EscanearRoute: typeof EscanearRoute
   GarantiasRoute: typeof GarantiasRoute
   GastosRoute: typeof GastosRoute
@@ -558,6 +571,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracion'
       fullPath: '/configuracion'
       preLoaderRoute: typeof ConfiguracionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/costos-arreglo': {
+      id: '/costos-arreglo'
+      path: '/costos-arreglo'
+      fullPath: '/costos-arreglo'
+      preLoaderRoute: typeof CostosArregloRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/escanear': {
@@ -768,6 +788,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClientesRoute: ClientesRoute,
   ComprobantesRoute: ComprobantesRoute,
   ConfiguracionRoute: ConfiguracionRoute,
+  CostosArregloRoute: CostosArregloRoute,
   EscanearRoute: EscanearRoute,
   GarantiasRoute: GarantiasRoute,
   GastosRoute: GastosRoute,
