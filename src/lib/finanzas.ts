@@ -189,36 +189,48 @@ export const fechaLarga = (f: Date) =>
 
 /* --------------------------------------------------------- Reparto por marca */
 
-/** Reparte un monto compartido entre las marcas según el prorrateo configurado. */
-export function prorrateo(params: Parametros): Record<string, number> {
+/** Marcas realmente en operación: las que existen como tienda en el sistema.
+ *  Si no hay datos todavía, se usan las tres marcas del catálogo. */
+export function marcasActivas(slugs?: (string | null | undefined)[]) {
+  if (!slugs || slugs.length === 0) return MARCAS;
+  const set = new Set(slugs.filter(Boolean) as string[]);
+  const encontradas = MARCAS.filter((m) => set.has(m.valor));
+  return encontradas.length ? encontradas : MARCAS;
+}
+
+/** Reparte un monto compartido entre las marcas según el prorrateo configurado.
+ *  El peso por defecto se ajusta a la cantidad de marcas activas (2, 3 o más). */
+export function prorrateo(params: Parametros, marcas = MARCAS): Record<string, number> {
   const base: Record<string, number> = {};
   let suma = 0;
-  for (const m of MARCAS) {
-    const v = parametro(params, `prorrateo_${m.valor.replace(/-/g, "_")}`, 1 / MARCAS.length);
+  for (const m of marcas) {
+    const v = parametro(params, `prorrateo_${m.valor.replace(/-/g, "_")}`, 1 / marcas.length);
     base[m.valor] = v;
     suma += v;
   }
-  if (suma <= 0) return Object.fromEntries(MARCAS.map((m) => [m.valor, 1 / MARCAS.length]));
-  return Object.fromEntries(MARCAS.map((m) => [m.valor, base[m.valor]! / suma]));
+  if (suma <= 0) return Object.fromEntries(marcas.map((m) => [m.valor, 1 / marcas.length]));
+  return Object.fromEntries(marcas.map((m) => [m.valor, base[m.valor]! / suma]));
 }
 
 /** Suma montos por marca aplicando el prorrateo a lo compartido. */
 export function repartirPorMarca(
   filas: { asignacion: string | null; monto: number }[],
   params: Parametros,
+  marcas = MARCAS,
 ): Record<string, number> {
-  const pesos = prorrateo(params);
-  const acc: Record<string, number> = Object.fromEntries(MARCAS.map((m) => [m.valor, 0]));
+  const pesos = prorrateo(params, marcas);
+  const acc: Record<string, number> = Object.fromEntries(marcas.map((m) => [m.valor, 0]));
   for (const f of filas) {
     const a = f.asignacion ?? "compartido";
     if (a in acc) {
       acc[a] = (acc[a] ?? 0) + f.monto;
     } else {
-      for (const m of MARCAS) acc[m.valor] = (acc[m.valor] ?? 0) + f.monto * (pesos[m.valor] ?? 0);
+      for (const m of marcas) acc[m.valor] = (acc[m.valor] ?? 0) + f.monto * (pesos[m.valor] ?? 0);
     }
   }
   return acc;
 }
+
 
 /* -------------------------------------------------------------- Impuestos */
 
