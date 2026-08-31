@@ -5,12 +5,14 @@ import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import {
+  marcasActivas,
   mesTexto,
   periodoAnterior,
   puedeVerFinanzas,
   useRegistrarAccesoFinanzas,
   type Parametros,
 } from "@/lib/finanzas";
+
 
 export const campoFin =
   "h-10 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25";
@@ -39,8 +41,25 @@ export function useFinanzas(seccion: string) {
     (parametros.data ?? []).map((p) => [p.clave, Number(p.valor)]),
   );
 
-  return { usuario, autorizado, params, parametros };
+  /** Marcas en operación: se usan para repartir los gastos compartidos. */
+  const tiendas = useQuery({
+    queryKey: ["finanzas-tiendas-marcas"],
+    enabled: autorizado,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tiendas").select("slug, es_bodega");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const marcas = marcasActivas(
+    (tiendas.data ?? []).filter((t) => !t.es_bodega).map((t) => t.slug),
+  );
+
+  return { usuario, autorizado, params, parametros, marcas };
 }
+
 
 export function SinAccesoFinanzas() {
   return (

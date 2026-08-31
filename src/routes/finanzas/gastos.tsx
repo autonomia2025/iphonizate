@@ -8,13 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatCLP } from "@/lib/stores";
 import { aMonto } from "@/lib/caja";
-import {
-  ASIGNACIONES,
-  MARCAS,
-  etiquetaAsignacion,
-  mesTexto,
-  repartirPorMarca,
-} from "@/lib/finanzas";
+import { mesTexto, repartirPorMarca } from "@/lib/finanzas";
+
 import {
   EncabezadoFinanzas,
   SelectorPeriodo,
@@ -24,7 +19,7 @@ import {
 } from "@/components/finanzas/MarcoFinanzas";
 
 const DESC =
-  "Gastos fijos y variables del mes, con prorrateo de lo compartido entre las tres marcas.";
+  "Gastos fijos y variables del mes, con prorrateo de lo compartido entre las marcas activas.";
 
 export const Route = createFileRoute("/finanzas/gastos")({
   head: () => ({
@@ -55,7 +50,12 @@ type GastoFin = {
 };
 
 function GastosFinanzasPage() {
-  const { autorizado, params } = useFinanzas("gastos");
+  const { autorizado, params, marcas } = useFinanzas("gastos");
+  const asignacionesDisponibles = [
+    { valor: "compartido", label: "Compartido" },
+    ...marcas,
+  ];
+
   const [periodo, setPeriodo] = useState("2026-08");
   const [generando, setGenerando] = useState(false);
   const [nuevo, setNuevo] = useState<{ tipo: "fijo" | "variable" } | null>(null);
@@ -111,8 +111,9 @@ function GastosFinanzasPage() {
       repartirPorMarca(
         (gastos.data ?? []).map((g) => ({ asignacion: g.asignacion, monto: Number(g.monto) })),
         params,
+        marcas,
       ),
-    [gastos.data, params],
+    [gastos.data, params, marcas],
   );
 
   const generar = async (tipo: "fijo" | "variable") => {
@@ -138,6 +139,22 @@ function GastosFinanzasPage() {
     if (error) { toast.error(error.message); return; }
     void gastos.refetch();
   };
+
+  /** Al cambiar la asignación también se ajusta la tienda del gasto. */
+  const cambiarAsignacion = async (id: string, asignacion: string) => {
+    const tiendaId =
+      asignacion === "compartido"
+        ? null
+        : ((await supabase.from("tiendas").select("id").eq("slug", asignacion).maybeSingle()).data
+            ?.id ?? null);
+    const { error } = await supabase
+      .from("gastos")
+      .update({ asignacion, tienda_id: tiendaId })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    void gastos.refetch();
+  };
+
 
   const crear = async () => {
     if (!nuevo) return;
@@ -221,7 +238,7 @@ function GastosFinanzasPage() {
             value={form.asignacion}
             onChange={(e) => setForm({ ...form, asignacion: e.target.value })}
           >
-            {ASIGNACIONES.map((a) => (
+            {asignacionesDisponibles.map((a) => (
               <option key={a.valor} value={a.valor} className="bg-[#16131F]">
                 {a.label}
               </option>
@@ -246,6 +263,7 @@ function GastosFinanzasPage() {
                 <th className="px-3 py-3 font-medium">Categoría</th>
                 <th className="px-3 py-3 font-medium">Detalle</th>
                 <th className="px-3 py-3 font-medium">Asignación</th>
+                <th className="px-3 py-3 font-medium">Tipo</th>
                 <th className="px-3 py-3 text-right font-medium">Monto</th>
                 <th className="px-3 py-3 font-medium">Fecha de pago</th>
                 <th className="px-3 py-3 text-center font-medium">Pagado</th>
@@ -257,12 +275,61 @@ function GastosFinanzasPage() {
                   key={g.id}
                   className="border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035]"
                 >
-                  <td className="px-3 py-2.5">{g.categoria}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {g.detalle ?? g.descripcion ?? "—"}
+                  <td className="px-3 py-2">
+                    <input
+                      key={`c-${g.id}-${g.categoria}`}
+                      defaultValue={g.categoria}
+                      aria-label={`Categoría de ${g.detalle ?? g.categoria}`}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v && v !== g.categoria) void actualizar(g.id, { categoria: v });
+                      }}
+                      className="h-8 w-40 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {etiquetaAsignacion(g.asignacion)}
+                  <td className="px-3 py-2">
+                    <input
+                      key={`t-${g.id}-${g.detalle ?? ""}`}
+                      defaultValue={g.detalle ?? g.descripcion ?? ""}
+                      aria-label={`Detalle de ${g.detalle ?? g.categoria}`}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v !== (g.detalle ?? ""))
+                          void actualizar(g.id, { detalle: v, descripcion: v });
+                      }}
+                      className="h-8 w-60 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Asignación de ${g.detalle ?? g.categoria}`}
+                      value={g.asignacion ?? "compartido"}
+                      onChange={(e) => void cambiarAsignacion(g.id, e.target.value)}
+                      className="h-8 w-44 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      {asignacionesDisponibles.map((a) => (
+                        <option key={a.valor} value={a.valor} className="bg-[#16131F]">
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Tipo de ${g.detalle ?? g.categoria}`}
+                      value={g.tipo}
+                      onChange={(e) =>
+                        void actualizar(g.id, { tipo: e.target.value as GastoFin["tipo"] })
+                      }
+                      className="h-8 w-32 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      <option value="fijo" className="bg-[#16131F]">
+                        Fijo
+                      </option>
+                      <option value="variable" className="bg-[#16131F]">
+                        Variable
+                      </option>
+                    </select>
                   </td>
                   <td className="px-3 py-2">
                     <input
@@ -299,9 +366,10 @@ function GastosFinanzasPage() {
                   </td>
                 </tr>
               ))}
+
               {filas.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
                     {gastos.isLoading
                       ? "Cargando gastos…"
                       : "Sin gastos en este bloque. Genera los del mes desde las plantillas."}
@@ -312,7 +380,7 @@ function GastosFinanzasPage() {
             {filas.length > 0 && (
               <tfoot>
                 <tr className="border-t border-white/10 bg-white/[0.03] font-semibold">
-                  <td className="px-3 py-3" colSpan={3}>
+                  <td className="px-3 py-3" colSpan={4}>
                     Total
                   </td>
                   <td className="num px-3 py-3 text-right">{formatCLP(total)}</td>
@@ -320,6 +388,7 @@ function GastosFinanzasPage() {
                 </tr>
               </tfoot>
             )}
+
           </table>
         </div>
       </div>
@@ -355,7 +424,7 @@ function GastosFinanzasPage() {
             {formatCLP(totalVariables)}
           </p>
         </div>
-        {MARCAS.map((m) => (
+        {marcas.map((m) => (
           <div key={m.valor} className="glass p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
               {m.label}

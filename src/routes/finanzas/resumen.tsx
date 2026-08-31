@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCLP } from "@/lib/stores";
 import {
-  MARCAS,
   calcularNomina,
   mesTexto,
   repartirPorMarca,
@@ -33,7 +32,7 @@ export const Route = createFileRoute("/finanzas/resumen")({
 });
 
 function ResumenPage() {
-  const { autorizado, params } = useFinanzas("resumen");
+  const { autorizado, params, marcas } = useFinanzas("resumen");
 
   const personal = useQuery({
     queryKey: ["finanzas-personal"],
@@ -179,17 +178,17 @@ function ResumenPage() {
       asignacion: "compartido",
       monto: Number(i.monto),
     }));
-    return repartirPorMarca([...filasNomina, ...filasGastos, ...filasImp], params);
-  }, [nomina.data, gastos.data, impuestos.data, persona, params]);
+    return repartirPorMarca([...filasNomina, ...filasGastos, ...filasImp], params, marcas);
+  }, [nomina.data, gastos.data, impuestos.data, persona, params, marcas]);
 
   const ingresosPorMarca = useMemo(() => {
-    const acc: Record<string, number> = Object.fromEntries(MARCAS.map((m) => [m.valor, 0]));
+    const acc: Record<string, number> = Object.fromEntries(marcas.map((m) => [m.valor, 0]));
     (ventas.data ?? []).forEach((v) => {
       const slug = slugPorTienda.get(v.tienda_id);
       if (slug && slug in acc) acc[slug] = (acc[slug] ?? 0) + Number(v.total);
     });
     return acc;
-  }, [ventas.data, slugPorTienda]);
+  }, [ventas.data, slugPorTienda, marcas]);
 
   if (!autorizado) return <SinAccesoFinanzas />;
 
@@ -265,7 +264,7 @@ function ResumenPage() {
 
       <h2 className="mt-8 font-display text-lg font-semibold">Costo total por marca</h2>
       <div className="mt-3 grid gap-4 lg:grid-cols-3">
-        {MARCAS.map((m) => {
+        {marcas.map((m) => {
           const costo = costoPorMarca[m.valor] ?? 0;
           const ingreso = ingresosPorMarca[m.valor] ?? 0;
           return (
@@ -292,7 +291,7 @@ function ResumenPage() {
 
       <p className="mt-6 text-xs text-muted-foreground">
         Los ingresos vienen de las ventas registradas en el sistema. Los gastos compartidos se
-        reparten en partes iguales entre las tres marcas según el prorrateo configurado.
+        reparten en partes iguales entre las marcas activas según el prorrateo configurado.
       </p>
     </div>
   );

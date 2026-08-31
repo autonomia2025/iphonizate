@@ -7,16 +7,17 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatCLP } from "@/lib/stores";
+import { aMonto } from "@/lib/caja";
 import {
+  TIPOS_PERSONAL,
   calcularNomina,
-  etiquetaAsignacion,
-  etiquetaTipo,
   mesTexto,
   periodoActualFinanzas,
   periodoAnterior,
   type FilaNomina,
   type PersonaFinanzas,
 } from "@/lib/finanzas";
+
 import {
   EncabezadoFinanzas,
   SelectorPeriodo,
@@ -54,7 +55,9 @@ const PERIODOS_BASE = [
 ];
 
 function RemuneracionesPage() {
-  const { autorizado, params } = useFinanzas("remuneraciones");
+  const { autorizado, params, marcas } = useFinanzas("remuneraciones");
+  const asignacionesDisponibles = [{ valor: "compartido", label: "Compartido" }, ...marcas];
+
   const [periodo, setPeriodo] = useState("2026-08");
   const [guardando, setGuardando] = useState(false);
 
@@ -165,7 +168,7 @@ function RemuneracionesPage() {
 
   const guardarCampo = async (
     fila: FilaNomina,
-    cambios: Partial<Pick<FilaNomina, "faltas" | "atrasos" | "pagado_quincena" | "pagado_fin_mes">>,
+    cambios: Partial<Omit<FilaNomina, "id" | "periodo" | "personal_id">>,
   ) => {
     const { error } = fila.id
       ? await supabase.from("nomina_mensual").update(cambios).eq("id", fila.id)
@@ -180,6 +183,34 @@ function RemuneracionesPage() {
     }
     void nomina.refetch();
   };
+
+  /** La asignación vive en la ficha de la persona: se edita desde acá también. */
+  const guardarAsignacion = async (personaId: string, asignacion: string) => {
+    const { error } = await supabase
+      .from("personal")
+      .update({ asignacion })
+      .eq("id", personaId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    void personal.refetch();
+  };
+
+  /** Tipo de contrato: define si se suma carga patronal al costo empresa. */
+  const guardarTipo = async (personaId: string, tipo: string) => {
+    const { error } = await supabase
+      .from("personal")
+      .update({ tipo: tipo as PersonaFinanzas["tipo"] })
+      .eq("id", personaId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    void personal.refetch();
+  };
+
+
 
   const marcarTodos = async (campo: "pagado_quincena" | "pagado_fin_mes", valor: boolean) => {
     const ids = (nomina.data ?? []).map((f) => f.id);
@@ -326,20 +357,77 @@ function RemuneracionesPage() {
                       {persona.cargo ?? "—"}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {etiquetaAsignacion(persona.asignacion)}
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Asignación de ${persona.nombre}`}
+                      value={persona.asignacion ?? "compartido"}
+                      onChange={(e) => void guardarAsignacion(persona.id, e.target.value)}
+                      className="h-8 w-44 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      {asignacionesDisponibles.map((a) => (
+                        <option key={a.valor} value={a.valor} className="bg-[#16131F]">
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{etiquetaTipo(persona.tipo)}</td>
-                  <td className="num px-3 py-2.5 text-right">
-                    {formatCLP(fila.liquido_liquidacion)}
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Tipo de contrato de ${persona.nombre}`}
+                      value={persona.tipo}
+                      onChange={(e) => void guardarTipo(persona.id, e.target.value)}
+                      className="h-8 w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      {TIPOS_PERSONAL.map((t) => (
+                        <option key={t.valor} value={t.valor} className="bg-[#16131F]">
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
                   </td>
-                  <td className="num px-3 py-2.5 text-right">
-                    {formatCLP(fila.bonificacion_extra)}
+                  <td className="px-3 py-2 text-right">
+                    <input
+                      key={`l-${fila.id}-${fila.liquido_liquidacion}`}
+                      defaultValue={String(fila.liquido_liquidacion)}
+                      aria-label={`Líquido de ${persona.nombre}`}
+                      onBlur={(e) => {
+                        const v = aMonto(e.target.value);
+                        if (v !== Number(fila.liquido_liquidacion))
+                          void guardarCampo(fila, { liquido_liquidacion: v });
+                      }}
+                      className="num h-8 w-32 rounded-lg border border-white/10 bg-white/[0.04] px-2 text-right outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <input
+                      key={`b-${fila.id}-${fila.bonificacion_extra}`}
+                      defaultValue={String(fila.bonificacion_extra)}
+                      aria-label={`Bonificación de ${persona.nombre}`}
+                      onBlur={(e) => {
+                        const v = aMonto(e.target.value);
+                        if (v !== Number(fila.bonificacion_extra))
+                          void guardarCampo(fila, { bonificacion_extra: v });
+                      }}
+                      className="num h-8 w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2 text-right outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
                   </td>
                   <td className="num px-3 py-2.5 text-right font-medium">
                     {formatCLP(calc.totalLiquido)}
                   </td>
-                  <td className="num px-3 py-2.5 text-right">{formatCLP(fila.bono_base)}</td>
+                  <td className="px-3 py-2 text-right">
+                    <input
+                      key={`bb-${fila.id}-${fila.bono_base}`}
+                      defaultValue={String(fila.bono_base)}
+                      aria-label={`Bono base de ${persona.nombre}`}
+                      onBlur={(e) => {
+                        const v = aMonto(e.target.value);
+                        if (v !== Number(fila.bono_base))
+                          void guardarCampo(fila, { bono_base: v });
+                      }}
+                      className="num h-8 w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2 text-right outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
+                  </td>
+
                   <td className="px-3 py-2">
                     <input
                       type="number"

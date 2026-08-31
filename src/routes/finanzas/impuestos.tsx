@@ -181,7 +181,24 @@ function ImpuestosPage() {
                   key={i.id}
                   className="border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035]"
                 >
-                  <td className="px-3 py-2.5">{i.concepto}</td>
+                  <td className="px-3 py-2">
+                    <input
+                      key={`c-${i.id}-${i.concepto}`}
+                      defaultValue={i.concepto}
+                      aria-label={`Concepto ${i.concepto}`}
+                      list="conceptos-impuesto"
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v && v !== i.concepto) void actualizar(i.id, { concepto: v });
+                      }}
+                      className="h-8 w-full min-w-72 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
+                    <datalist id="conceptos-impuesto">
+                      {CONCEPTOS_IMPUESTO.map((c) => (
+                        <option key={c} value={c} />
+                      ))}
+                    </datalist>
+                  </td>
                   <td className="px-3 py-2">
                     <input
                       type="date"
