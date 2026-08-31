@@ -111,8 +111,9 @@ function GastosFinanzasPage() {
       repartirPorMarca(
         (gastos.data ?? []).map((g) => ({ asignacion: g.asignacion, monto: Number(g.monto) })),
         params,
+        marcas,
       ),
-    [gastos.data, params],
+    [gastos.data, params, marcas],
   );
 
   const generar = async (tipo: "fijo" | "variable") => {
@@ -138,6 +139,22 @@ function GastosFinanzasPage() {
     if (error) { toast.error(error.message); return; }
     void gastos.refetch();
   };
+
+  /** Al cambiar la asignación también se ajusta la tienda del gasto. */
+  const cambiarAsignacion = async (id: string, asignacion: string) => {
+    const tiendaId =
+      asignacion === "compartido"
+        ? null
+        : ((await supabase.from("tiendas").select("id").eq("slug", asignacion).maybeSingle()).data
+            ?.id ?? null);
+    const { error } = await supabase
+      .from("gastos")
+      .update({ asignacion, tienda_id: tiendaId })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    void gastos.refetch();
+  };
+
 
   const crear = async () => {
     if (!nuevo) return;
