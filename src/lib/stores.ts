@@ -31,10 +31,10 @@ export const STORES: Store[] = [
   },
   {
     id: "bodega",
-    nombre: "Bodega",
-    hex: "#38BDF8",
-    accent: "oklch(0.746 0.16 232.7)",
-    accentSoft: "oklch(0.746 0.16 232.7 / 0.18)",
+    nombre: "Oficina Central",
+    hex: "#7DD3FC",
+    accent: "oklch(0.862 0.138 218.7)",
+    accentSoft: "oklch(0.862 0.138 218.7 / 0.18)",
   },
 ];
 

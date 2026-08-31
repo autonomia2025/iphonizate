@@ -1,9 +1,10 @@
 import type { AppRol } from "@/lib/nav";
 
-/* ---------- Precios ---------- */
+/* ---------- Precios y costos de arreglo ---------- */
 
 export const ROLES_PRECIOS: AppRol[] = ["direccion", "jefe_tienda", "administracion"];
 export const puedeEditarPrecios = (rol?: AppRol | null) => !!rol && ROLES_PRECIOS.includes(rol);
+export const puedeEditarCostosArreglo = puedeEditarPrecios;
 
 export const DIAS_PRECIO_VIEJO = 30;
 
