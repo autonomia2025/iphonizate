@@ -8,13 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatCLP } from "@/lib/stores";
 import { aMonto } from "@/lib/caja";
-import {
-  ASIGNACIONES,
-  MARCAS,
-  etiquetaAsignacion,
-  mesTexto,
-  repartirPorMarca,
-} from "@/lib/finanzas";
+import { mesTexto, repartirPorMarca } from "@/lib/finanzas";
+
 import {
   EncabezadoFinanzas,
   SelectorPeriodo,
