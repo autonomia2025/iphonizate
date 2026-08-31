@@ -286,6 +286,41 @@ export type Database = {
           },
         ]
       }
+      costos_arreglo: {
+        Row: {
+          costo: number
+          id: string
+          modelo: string
+          tipo: Database["public"]["Enums"]["tipo_servicio"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          costo?: number
+          id?: string
+          modelo: string
+          tipo: Database["public"]["Enums"]["tipo_servicio"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          costo?: number
+          id?: string
+          modelo?: string
+          tipo?: Database["public"]["Enums"]["tipo_servicio"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "costos_arreglo_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipos: {
         Row: {
           bateria: number | null
