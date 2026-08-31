@@ -165,7 +165,7 @@ function RemuneracionesPage() {
 
   const guardarCampo = async (
     fila: FilaNomina,
-    cambios: Partial<Pick<FilaNomina, "faltas" | "atrasos" | "pagado_quincena" | "pagado_fin_mes">>,
+    cambios: Partial<Omit<FilaNomina, "id" | "periodo" | "personal_id">>,
   ) => {
     const { error } = fila.id
       ? await supabase.from("nomina_mensual").update(cambios).eq("id", fila.id)
@@ -180,6 +180,20 @@ function RemuneracionesPage() {
     }
     void nomina.refetch();
   };
+
+  /** La asignación vive en la ficha de la persona: se edita desde acá también. */
+  const guardarAsignacion = async (personaId: string, asignacion: string) => {
+    const { error } = await supabase
+      .from("personal")
+      .update({ asignacion })
+      .eq("id", personaId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    void personal.refetch();
+  };
+
 
   const marcarTodos = async (campo: "pagado_quincena" | "pagado_fin_mes", valor: boolean) => {
     const ids = (nomina.data ?? []).map((f) => f.id);
