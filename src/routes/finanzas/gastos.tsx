@@ -19,7 +19,7 @@ import {
 } from "@/components/finanzas/MarcoFinanzas";
 
 const DESC =
-  "Gastos fijos y variables del mes, con prorrateo de lo compartido entre las tres marcas.";
+  "Gastos fijos y variables del mes, con prorrateo de lo compartido entre las marcas activas.";
 
 export const Route = createFileRoute("/finanzas/gastos")({
   head: () => ({
@@ -238,7 +238,7 @@ function GastosFinanzasPage() {
             value={form.asignacion}
             onChange={(e) => setForm({ ...form, asignacion: e.target.value })}
           >
-            {ASIGNACIONES.map((a) => (
+            {asignacionesDisponibles.map((a) => (
               <option key={a.valor} value={a.valor} className="bg-[#16131F]">
                 {a.label}
               </option>
@@ -424,7 +424,7 @@ function GastosFinanzasPage() {
             {formatCLP(totalVariables)}
           </p>
         </div>
-        {MARCAS.map((m) => (
+        {marcas.map((m) => (
           <div key={m.valor} className="glass p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
               {m.label}
