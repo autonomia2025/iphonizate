@@ -246,6 +246,7 @@ function GastosFinanzasPage() {
                 <th className="px-3 py-3 font-medium">Categoría</th>
                 <th className="px-3 py-3 font-medium">Detalle</th>
                 <th className="px-3 py-3 font-medium">Asignación</th>
+                <th className="px-3 py-3 font-medium">Tipo</th>
                 <th className="px-3 py-3 text-right font-medium">Monto</th>
                 <th className="px-3 py-3 font-medium">Fecha de pago</th>
                 <th className="px-3 py-3 text-center font-medium">Pagado</th>
@@ -257,12 +258,61 @@ function GastosFinanzasPage() {
                   key={g.id}
                   className="border-b border-white/5 transition-colors duration-200 last:border-0 hover:bg-white/[0.035]"
                 >
-                  <td className="px-3 py-2.5">{g.categoria}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {g.detalle ?? g.descripcion ?? "—"}
+                  <td className="px-3 py-2">
+                    <input
+                      key={`c-${g.id}-${g.categoria}`}
+                      defaultValue={g.categoria}
+                      aria-label={`Categoría de ${g.detalle ?? g.categoria}`}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v && v !== g.categoria) void actualizar(g.id, { categoria: v });
+                      }}
+                      className="h-8 w-40 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {etiquetaAsignacion(g.asignacion)}
+                  <td className="px-3 py-2">
+                    <input
+                      key={`t-${g.id}-${g.detalle ?? ""}`}
+                      defaultValue={g.detalle ?? g.descripcion ?? ""}
+                      aria-label={`Detalle de ${g.detalle ?? g.categoria}`}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v !== (g.detalle ?? ""))
+                          void actualizar(g.id, { detalle: v, descripcion: v });
+                      }}
+                      className="h-8 w-60 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Asignación de ${g.detalle ?? g.categoria}`}
+                      value={g.asignacion ?? "compartido"}
+                      onChange={(e) => void cambiarAsignacion(g.id, e.target.value)}
+                      className="h-8 w-44 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      {asignacionesDisponibles.map((a) => (
+                        <option key={a.valor} value={a.valor} className="bg-[#16131F]">
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Tipo de ${g.detalle ?? g.categoria}`}
+                      value={g.tipo}
+                      onChange={(e) =>
+                        void actualizar(g.id, { tipo: e.target.value as GastoFin["tipo"] })
+                      }
+                      className="h-8 w-32 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      <option value="fijo" className="bg-[#16131F]">
+                        Fijo
+                      </option>
+                      <option value="variable" className="bg-[#16131F]">
+                        Variable
+                      </option>
+                    </select>
                   </td>
                   <td className="px-3 py-2">
                     <input
@@ -299,6 +349,7 @@ function GastosFinanzasPage() {
                   </td>
                 </tr>
               ))}
+
               {filas.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
