@@ -340,20 +340,77 @@ function RemuneracionesPage() {
                       {persona.cargo ?? "—"}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">
-                    {etiquetaAsignacion(persona.asignacion)}
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Asignación de ${persona.nombre}`}
+                      value={persona.asignacion ?? "compartido"}
+                      onChange={(e) => void guardarAsignacion(persona.id, e.target.value)}
+                      className="h-8 w-44 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      {asignacionesDisponibles.map((a) => (
+                        <option key={a.valor} value={a.valor} className="bg-[#16131F]">
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{etiquetaTipo(persona.tipo)}</td>
-                  <td className="num px-3 py-2.5 text-right">
-                    {formatCLP(fila.liquido_liquidacion)}
+                  <td className="px-3 py-2">
+                    <select
+                      aria-label={`Tipo de contrato de ${persona.nombre}`}
+                      value={persona.tipo}
+                      onChange={(e) => void guardarTipo(persona.id, e.target.value)}
+                      className="h-8 w-36 rounded-lg border border-white/10 bg-white/[0.04] px-2 outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    >
+                      {TIPOS_PERSONAL.map((t) => (
+                        <option key={t.valor} value={t.valor} className="bg-[#16131F]">
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
                   </td>
-                  <td className="num px-3 py-2.5 text-right">
-                    {formatCLP(fila.bonificacion_extra)}
+                  <td className="px-3 py-2 text-right">
+                    <input
+                      key={`l-${fila.id}-${fila.liquido_liquidacion}`}
+                      defaultValue={String(fila.liquido_liquidacion)}
+                      aria-label={`Líquido de ${persona.nombre}`}
+                      onBlur={(e) => {
+                        const v = aMonto(e.target.value);
+                        if (v !== Number(fila.liquido_liquidacion))
+                          void guardarCampo(fila, { liquido_liquidacion: v });
+                      }}
+                      className="num h-8 w-32 rounded-lg border border-white/10 bg-white/[0.04] px-2 text-right outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <input
+                      key={`b-${fila.id}-${fila.bonificacion_extra}`}
+                      defaultValue={String(fila.bonificacion_extra)}
+                      aria-label={`Bonificación de ${persona.nombre}`}
+                      onBlur={(e) => {
+                        const v = aMonto(e.target.value);
+                        if (v !== Number(fila.bonificacion_extra))
+                          void guardarCampo(fila, { bonificacion_extra: v });
+                      }}
+                      className="num h-8 w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2 text-right outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
                   </td>
                   <td className="num px-3 py-2.5 text-right font-medium">
                     {formatCLP(calc.totalLiquido)}
                   </td>
-                  <td className="num px-3 py-2.5 text-right">{formatCLP(fila.bono_base)}</td>
+                  <td className="px-3 py-2 text-right">
+                    <input
+                      key={`bb-${fila.id}-${fila.bono_base}`}
+                      defaultValue={String(fila.bono_base)}
+                      aria-label={`Bono base de ${persona.nombre}`}
+                      onBlur={(e) => {
+                        const v = aMonto(e.target.value);
+                        if (v !== Number(fila.bono_base))
+                          void guardarCampo(fila, { bono_base: v });
+                      }}
+                      className="num h-8 w-28 rounded-lg border border-white/10 bg-white/[0.04] px-2 text-right outline-none transition-all duration-200 focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
+                    />
+                  </td>
+
                   <td className="px-3 py-2">
                     <input
                       type="number"
