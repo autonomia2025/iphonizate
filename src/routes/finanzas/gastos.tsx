@@ -352,7 +352,7 @@ function GastosFinanzasPage() {
 
               {filas.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
                     {gastos.isLoading
                       ? "Cargando gastos…"
                       : "Sin gastos en este bloque. Genera los del mes desde las plantillas."}
@@ -363,7 +363,7 @@ function GastosFinanzasPage() {
             {filas.length > 0 && (
               <tfoot>
                 <tr className="border-t border-white/10 bg-white/[0.03] font-semibold">
-                  <td className="px-3 py-3" colSpan={3}>
+                  <td className="px-3 py-3" colSpan={4}>
                     Total
                   </td>
                   <td className="num px-3 py-3 text-right">{formatCLP(total)}</td>
@@ -371,6 +371,7 @@ function GastosFinanzasPage() {
                 </tr>
               </tfoot>
             )}
+
           </table>
         </div>
       </div>
