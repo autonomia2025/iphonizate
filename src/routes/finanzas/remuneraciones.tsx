@@ -197,6 +197,20 @@ function RemuneracionesPage() {
     void personal.refetch();
   };
 
+  /** Tipo de contrato: define si se suma carga patronal al costo empresa. */
+  const guardarTipo = async (personaId: string, tipo: string) => {
+    const { error } = await supabase
+      .from("personal")
+      .update({ tipo: tipo as PersonaFinanzas["tipo"] })
+      .eq("id", personaId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    void personal.refetch();
+  };
+
+
 
   const marcarTodos = async (campo: "pagado_quincena" | "pagado_fin_mes", valor: boolean) => {
     const ids = (nomina.data ?? []).map((f) => f.id);
