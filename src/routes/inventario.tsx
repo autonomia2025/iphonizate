@@ -485,7 +485,7 @@ function InventarioPage() {
             abierto={modalAbierto}
             onCerrar={() => setModalAbierto(false)}
             tiendas={tiendas.data ?? []}
-            tiendaPorDefecto={usuario?.tienda_id ?? null}
+            tiendaPorDefecto={tiendas.data?.find((t) => t.es_bodega)?.id ?? usuario?.tienda_id ?? null}
             puedeCostos={conCostos}
             onGuardado={() => {
               void stock.refetch();

@@ -135,12 +135,9 @@ export function EtiquetasModal({
                   dangerouslySetInnerHTML={{ __html: codigo.svg }}
                 />
                 <div className="text-center leading-tight">
-                  <div style={{ fontSize: "7.5pt", fontWeight: 700 }}>
-                    {descripcionEquipo(muestra)}
-                  </div>
-                  <div className="num" style={{ fontSize: "8pt", letterSpacing: "0.4pt" }}>
-                    {muestra.imei}
-                  </div>
+                  <div style={{ fontSize: "7.5pt", fontWeight: 700 }}>{descripcionEquipo(muestra)}</div>
+                  <div className="num" style={{ fontSize: "8pt", letterSpacing: "0.4pt" }}>{muestra.imei}</div>
+                  {muestra.servicios?.length ? <div style={{ maxWidth: "100%", fontSize: "5.5pt", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Pendiente: {muestra.servicios.join(" · ")}</div> : null}
                 </div>
               </div>
             </div>

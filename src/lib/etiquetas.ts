@@ -79,6 +79,8 @@ export type EquipoEtiqueta = {
   color?: string | null;
   /** Etapa del flujo (ingreso, traslado, técnico…) que se imprime bajo el IMEI. */
   etapa?: string | null;
+  /** Servicios pendientes que deben acompañar al equipo desde el primer ingreso. */
+  servicios?: string[];
 };
 
 const fechaCorta = () =>
@@ -129,12 +131,14 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
   const cuerpo = equipos
     .map((e) => {
       const { svg } = svgCodigoBarras(e.imei, medida);
+      const servicios = e.servicios?.length ? `<div class="servicios">Pendiente: ${escapar(e.servicios.join(" · "))}</div>` : "";
       return `<section class="etiqueta">
         <div class="barra">${svg}</div>
         <div class="texto">
           <div class="modelo">${escapar(descripcionEquipo(e))}</div>
           <div class="imei">${escapar(e.imei)}</div>
           ${e.etapa ? `<div class="etapa">${escapar(`${e.etapa} · ${fechaCorta()}`)}</div>` : ""}
+          ${servicios}
         </div>
       </section>`;
     })
@@ -155,9 +159,10 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
   .etiqueta:last-child { page-break-after: auto; break-after: auto; }
   .barra { line-height: 0; }
   .texto { text-align: center; line-height: 1.15; }
-  .modelo { font-size: 7.5pt; font-weight: 700; }
-  .imei { font-size: 8pt; font-family: "Courier New", monospace; letter-spacing: 0.4pt; }
-  .etapa { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3pt; }
+   .modelo { font-size: 7.5pt; font-weight: 700; }
+   .imei { font-size: 8pt; font-family: "Courier New", monospace; letter-spacing: 0.4pt; }
+   .etapa { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3pt; }
+   .servicios { max-width: 100%; font-size: 5.5pt; line-height: 1.05; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style></head><body>${cuerpo}</body></html>`;
 }
 
