@@ -749,14 +749,6 @@ function VenderPage() {
               <span className="num font-display text-2xl font-semibold">{formatCLP(total)}</span>
             </div>
 
-            {conGanancias && (
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Margen estimado</span>
-                <span className={`num ${margen < 0 ? "text-red-300" : "text-emerald-300"}`}>
-                  {formatCLP(margen)}
-                </span>
-              </div>
-            )}
           </div>
 
           <Button

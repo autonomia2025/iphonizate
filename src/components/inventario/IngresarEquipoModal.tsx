@@ -27,7 +27,7 @@ import {
 } from "@/lib/inventario";
 
 
-type Tienda = { id: string; nombre: string };
+type Tienda = { id: string; nombre: string; es_bodega?: boolean | null };
 
 type Props = {
   abierto: boolean;
@@ -126,7 +126,8 @@ export function IngresarEquipoModal({
 
   useEffect(() => {
     if (!abierto) return;
-    setForm((f) => ({ ...f, ubicacion_id: f.ubicacion_id || tiendaPorDefecto || tiendas[0]?.id || "" }));
+    const bodega = tiendas.find((t) => t.es_bodega);
+    setForm((f) => ({ ...f, ubicacion_id: f.ubicacion_id || bodega?.id || tiendaPorDefecto || tiendas[0]?.id || "" }));
     const t = setTimeout(() => imeiRef.current?.focus(), 60);
     return () => clearTimeout(t);
   }, [abierto, tiendaPorDefecto, tiendas]);
@@ -346,6 +347,7 @@ export function IngresarEquipoModal({
         gb: form.gb ? Number(form.gb) : null,
         color: form.color?.trim() || null,
         etapa: ESTADO_ETIQUETA[estadoNuevo],
+        servicios: serviciosMarcados.map((tipo) => SERVICIOS.find((s) => s.tipo === tipo)?.label ?? tipo),
       });
       onGuardado();
       reiniciar();
