@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Plus, Search, X } from "lucide-react";
+import { Check, Download, Plus, Search, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { formatCLP } from "@/lib/stores";
 import { fechaHoraCorta } from "@/lib/caja";
 import { diasDesde, precioDesactualizado, puedeEditarPrecios } from "@/lib/gestion";
 import { NuevoPrecioModal } from "@/components/precios/NuevoPrecioModal";
+import { descargarCsv, leerCsv } from "@/lib/importar";
 import { cn } from "@/lib/utils";
 
 const DESC = "Precios sugeridos por modelo y capacidad, con control de actualización.";

@@ -269,3 +269,59 @@ export const descargarCsv = (nombre: string, contenido: string) => {
   a.click();
   URL.revokeObjectURL(url);
 };
+
+/* ---------------- CSV genérico (exportar / importar catálogos) ---------------- */
+
+const escaparCsv = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+/** Arma un CSV a partir de encabezados y filas ya ordenadas. */
+export function armarCsv(encabezados: string[], filas: (unknown[])[]) {
+  return [encabezados.join(","), ...filas.map((f) => f.map(escaparCsv).join(","))].join("\n");
+}
+
+/** Lee un CSV simple (con comillas) y devuelve objetos por encabezado normalizado. */
+export function leerCsv(texto: string): Record<string, string>[] {
+  const limpio = texto.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+  const filas: string[][] = [];
+  let celda = "";
+  let fila: string[] = [];
+  let enComillas = false;
+
+  for (let i = 0; i < limpio.length; i++) {
+    const ch = limpio[i]!;
+    if (enComillas) {
+      if (ch === '"') {
+        if (limpio[i + 1] === '"') {
+          celda += '"';
+          i += 1;
+        } else enComillas = false;
+      } else celda += ch;
+      continue;
+    }
+    if (ch === '"') enComillas = true;
+    else if (ch === "," || ch === ";") {
+      fila.push(celda);
+      celda = "";
+    } else if (ch === "\n") {
+      fila.push(celda);
+      filas.push(fila);
+      fila = [];
+      celda = "";
+    } else celda += ch;
+  }
+  if (celda || fila.length) {
+    fila.push(celda);
+    filas.push(fila);
+  }
+
+  const encabezados = (filas.shift() ?? []).map((h) => sinTildes(h));
+  return filas
+    .filter((f) => f.some((c) => c.trim() !== ""))
+    .map((f) => {
+      const obj: Record<string, string> = {};
+      encabezados.forEach((h, i) => {
+        obj[h] = (f[i] ?? "").trim();
+      });
+      return obj;
+    });
+}
