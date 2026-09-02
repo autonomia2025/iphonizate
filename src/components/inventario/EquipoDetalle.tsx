@@ -196,7 +196,7 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
     setAccion("disponible");
     const { error } = await supabase.rpc("marcar_equipo_disponible", { _equipo: equipo.id });
     setAccion(null);
-    if (error) { toast.error("No se pudo marcar como disponible", { description: error.message.replace(/^.*?:\s*, "") }); return; }
+    if (error) { toast.error("No se pudo marcar como disponible", { description: error.message.replace(/^.*?:\s*/, "") }); return; }
     toast.success("Equipo disponible", { description: `${equipo.modelo} · IMEI ${equipo.imei}` });
     refrescar(); setEtapaEtiqueta("Disponible"); setEtiquetaAbierta(true);
   };

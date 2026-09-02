@@ -20,6 +20,11 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    // pdf-lib y react-email dependen de tslib (CommonJS): si el bundle del
+    // servidor los deja externos, el comprobante falla al generarse.
+    ssr: {
+      noExternal: ["pdf-lib", "tslib", "@react-email/render", "@react-email/components"],
+    },
     resolve: {
       alias: {
         "entities/lib/decode.js": path.resolve(
