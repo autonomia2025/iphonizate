@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { Printer, X, AlertTriangle } from "lucide-react";
+import { ExternalLink, Printer, X, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
   TAMANOS,
+  abrirEtiquetasEnPestana,
   type EquipoEtiqueta,
   type MedidaEtiqueta,
   descripcionEquipo,
