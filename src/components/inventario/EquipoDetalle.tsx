@@ -152,19 +152,19 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
       return;
     }
     setAccion("guardar");
-    const payload: Record<string, unknown> = {
+    const payload = {
       modelo: form.modelo.trim(),
       gb: form.gb ? Number(form.gb) : null,
       color: form.color.trim() || null,
       bateria: form.bateria ? Math.min(100, Number(form.bateria)) : null,
-      categoria: form.categoria,
+      categoria: form.categoria as "sellado" | "openbox" | "seminuevo" | "reacondicionado",
       email_vinculado: form.email_vinculado.trim() || null,
       proveedor: form.proveedor.trim() || null,
       lote: form.lote.trim() || null,
       notas: form.notas.trim() || null,
       ubicacion_id: form.ubicacion_id,
+      ...(puedeCostos ? { costo: form.costo ? Number(form.costo) : 0 } : {}),
     };
-    if (puedeCostos) payload.costo = form.costo ? Number(form.costo) : 0;
     const { error } = await supabase.from("equipos").update(payload).eq("id", equipo.id);
     setAccion(null);
     if (error) {

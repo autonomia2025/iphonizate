@@ -11,7 +11,7 @@ import { formatCLP } from "@/lib/stores";
 import { fechaHoraCorta } from "@/lib/caja";
 import { diasDesde, precioDesactualizado, puedeEditarPrecios } from "@/lib/gestion";
 import { NuevoPrecioModal } from "@/components/precios/NuevoPrecioModal";
-import { descargarCsv, leerCsv } from "@/lib/importar";
+import { armarCsv, descargarCsv, leerCsv } from "@/lib/importar";
 import { cn } from "@/lib/utils";
 
 const DESC = "Precios sugeridos por modelo y capacidad, con control de actualización.";
@@ -54,6 +54,7 @@ function PreciosPage() {
   const [editando, setEditando] = useState<string | null>(null);
   const [valor, setValor] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [importando, setImportando] = useState(false);
 
   const precios = useQuery({
     queryKey: ["precios"],
@@ -118,6 +119,59 @@ function PreciosPage() {
     }
   };
 
+  const exportar = () => {
+    descargarCsv(
+      `precios-${new Date().toISOString().slice(0, 10)}.csv`,
+      armarCsv(
+        ["modelo", "gb", "precio"],
+        filas.map((p) => [p.modelo, p.gb, p.precio]),
+      ),
+    );
+  };
+
+  const importar = async (archivo: File) => {
+    setImportando(true);
+    try {
+      const filasCsv = leerCsv(await archivo.text());
+      const validas = filasCsv
+        .map((f) => ({
+          modelo: (f["modelo"] ?? "").trim(),
+          gb: Number((f["gb"] ?? "").replace(/[^\d]/g, "")),
+          precio: Number((f["precio"] ?? "").replace(/[^\d]/g, "")),
+        }))
+        .filter((f) => f.modelo && f.gb > 0 && f.precio > 0);
+      if (!validas.length) {
+        toast.error("El archivo no trae filas válidas", {
+          description: "Usa las columnas modelo, gb y precio.",
+        });
+        return;
+      }
+      let guardadas = 0;
+      for (const f of validas) {
+        const existente = (precios.data ?? []).find((p) => p.modelo === f.modelo && p.gb === f.gb);
+        const payload = {
+          precio: f.precio,
+          updated_at: new Date().toISOString(),
+          updated_by: usuario?.id ?? null,
+        };
+        const { error } = existente
+          ? await supabase.from("precios").update(payload).eq("id", existente.id)
+          : await supabase.from("precios").insert({ modelo: f.modelo, gb: f.gb, ...payload });
+        if (!error) guardadas += 1;
+      }
+      toast.success(`${guardadas} precio${guardadas === 1 ? "" : "s"} cargados`, {
+        description: guardadas < validas.length ? `${validas.length - guardadas} no se pudieron guardar` : undefined,
+      });
+      void precios.refetch();
+    } catch (e) {
+      toast.error("No pudimos leer el archivo", {
+        description: e instanceof Error ? e.message : undefined,
+      });
+    } finally {
+      setImportando(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-[86rem] space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -132,11 +186,31 @@ function PreciosPage() {
             )}
           </p>
         </div>
-        {puedeEditar && (
-          <Button onClick={() => setModal(true)}>
-            <Plus className="size-4" /> Nuevo precio
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" className="gap-2" onClick={exportar} disabled={filas.length === 0}>
+            <Download className="size-4" /> Exportar CSV
           </Button>
-        )}
+          {puedeEditar && (
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-white/12 bg-white/[0.04] px-3 py-2 text-sm transition-colors hover:bg-white/[0.07]">
+              <Upload className="size-4" /> {importando ? "Cargando…" : "Importar CSV"}
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const archivo = e.target.files?.[0];
+                  if (archivo) void importar(archivo);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          )}
+          {puedeEditar && (
+            <Button onClick={() => setModal(true)}>
+              <Plus className="size-4" /> Nuevo precio
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="glass flex flex-wrap items-center gap-3 p-4">
