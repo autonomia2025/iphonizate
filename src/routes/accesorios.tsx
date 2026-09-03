@@ -54,6 +54,7 @@ function AccesoriosPage() {
   const [modalNuevo, setModalNuevo] = useState(false);
   const [modalAjuste, setModalAjuste] = useState(false);
   const [accesorioAjuste, setAccesorioAjuste] = useState<string | null>(null);
+  const [importando, setImportando] = useState(false);
 
   const tiendas = useQuery({
     queryKey: ["tiendas"],
