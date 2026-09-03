@@ -66,14 +66,18 @@ function IconoEstado({ estado }: { estado: EstadoLector }) {
 export function BarraLector({
   estado,
   nombreAgente,
+  tiendaAgente,
   detalle,
   lectura,
   onAplicar,
   aplicada,
+  ultimoLatido,
 }: Props) {
   const ciclos = lectura?.bateria_ciclos ?? null;
   const nivel = nivelCiclos(ciclos);
   const icloud = !!lectura?.icloud_bloqueado;
+  const desde = hace(lectura?.fecha);
+  const ayuda = AYUDA[estado];
 
   return (
     <div
@@ -83,12 +87,16 @@ export function BarraLector({
         <IconoEstado estado={estado} />
         <span className="font-medium">{ESTADO_LECTOR_ETIQUETA[estado]}</span>
         {nombreAgente && (
-          <span className="opacity-70">· {nombreAgente}</span>
+          <span className="opacity-70">
+            · {nombreAgente}
+            {tiendaAgente ? ` (${tiendaAgente})` : ""}
+          </span>
         )}
         {detalle && estado !== "listo" && <span className="opacity-70">· {detalle}</span>}
 
         {lectura && (
           <div className="ml-auto flex items-center gap-2">
+            {desde && <span className="opacity-70">leído {desde}</span>}
             {aplicada ? (
               <span className="flex items-center gap-1 opacity-80">
                 <CheckCircle2 className="size-3.5" /> datos aplicados
@@ -102,12 +110,18 @@ export function BarraLector({
         )}
       </div>
 
+      {ayuda && <p className="mt-2 opacity-80">{ayuda}</p>}
+
       {(estado === "sin_contacto" || estado === "error_runtime") && (
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <p className="min-w-0 flex-1 opacity-80">
             {estado === "error_runtime"
               ? "El lector está corriendo pero le faltan las herramientas para leer el iPhone. Vuelve a correr el instalador (no pide contraseña)."
-              : "Este computador no tiene el lector corriendo. Puedes escribir los datos a mano igual."}
+              : nombreAgente
+                ? `El Mac lector “${nombreAgente}” no está respondiendo${
+                    hace(ultimoLatido) ? ` (último contacto ${hace(ultimoLatido)})` : ""
+                  }. Revisa que esté encendido o escribe los datos a mano.`
+                : "No hay ningún Mac lector corriendo. Puedes escribir los datos a mano igual."}
           </p>
           <BotonInstalarLector />
         </div>
