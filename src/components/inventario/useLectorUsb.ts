@@ -16,9 +16,12 @@ const COLUMNAS_AGENTE =
   "id, nombre, tienda_id, version, hostname, estado, detalle_estado, ultimo_latido, ultima_lectura, activo";
 
 /**
- * Estado del lector USB de una tienda y su última lectura.
- * Escucha por realtime tanto el agente (para la barra de estado) como las
- * lecturas nuevas (para autocompletar el formulario).
+ * Estado del lector USB y su última lectura.
+ *
+ * El Mac lector no siempre está registrado en la misma tienda donde se está
+ * ingresando el equipo (por ejemplo, quedó en Oficina Central), así que se
+ * prefiere el lector de la tienda pedida y, si ese no está vivo, se usa
+ * cualquier lector de la cadena con latido reciente.
  */
 export function useLectorUsb(tiendaId?: string | null, activo = true) {
   const [agente, setAgente] = useState<AgenteLector | null>(null);
@@ -27,52 +30,61 @@ export function useLectorUsb(tiendaId?: string | null, activo = true) {
   const vistas = useRef<Set<string>>(new Set());
 
   const cargar = useCallback(async () => {
-    if (!tiendaId) {
-      setAgente(null);
+    const { data: agentes } = await supabase
+      .from("lector_agentes")
+      .select(COLUMNAS_AGENTE)
+      .eq("activo", true)
+      .order("ultimo_latido", { ascending: false, nullsFirst: false })
+      .limit(20);
+
+    const lista = (agentes ?? []) as AgenteLector[];
+    const vivos = lista.filter((a) => agenteVivo(a.ultimo_latido));
+    const elegido =
+      vivos.find((a) => a.tienda_id === tiendaId) ??
+      vivos[0] ??
+      lista.find((a) => a.tienda_id === tiendaId) ??
+      lista[0] ??
+      null;
+
+    setAgente(elegido);
+
+    if (!elegido) {
       setLectura(null);
       return;
     }
-    const [{ data: agentes }, { data: lecturas }] = await Promise.all([
-      supabase
-        .from("lector_agentes")
-        .select(COLUMNAS_AGENTE)
-        .eq("tienda_id", tiendaId)
-        .eq("activo", true)
-        .order("ultimo_latido", { ascending: false, nullsFirst: false })
-        .limit(1),
-      supabase
-        .from("lecturas_equipo")
-        .select(COLUMNAS_LECTURA)
-        .eq("tienda_id", tiendaId)
-        .order("fecha", { ascending: false })
-        .limit(1),
-    ]);
-    setAgente((agentes?.[0] as AgenteLector | undefined) ?? null);
+
+    const { data: lecturas } = await supabase
+      .from("lecturas_equipo")
+      .select(COLUMNAS_LECTURA)
+      .eq("agente_id", elegido.id)
+      .order("fecha", { ascending: false })
+      .limit(1);
     setLectura((lecturas?.[0] as Lectura | undefined) ?? null);
   }, [tiendaId]);
 
   useEffect(() => {
-    if (!activo || !tiendaId) return;
+    if (!activo) return;
     void cargar();
 
     const canal = supabase
-      .channel(`lector-${tiendaId}`)
+      .channel("lector-usb")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "lector_agentes", filter: `tienda_id=eq.${tiendaId}` },
+        { event: "*", schema: "public", table: "lector_agentes" },
         (payload) => {
           const fila = payload.new as AgenteLector | null;
-          if (fila?.id && fila.activo) setAgente(fila);
+          if (!fila?.id || !fila.activo) return;
+          setAgente((actual) => {
+            if (!actual || actual.id === fila.id) return fila;
+            /* Si llega otro Mac con latido vivo y el actual está caído, se cambia */
+            if (!agenteVivo(actual.ultimo_latido) && agenteVivo(fila.ultimo_latido)) return fila;
+            return actual;
+          });
         },
       )
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "lecturas_equipo",
-          filter: `tienda_id=eq.${tiendaId}`,
-        },
+        { event: "INSERT", schema: "public", table: "lecturas_equipo" },
         (payload) => {
           const fila = payload.new as Lectura | null;
           if (!fila?.id || vistas.current.has(fila.id)) return;
@@ -90,7 +102,7 @@ export function useLectorUsb(tiendaId?: string | null, activo = true) {
       clearInterval(t);
       void supabase.removeChannel(canal);
     };
-  }, [activo, tiendaId, cargar]);
+  }, [activo, cargar]);
 
   const conectado = agenteVivo(agente?.ultimo_latido);
   const estado: EstadoLector = !agente
@@ -103,10 +115,12 @@ export function useLectorUsb(tiendaId?: string | null, activo = true) {
     agente,
     estado,
     conectado,
-    /** Última lectura conocida, sirva o no para autocompletar. */
+    /** Última lectura conocida del Mac elegido. */
     lectura,
-    /** Lectura fresca: la que el modal ofrece aplicar. */
-    lecturaUtil: lectura && lecturaFresca(lectura.fecha) ? lectura : null,
+    /** Se sigue ofreciendo aunque tenga rato: la barra avisa la antigüedad. */
+    lecturaUtil: lectura,
+    /** Si la lectura ya tiene más de 10 minutos. */
+    lecturaVieja: !!lectura && !lecturaFresca(lectura.fecha),
     /** Lectura que acaba de llegar por realtime (para autoaplicar una vez). */
     nuevaLectura,
     limpiarNueva: () => setNuevaLectura(null),
