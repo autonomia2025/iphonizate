@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, SlidersHorizontal } from "lucide-react";
+import { Download, Plus, SlidersHorizontal, Upload } from "lucide-react";
+import { toast } from "sonner";
+
+import { armarCsv, descargarCsv, leerCsv } from "@/lib/importar";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
@@ -116,6 +119,76 @@ function AccesoriosPage() {
     void stock.refetch();
   };
 
+  const exportar = () => {
+    descargarCsv(
+      `accesorios-${new Date().toISOString().slice(0, 10)}.csv`,
+      armarCsv(
+        ["nombre", "categoria", "tipo", "modelo", "costo", "precio", "minimo", "stock_total"],
+        filas.map((a) => [a.nombre, a.categoria, a.tipo ?? "", a.modelo ?? "", a.costo, a.precio, a.minimo, a.total]),
+      ),
+    );
+  };
+
+  const importar = async (archivo: File) => {
+    setImportando(true);
+    try {
+      const categoriasValidas = CATEGORIAS_ACCESORIO.map((c) => c.valor as string);
+      const filasCsv = leerCsv(await archivo.text());
+      const validas = filasCsv
+        .map((f) => ({
+          nombre: (f["nombre"] ?? "").trim(),
+          categoria: (f["categoria"] ?? "").trim().toLowerCase(),
+          tipo: (f["tipo"] ?? "").trim() || null,
+          modelo: (f["modelo"] ?? "").trim() || null,
+          costo: Number((f["costo"] ?? "").replace(/[^\d]/g, "")) || 0,
+          precio: Number((f["precio"] ?? "").replace(/[^\d]/g, "")) || 0,
+          minimo: Number((f["minimo"] ?? "").replace(/[^\d]/g, "")) || 0,
+        }))
+        .filter((f) => f.nombre && categoriasValidas.includes(f.categoria) && f.precio > 0);
+
+      if (!validas.length) {
+        toast.error("El archivo no trae filas válidas", {
+          description: "Columnas: nombre, categoria (cargador/carcasa/mica/audifonos/otro), tipo, modelo, costo, precio, minimo.",
+        });
+        return;
+      }
+
+      let creados = 0;
+      let actualizados = 0;
+      for (const f of validas) {
+        const existente = (accesorios.data ?? []).find(
+          (a) => a.nombre.toLowerCase() === f.nombre.toLowerCase() && (a.modelo ?? "") === (f.modelo ?? ""),
+        );
+        if (existente) {
+          const { error } = await supabase
+            .from("accesorios")
+            .update({ costo: f.costo, precio: f.precio, minimo: f.minimo, tipo: f.tipo, modelo: f.modelo })
+            .eq("id", existente.id);
+          if (!error) actualizados += 1;
+        } else {
+          const { error } = await supabase.from("accesorios").insert({
+            nombre: f.nombre,
+            categoria: f.categoria as CategoriaAccesorio,
+            tipo: f.tipo,
+            modelo: f.modelo,
+            costo: f.costo,
+            precio: f.precio,
+            minimo: f.minimo,
+          });
+          if (!error) creados += 1;
+        }
+      }
+      toast.success(`${creados} nuevos · ${actualizados} actualizados`);
+      refrescar();
+    } catch (e) {
+      toast.error("No pudimos leer el archivo", {
+        description: e instanceof Error ? e.message : undefined,
+      });
+    } finally {
+      setImportando(false);
+    }
+  };
+
   const cargando = accesorios.isLoading || stock.isLoading || tiendas.isLoading;
   const colSpan = 4 + (verCostos ? 1 : 0) + columnas.length + 1;
 
@@ -126,22 +199,42 @@ function AccesoriosPage() {
           <h1 className="font-display text-2xl font-semibold">Accesorios</h1>
           <p className="mt-1 text-sm text-muted-foreground">{DESC}</p>
         </div>
-        {puedeOperar && (
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setAccesorioAjuste(null);
-                setModalAjuste(true);
-              }}
-            >
-              <SlidersHorizontal className="size-4" /> Ajustar stock
-            </Button>
-            <Button className="accent-glow" onClick={() => setModalNuevo(true)}>
-              <Plus className="size-4" /> Nuevo accesorio
-            </Button>
-          </div>
-        )}
+        <div className="flex flex-wrap gap-3">
+          <Button variant="secondary" className="gap-2" onClick={exportar} disabled={filas.length === 0}>
+            <Download className="size-4" /> Exportar CSV
+          </Button>
+          {puedeOperar && (
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-white/12 bg-white/[0.04] px-3 py-2 text-sm transition-colors hover:bg-white/[0.07]">
+              <Upload className="size-4" /> {importando ? "Cargando…" : "Importar CSV"}
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const archivo = e.target.files?.[0];
+                  if (archivo) void importar(archivo);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          )}
+          {puedeOperar && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAccesorioAjuste(null);
+                  setModalAjuste(true);
+                }}
+              >
+                <SlidersHorizontal className="size-4" /> Ajustar stock
+              </Button>
+              <Button className="accent-glow" onClick={() => setModalNuevo(true)}>
+                <Plus className="size-4" /> Nuevo accesorio
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Filtros */}
