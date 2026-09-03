@@ -62,6 +62,17 @@ export function PanelLectores({ puedeEditar }: { puedeEditar: boolean }) {
 
   const nombreTienda = (id: string) => tiendas.data?.find((t) => t.id === id)?.nombre ?? "—";
 
+  /** Reasigna un Mac lector a otra tienda sin reinstalar nada en el Mac. */
+  const moverTienda = async (id: string, tienda: string) => {
+    const { error } = await supabase.from("lector_agentes").update({ tienda_id: tienda }).eq("id", id);
+    if (error) {
+      toast.error("No pude cambiar la tienda", { description: error.message });
+      return;
+    }
+    void agentes.refetch();
+    toast.success(`Lector movido a ${nombreTienda(tienda)}`);
+  };
+
   const registrar = async () => {
     if (nombre.trim().length < 2 || !tiendaId) {
       toast.error("Indica el nombre del Mac y la tienda.");
@@ -212,7 +223,23 @@ export function PanelLectores({ puedeEditar }: { puedeEditar: boolean }) {
                       <span className="block text-[11px] text-muted-foreground">{a.hostname}</span>
                     )}
                   </td>
-                  <td className="px-3 py-2">{nombreTienda(a.tienda_id)}</td>
+                  <td className="px-3 py-2">
+                    {puedeEditar ? (
+                      <select
+                        className={`${selectClase} h-8 min-w-36 text-xs`}
+                        value={a.tienda_id}
+                        onChange={(e) => void moverTienda(a.id, e.target.value)}
+                      >
+                        {tiendas.data?.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      nombreTienda(a.tienda_id)
+                    )}
+                  </td>
                   <td className="px-3 py-2">
                     {a.activo ? (
                       <>

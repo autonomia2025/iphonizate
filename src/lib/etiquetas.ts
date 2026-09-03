@@ -166,26 +166,62 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
 </style></head><body>${cuerpo}</body></html>`;
 }
 
-/** Manda las etiquetas al diálogo de impresión del sistema (la QL-800 aparece como impresora normal). */
-export function imprimirEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta) {
-  if (equipos.length === 0) return;
+/**
+ * Manda las etiquetas al diálogo de impresión del sistema (la QL-800 aparece
+ * como impresora normal).
+ *
+ * El iframe lleva el tamaño real de la etiqueta y se ubica fuera de la pantalla
+ * en vez de ocultarse: Safari no imprime nada de un marco con tamaño 0 o con
+ * `visibility:hidden`. Devuelve false si el navegador bloqueó la impresión
+ * (por ejemplo dentro de la vista previa embebida), para ofrecer el respaldo.
+ */
+export function imprimirEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta): boolean {
+  if (equipos.length === 0) return false;
   const marco = document.createElement("iframe");
   marco.setAttribute("aria-hidden", "true");
-  marco.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+  marco.setAttribute("title", "Etiquetas");
+  marco.style.cssText = `position:fixed;left:-10000px;top:0;width:${medida.ancho}mm;height:${medida.alto}mm;border:0;opacity:0`;
   document.body.appendChild(marco);
   const doc = marco.contentWindow?.document;
   if (!doc) {
     marco.remove();
-    return;
+    return false;
   }
   doc.open();
   doc.write(htmlEtiquetas(equipos, medida));
   doc.close();
+
+  let ok = true;
   const lanzar = () => {
-    marco.contentWindow?.focus();
-    marco.contentWindow?.print();
-    setTimeout(() => marco.remove(), 1000);
+    try {
+      marco.contentWindow?.focus();
+      marco.contentWindow?.print();
+    } catch {
+      ok = false;
+    }
+    setTimeout(() => marco.remove(), 2000);
   };
-  if (marco.contentWindow?.document.readyState === "complete") setTimeout(lanzar, 120);
-  else marco.onload = () => setTimeout(lanzar, 120);
+  if (doc.readyState === "complete") setTimeout(lanzar, 200);
+  else marco.onload = () => setTimeout(lanzar, 200);
+  return ok;
+}
+
+/**
+ * Respaldo: abre las etiquetas en una pestaña propia y dispara el diálogo de
+ * impresión ahí. Sirve en Safari y cuando la app corre dentro de un iframe.
+ */
+export function abrirEtiquetasEnPestana(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta): boolean {
+  if (equipos.length === 0) return false;
+  const html = htmlEtiquetas(equipos, medida).replace(
+    "</body>",
+    `<script>window.addEventListener("load",function(){setTimeout(function(){window.print()},300)})</script></body>`,
+  );
+  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  const ventana = window.open(url, "_blank");
+  if (!ventana) {
+    URL.revokeObjectURL(url);
+    return false;
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return true;
 }

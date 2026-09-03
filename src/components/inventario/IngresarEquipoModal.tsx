@@ -373,6 +373,10 @@ export function IngresarEquipoModal({
           <BarraLector
             estado={lector.estado}
             nombreAgente={lector.agente?.nombre ?? null}
+            tiendaAgente={
+              tiendas.find((t) => t.id === lector.agente?.tienda_id)?.nombre ?? null
+            }
+            ultimoLatido={lector.agente?.ultimo_latido ?? null}
             detalle={lector.agente?.detalle_estado ?? null}
             lectura={lector.lecturaUtil}
             aplicada={!!lector.lecturaUtil && lector.lecturaUtil.id === lecturaAplicada}
