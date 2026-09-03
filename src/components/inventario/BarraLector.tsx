@@ -17,11 +17,31 @@ import {
 type Props = {
   estado: EstadoLector;
   nombreAgente?: string | null;
+  tiendaAgente?: string | null;
   detalle?: string | null;
   lectura: Lectura | null;
   onAplicar: () => void;
   aplicada: boolean;
+  ultimoLatido?: string | null;
 };
+
+const AYUDA: Partial<Record<EstadoLector, string>> = {
+  sin_equipo:
+    "Conecta el iPhone al Mac lector con cable, desbloquéalo y toca “Confiar” si te lo pide.",
+  esperando_confianza: "Desbloquea el iPhone y toca “Confiar en este computador”.",
+  error: "Desconecta y vuelve a conectar el cable. Si sigue igual, avisa a la oficina.",
+};
+
+/** “hace 5 min”, “hace 2 h”, “hace 3 días”. */
+function hace(fecha?: string | null) {
+  if (!fecha) return null;
+  const min = Math.max(0, Math.round((Date.now() - new Date(fecha).getTime()) / 60_000));
+  if (min < 1) return "recién";
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  return `hace ${Math.round(h / 24)} día${Math.round(h / 24) === 1 ? "" : "s"}`;
+}
 
 const COLOR_ESTADO: Record<EstadoLector, string> = {
   sin_contacto: "border-white/10 bg-white/[0.03] text-muted-foreground",
