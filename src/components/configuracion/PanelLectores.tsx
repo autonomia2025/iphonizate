@@ -212,7 +212,23 @@ export function PanelLectores({ puedeEditar }: { puedeEditar: boolean }) {
                       <span className="block text-[11px] text-muted-foreground">{a.hostname}</span>
                     )}
                   </td>
-                  <td className="px-3 py-2">{nombreTienda(a.tienda_id)}</td>
+                  <td className="px-3 py-2">
+                    {puedeEditar ? (
+                      <select
+                        className={`${selectClase} h-8 min-w-36 text-xs`}
+                        value={a.tienda_id}
+                        onChange={(e) => void moverTienda(a.id, e.target.value)}
+                      >
+                        {tiendas.data?.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      nombreTienda(a.tienda_id)
+                    )}
+                  </td>
                   <td className="px-3 py-2">
                     {a.activo ? (
                       <>
