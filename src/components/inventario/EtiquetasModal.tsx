@@ -165,11 +165,36 @@ export function EtiquetasModal({
           </div>
         )}
 
-        <div className="mt-5 flex justify-end gap-2">
+        <p className="mt-4 text-[11px] text-muted-foreground">
+          Si el diálogo de impresión no aparece (pasa en Safari y dentro de la vista previa), usa
+          “Abrir en pestaña nueva”: ahí sale el diálogo con la etiqueta ya lista.
+        </p>
+
+        <div className="mt-3 flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={onCerrar}>
             Cancelar
           </Button>
-          <Button onClick={() => imprimirEtiquetas(equipos, medida)}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (!abrirEtiquetasEnPestana(equipos, medida)) {
+                toast.error("El navegador bloqueó la pestaña nueva", {
+                  description: "Permite las ventanas emergentes de este sitio y vuelve a intentar.",
+                });
+              }
+            }}
+          >
+            <ExternalLink className="size-4" /> Abrir en pestaña nueva
+          </Button>
+          <Button
+            onClick={() => {
+              if (!imprimirEtiquetas(equipos, medida)) {
+                toast.error("No pude abrir el diálogo de impresión", {
+                  description: "Usa “Abrir en pestaña nueva” para imprimir la etiqueta.",
+                });
+              }
+            }}
+          >
             <Printer className="size-4" /> Imprimir{" "}
             {equipos.length > 1 ? `${equipos.length} etiquetas` : "etiqueta"}
           </Button>
