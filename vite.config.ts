@@ -34,15 +34,6 @@ export default defineConfig({
         // build de producción rompe con "Cannot destructure property
         // '__extends'". El bundle ESM del propio paquete ya trae tslib dentro.
         "pdf-lib": path.resolve(process.cwd(), "node_modules/pdf-lib/dist/pdf-lib.esm.js"),
-        "entities/lib/decode.js": path.resolve(
-          process.cwd(),
-          "node_modules/entities/lib/decode.js",
-        ),
-        "entities/lib/encode.js": path.resolve(
-          process.cwd(),
-          "node_modules/entities/lib/encode.js",
-        ),
-        entities: path.resolve(process.cwd(), "node_modules/entities"),
       },
     },
   },
