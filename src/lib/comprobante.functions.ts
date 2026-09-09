@@ -77,11 +77,19 @@ export const enlaceComprobante = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!venta) throw new Error("No tienes acceso a esta venta");
 
-    if (!venta.comprobante_ruta) {
-      const { generarYGuardar } = await import("@/lib/comprobante.server");
-      const { url } = await generarYGuardar(data.ventaId);
-      return { url };
+    try {
+      if (!venta.comprobante_ruta) {
+        const { generarYGuardar } = await import("@/lib/comprobante.server");
+        const { url } = await generarYGuardar(data.ventaId);
+        return { url };
+      }
+      const { enlaceFirmado } = await import("@/lib/comprobante.server");
+      return { url: await enlaceFirmado(venta.comprobante_ruta) };
+    } catch (e) {
+      console.error(
+        `[comprobante] falló el enlace del comprobante de la venta ${data.ventaId}:`,
+        e instanceof Error ? (e.stack ?? e.message) : e,
+      );
+      throw new Error("No se pudo abrir el comprobante de esta venta. Vuelve a intentarlo.");
     }
-    const { enlaceFirmado } = await import("@/lib/comprobante.server");
-    return { url: await enlaceFirmado(venta.comprobante_ruta) };
   });
