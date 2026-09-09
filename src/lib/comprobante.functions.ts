@@ -22,7 +22,20 @@ export const emitirComprobante = createServerFn({ method: "POST" })
     if (!visible) throw new Error("No tienes acceso a esta venta");
 
     const { generarYGuardar } = await import("@/lib/comprobante.server");
-    const { numero, url, datos } = await generarYGuardar(data.ventaId);
+    let numero: string;
+    let url: string;
+    let datos: Awaited<ReturnType<typeof generarYGuardar>>["datos"];
+    try {
+      ({ numero, url, datos } = await generarYGuardar(data.ventaId));
+    } catch (e) {
+      console.error(
+        `[comprobante] falló la generación del PDF de la venta ${data.ventaId}:`,
+        e instanceof Error ? (e.stack ?? e.message) : e,
+      );
+      throw new Error(
+        "No se pudo generar el comprobante. La venta quedó registrada igual: puedes descargarlo después desde Comprobantes.",
+      );
+    }
 
     const correo = (data.correo ?? datos.cliente?.correo ?? "").trim();
     let envio: "enviado" | "sin_correo" | "error" | "suprimido" = "sin_correo";
@@ -64,11 +77,19 @@ export const enlaceComprobante = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!venta) throw new Error("No tienes acceso a esta venta");
 
-    if (!venta.comprobante_ruta) {
-      const { generarYGuardar } = await import("@/lib/comprobante.server");
-      const { url } = await generarYGuardar(data.ventaId);
-      return { url };
+    try {
+      if (!venta.comprobante_ruta) {
+        const { generarYGuardar } = await import("@/lib/comprobante.server");
+        const { url } = await generarYGuardar(data.ventaId);
+        return { url };
+      }
+      const { enlaceFirmado } = await import("@/lib/comprobante.server");
+      return { url: await enlaceFirmado(venta.comprobante_ruta) };
+    } catch (e) {
+      console.error(
+        `[comprobante] falló el enlace del comprobante de la venta ${data.ventaId}:`,
+        e instanceof Error ? (e.stack ?? e.message) : e,
+      );
+      throw new Error("No se pudo abrir el comprobante de esta venta. Vuelve a intentarlo.");
     }
-    const { enlaceFirmado } = await import("@/lib/comprobante.server");
-    return { url: await enlaceFirmado(venta.comprobante_ruta) };
   });

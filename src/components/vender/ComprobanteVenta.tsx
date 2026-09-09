@@ -43,7 +43,12 @@ export function ComprobanteVenta({
       setEstado(r);
       if (r.envio === "enviado") toast.success(`Comprobante enviado a ${r.correo}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo generar el comprobante");
+      const msg = e instanceof Error ? e.message : "";
+      setError(
+        /comprobante/i.test(msg) && msg.length < 200
+          ? msg
+          : "No se pudo generar el comprobante. La venta quedó registrada igual: puedes descargarlo después desde Comprobantes.",
+      );
     } finally {
       setCargando(false);
     }
