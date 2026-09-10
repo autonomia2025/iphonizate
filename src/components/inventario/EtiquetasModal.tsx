@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import { ExternalLink, Printer, X, AlertTriangle } from "lucide-react";
+import { Printer, X, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
   TAMANOS,
-  abrirEtiquetasEnPestana,
   type EquipoEtiqueta,
   type MedidaEtiqueta,
   descripcionEquipo,
@@ -166,8 +165,8 @@ export function EtiquetasModal({
         )}
 
         <p className="mt-4 text-[11px] text-muted-foreground">
-          Si el diálogo de impresión no aparece (pasa en Safari y dentro de la vista previa), usa
-          “Abrir en pestaña nueva”: ahí sale el diálogo con la etiqueta ya lista.
+          Se abrirá una ventana con la etiqueta lista. Selecciona Brother QL-800 y confirma papel de{" "}
+          {medida.ancho} × {medida.alto} mm. Si el diálogo no aparece solo, pulsa “Imprimir” en esa ventana.
         </p>
 
         <div className="mt-3 flex flex-wrap justify-end gap-2">
@@ -175,22 +174,10 @@ export function EtiquetasModal({
             Cancelar
           </Button>
           <Button
-            variant="secondary"
-            onClick={() => {
-              if (!abrirEtiquetasEnPestana(equipos, medida)) {
-                toast.error("El navegador bloqueó la pestaña nueva", {
-                  description: "Permite las ventanas emergentes de este sitio y vuelve a intentar.",
-                });
-              }
-            }}
-          >
-            <ExternalLink className="size-4" /> Abrir en pestaña nueva
-          </Button>
-          <Button
             onClick={() => {
               if (!imprimirEtiquetas(equipos, medida)) {
-                toast.error("No pude abrir el diálogo de impresión", {
-                  description: "Usa “Abrir en pestaña nueva” para imprimir la etiqueta.",
+                toast.error("El navegador bloqueó la ventana de impresión", {
+                  description: "Permite las ventanas emergentes para iPhonizate OS y vuelve a intentar.",
                 });
               }
             }}
