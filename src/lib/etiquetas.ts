@@ -127,7 +127,11 @@ export function descripcionEquipo(e: EquipoEtiqueta) {
   return [e.modelo ?? "Equipo", e.gb ? `${e.gb}GB` : null, e.color].filter(Boolean).join(" · ");
 }
 
-export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta) {
+export function htmlEtiquetas(
+  equipos: EquipoEtiqueta[],
+  medida: MedidaEtiqueta,
+  opciones: { controles?: boolean } = {},
+) {
   const cuerpo = equipos
     .map((e) => {
       const { svg } = svgCodigoBarras(e.imei, medida);
@@ -144,12 +148,40 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
     })
     .join("");
 
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Etiquetas</title>
+  const controles = opciones.controles
+    ? `<aside class="controles" aria-label="Controles de impresión">
+        <strong>Etiquetas listas para imprimir</strong>
+        <span>Selecciona Brother QL-800 y papel de ${medida.ancho} × ${medida.alto} mm.</span>
+        <button type="button" onclick="window.print()">Imprimir</button>
+      </aside>`
+    : "";
+
+  const autoImprimir = opciones.controles
+    ? `<script>
+        window.addEventListener("load", function () {
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () { window.print(); });
+          });
+        });
+      </script>`
+    : "";
+
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Etiquetas</title>
 <style>
   @page { size: ${medida.ancho}mm ${medida.alto}mm; margin: 0; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #fff; }
   body { font-family: Arial, Helvetica, sans-serif; color: #000; -webkit-print-color-adjust: exact; }
+  .controles {
+    position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px;
+    width: 100%; padding: 14px 18px; color: #f8fafc; background: #16131f;
+    box-shadow: 0 2px 12px rgba(0,0,0,.28); font-size: 14px;
+  }
+  .controles span { color: #cbd5e1; }
+  .controles button {
+    margin-left: auto; border: 0; border-radius: 8px; padding: 10px 18px;
+    color: #0f0d17; background: #f59e0b; font: inherit; font-weight: 700; cursor: pointer;
+  }
   .etiqueta {
     width: ${medida.ancho}mm; height: ${medida.alto}mm;
     padding: 1.5mm 3mm; display: flex; flex-direction: column;
@@ -162,66 +194,34 @@ export function htmlEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta)
    .modelo { font-size: 7.5pt; font-weight: 700; }
    .imei { font-size: 8pt; font-family: "Courier New", monospace; letter-spacing: 0.4pt; }
    .etapa { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3pt; }
-   .servicios { max-width: 100%; font-size: 5.5pt; line-height: 1.05; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-</style></head><body>${cuerpo}</body></html>`;
+  .servicios { max-width: 100%; font-size: 5.5pt; line-height: 1.05; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media screen {
+    body { min-height: 100vh; background: #e2e8f0; }
+    .etiqueta { margin: 24px auto; background: #fff; box-shadow: 0 4px 18px rgba(0,0,0,.18); }
+  }
+  @media print { .controles { display: none !important; } }
+</style></head><body>${controles}${cuerpo}${autoImprimir}</body></html>`;
 }
 
 /**
- * Manda las etiquetas al diálogo de impresión del sistema (la QL-800 aparece
- * como impresora normal).
- *
- * El iframe lleva el tamaño real de la etiqueta y se ubica fuera de la pantalla
- * en vez de ocultarse: Safari no imprime nada de un marco con tamaño 0 o con
- * `visibility:hidden`. Devuelve false si el navegador bloqueó la impresión
- * (por ejemplo dentro de la vista previa embebida), para ofrecer el respaldo.
+ * Abre una vista de impresión estable en una ventana propia. El diálogo se
+ * intenta abrir al cargar, pero la ventana siempre conserva un botón manual:
+ * Safari y algunos navegadores bloquean silenciosamente la impresión automática.
  */
 export function imprimirEtiquetas(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta): boolean {
   if (equipos.length === 0) return false;
-  const marco = document.createElement("iframe");
-  marco.setAttribute("aria-hidden", "true");
-  marco.setAttribute("title", "Etiquetas");
-  marco.style.cssText = `position:fixed;left:-10000px;top:0;width:${medida.ancho}mm;height:${medida.alto}mm;border:0;opacity:0`;
-  document.body.appendChild(marco);
-  const doc = marco.contentWindow?.document;
-  if (!doc) {
-    marco.remove();
+  const ventana = window.open("", "_blank");
+  if (!ventana) return false;
+
+  try {
+    ventana.document.open();
+    ventana.document.write(htmlEtiquetas(equipos, medida, { controles: true }));
+    ventana.document.close();
+    ventana.opener = null;
+    ventana.focus();
+    return true;
+  } catch {
+    ventana.close();
     return false;
   }
-  doc.open();
-  doc.write(htmlEtiquetas(equipos, medida));
-  doc.close();
-
-  let ok = true;
-  const lanzar = () => {
-    try {
-      marco.contentWindow?.focus();
-      marco.contentWindow?.print();
-    } catch {
-      ok = false;
-    }
-    setTimeout(() => marco.remove(), 2000);
-  };
-  if (doc.readyState === "complete") setTimeout(lanzar, 200);
-  else marco.onload = () => setTimeout(lanzar, 200);
-  return ok;
-}
-
-/**
- * Respaldo: abre las etiquetas en una pestaña propia y dispara el diálogo de
- * impresión ahí. Sirve en Safari y cuando la app corre dentro de un iframe.
- */
-export function abrirEtiquetasEnPestana(equipos: EquipoEtiqueta[], medida: MedidaEtiqueta): boolean {
-  if (equipos.length === 0) return false;
-  const html = htmlEtiquetas(equipos, medida).replace(
-    "</body>",
-    `<script>window.addEventListener("load",function(){setTimeout(function(){window.print()},300)})</script></body>`,
-  );
-  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-  const ventana = window.open(url, "_blank");
-  if (!ventana) {
-    URL.revokeObjectURL(url);
-    return false;
-  }
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  return true;
 }
