@@ -91,6 +91,46 @@ export function ImportarEquiposModal({ abierto, onCerrar, tiendas, puedeCostos, 
     }
   };
 
+  const descargarPlantilla = () => {
+    const encabezadosPlantilla = [
+      "imei",
+      "modelo",
+      "gb",
+      "color",
+      "bateria",
+      "categoria",
+      "costo",
+      "proveedor",
+      "lote",
+      "ubicacion",
+      "email_vinculado",
+      "notas",
+      "arreglos",
+      "fecha",
+    ];
+    const ejemplo = [
+      "356938035643809",
+      "iPhone 15 Pro",
+      "256",
+      "Titanio natural",
+      "95",
+      "seminuevo",
+      "450000",
+      "Proveedor Ejemplo",
+      "L-001",
+      tiendas[0]?.nombre ?? "Bodega Central",
+      "",
+      "Ejemplo, borra esta fila",
+      "pantalla, bateria",
+      "2026-09-01",
+    ];
+    const hoja = XLSX.utils.aoa_to_sheet([encabezadosPlantilla, ejemplo]);
+    hoja["!cols"] = encabezadosPlantilla.map((h, i) => ({ wch: Math.max(h.length + 4, String(ejemplo[i] ?? "").length + 4) }));
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Equipos");
+    XLSX.writeFile(libro, "plantilla-importar-equipos.xlsx");
+  };
+
   const validar = async () => {
     setCargando(true);
     const { data, error } = await supabase.from("v_stock").select("imei, estado");
@@ -202,6 +242,15 @@ export function ImportarEquiposModal({ abierto, onCerrar, tiendas, puedeCostos, 
                 }}
               />
             </label>
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                ¿No sabes cómo ordenar la planilla? Descarga la plantilla con las columnas listas y una
+                fila de ejemplo.
+              </p>
+              <Button variant="ghost" size="sm" className="gap-2" onClick={descargarPlantilla}>
+                <Download className="size-4" /> Descargar plantilla
+              </Button>
+            </div>
           </div>
         )}
 
