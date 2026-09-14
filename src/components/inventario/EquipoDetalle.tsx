@@ -189,7 +189,7 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
 
   const eliminar = async () => {
     if (!equipo || !puedeEliminar) return;
-    if (!window.confirm(`¿Eliminar ${equipo.modelo} · IMEI ${equipo.imei}? Solo se puede borrar si no tiene trazabilidad.`)) return;
+    if (!window.confirm(`¿Eliminar ${equipo.modelo} · IMEI ${equipo.imei}?\n\nEs definitivo: se borra también su historial, comentarios, arreglos, movimientos y su participación en ventas o reservas.`)) return;
     setAccion("eliminar");
     const { error } = await supabase.rpc("eliminar_equipo", { _equipo: equipo.id });
     setAccion(null);
