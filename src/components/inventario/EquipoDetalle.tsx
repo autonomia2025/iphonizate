@@ -107,6 +107,17 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
     },
   });
 
+  /* Solo Renato y Liz pueden borrar equipos: lo decide la base de datos */
+  const permisoBorrar = useQuery({
+    queryKey: ["puede_borrar_equipos"],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("puede_borrar_equipos");
+      if (error) throw error;
+      return data === true;
+    },
+  });
+
   const bodega = (tiendas.data ?? []).find((t) => t.es_bodega);
   const pendientes = (servicios.data ?? []).filter((s) => s.estado !== "listo").length;
   const rolPuedeOperar = !!rol && ["direccion", "jefe_tienda", "administracion", "operaciones"].includes(rol);
@@ -115,7 +126,7 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
   const enBodega = !!bodega && equipo?.ubicacion_id === bodega.id;
   const mismaTienda = equipo?.ubicacion_id === usuario?.tienda_id;
   const puedeDevolverBodega = !!equipo && !!bodega && rolPuedeTrasladar && !!equipo.ubicacion_id && !enBodega && !NO_TRASLADABLES.includes(equipo.estado) && (["direccion", "administracion", "operaciones"].includes(rol ?? "") || mismaTienda);
-  const puedeEliminar = !!equipo && rolPuedeOperar && !["VENDIDO", "ENTREGADO", "RESERVADO", "GARANTIA"].includes(equipo.estado);
+  const puedeEliminar = !!equipo && permisoBorrar.data === true;
 
   useEffect(() => {
     if (!equipo) {
@@ -178,7 +189,7 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
 
   const eliminar = async () => {
     if (!equipo || !puedeEliminar) return;
-    if (!window.confirm(`¿Eliminar ${equipo.modelo} · IMEI ${equipo.imei}? Solo se puede borrar si no tiene trazabilidad.`)) return;
+    if (!window.confirm(`¿Eliminar ${equipo.modelo} · IMEI ${equipo.imei}?\n\nEs definitivo: se borra también su historial, comentarios, arreglos, movimientos y su participación en ventas o reservas.`)) return;
     setAccion("eliminar");
     const { error } = await supabase.rpc("eliminar_equipo", { _equipo: equipo.id });
     setAccion(null);

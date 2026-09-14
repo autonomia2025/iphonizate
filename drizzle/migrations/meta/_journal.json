@@ -43,6 +43,13 @@
       "when": 1788202673663,
       "tag": "0005_create_costos_arreglo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789417732738,
+      "tag": "0006_reset_operativo_y_borrado_equipos",
+      "breakpoints": true
     }
   ]
 }
