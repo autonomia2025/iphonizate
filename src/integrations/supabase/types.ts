@@ -2845,6 +2845,7 @@ export type Database = {
       mi_rol: { Args: never; Returns: Database["public"]["Enums"]["app_rol"] }
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
+      puede_borrar_equipos: { Args: never; Returns: boolean }
       puede_cartera: { Args: { _tienda: string }; Returns: boolean }
       puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
