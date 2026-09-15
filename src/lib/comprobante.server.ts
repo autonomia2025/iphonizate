@@ -5,7 +5,12 @@
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
-import { STORES } from "@/lib/stores";
+import {
+  CONTACTO_TIENDA,
+  GARANTIA_CONDICIONES,
+  GARANTIA_TITULO,
+  STORES,
+} from "@/lib/stores";
 import { METODO_ETIQUETA, type MetodoPago } from "@/lib/pos";
 
 const BUCKET = "comprobantes";
@@ -164,7 +169,7 @@ export async function armarDatos(
   };
 }
 
-/** Dibuja el comprobante en una carta y devuelve los bytes del PDF. */
+/** Dibuja el comprobante en A4 y devuelve los bytes del PDF. */
 export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(`Comprobante ${d.numero}`);
@@ -178,121 +183,173 @@ export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
   const tinta = rgb(0.09, 0.09, 0.13);
   const gris = rgb(0.45, 0.45, 0.5);
   const linea = rgb(0.87, 0.87, 0.9);
+  const zebra = rgb(0.972, 0.972, 0.98);
+  const blanco = rgb(1, 1, 1);
 
-  const M = 48;
+  const M = 46;
   const ancho = pagina.getWidth();
+  const alto = pagina.getHeight();
   const derecha = ancho - M;
-  let y = pagina.getHeight() - M;
+  const colMonto = derecha;
 
-  const texto = (
-    p: PDFPage,
-    t: string,
-    x: number,
-    yy: number,
-    size: number,
-    font: PDFFont,
-    color = tinta,
-  ) => p.drawText(limpio(t), { x, y: yy, size, font, color });
+  const texto = (t: string, x: number, y: number, size: number, font: PDFFont, color = tinta) =>
+    pagina.drawText(limpio(t), { x, y, size, font, color });
 
-  const aDerecha = (t: string, yy: number, size: number, font: PDFFont, color = tinta) => {
+  const aDerecha = (t: string, y: number, size: number, font: PDFFont, color = tinta, x = colMonto) => {
     const s = limpio(t);
-    texto(pagina, s, derecha - font.widthOfTextAtSize(s, size), yy, size, font, color);
+    texto(s, x - font.widthOfTextAtSize(s, size), y, size, font, color);
   };
 
-  /* Encabezado */
-  pagina.drawRectangle({ x: 0, y: y - 12, width: ancho, height: 60 + 12, color: acento });
-  texto(pagina, d.tienda.nombre, M, y + 18, 20, bold, rgb(1, 1, 1));
-  texto(pagina, "Comprobante de venta", M, y + 2, 10, normal, rgb(1, 1, 1));
-  {
-    const n = limpio(`N° ${d.numero}`);
-    texto(pagina, n, derecha - bold.widthOfTextAtSize(n, 13), y + 18, 13, bold, rgb(1, 1, 1));
-    const f = limpio(fechaLarga(d.fecha));
-    texto(pagina, f, derecha - normal.widthOfTextAtSize(f, 9), y + 3, 9, normal, rgb(1, 1, 1));
+  /** Parte un texto largo en líneas que caben en `max` puntos. */
+  const envolver = (t: string, font: PDFFont, size: number, max: number) => {
+    const palabras = limpio(t).split(/\s+/).filter(Boolean);
+    const out: string[] = [];
+    let actual = "";
+    for (const p of palabras) {
+      const prueba = actual ? `${actual} ${p}` : p;
+      if (actual && font.widthOfTextAtSize(prueba, size) > max) {
+        out.push(actual);
+        actual = p;
+      } else actual = prueba;
+    }
+    if (actual) out.push(actual);
+    return out;
+  };
+
+  const contacto = CONTACTO_TIENDA[d.tienda.slug ?? ""] ?? {};
+  const lineasContacto = [
+    contacto.direccion,
+    [contacto.telefono, contacto.instagram].filter(Boolean).join("  ·  ") || undefined,
+    contacto.rut ? `RUT ${contacto.rut}` : undefined,
+  ].filter(Boolean) as string[];
+
+  /* ---------------- Encabezado ---------------- */
+  const altoBanda = 96 + lineasContacto.length * 11;
+  pagina.drawRectangle({ x: 0, y: alto - altoBanda, width: ancho, height: altoBanda, color: acento });
+
+  let y = alto - 44;
+  texto(d.tienda.nombre, M, y, 22, bold, blanco);
+  aDerecha(`N° ${d.numero}`, y, 14, bold, blanco);
+  y -= 16;
+  texto("Comprobante de venta", M, y, 9.5, normal, blanco);
+  aDerecha(fechaLarga(d.fecha), y, 9, normal, blanco);
+  y -= 16;
+  for (const l of lineasContacto) {
+    texto(l, M, y, 8.5, normal, blanco);
+    y -= 11;
   }
-  y -= 56;
+
+  y = alto - altoBanda - 34;
 
   if (d.anulada) {
-    texto(pagina, "VENTA ANULADA", M, y, 14, bold, rgb(0.8, 0.15, 0.15));
-    y -= 24;
+    pagina.drawRectangle({
+      x: M,
+      y: y - 6,
+      width: derecha - M,
+      height: 24,
+      color: rgb(0.99, 0.9, 0.9),
+    });
+    texto("VENTA ANULADA", M + 10, y + 1, 12, bold, rgb(0.75, 0.12, 0.12));
+    y -= 40;
   }
 
-  /* Cliente */
-  texto(pagina, "CLIENTE", M, y, 8, bold, gris);
+  /* ---------------- Cliente / vendedor ---------------- */
+  texto("CLIENTE", M, y, 8, bold, gris);
+  aDerecha("ATENDIDO POR", y, 8, bold, gris);
   y -= 15;
-  texto(pagina, d.cliente?.nombre ?? "Sin cliente asignado", M, y, 12, bold);
+  texto(d.cliente?.nombre ?? "Sin cliente asignado", M, y, 12, bold);
+  aDerecha(d.vendedor ?? "—", y, 11, normal);
   y -= 14;
-  const contacto = [d.cliente?.telefono, d.cliente?.correo].filter(Boolean).join("  ·  ");
-  if (contacto) {
-    texto(pagina, contacto, M, y, 9, normal, gris);
-    y -= 14;
-  }
-  if (d.vendedor) {
-    texto(pagina, `Atendido por ${d.vendedor}`, M, y, 9, normal, gris);
+  const datosCliente = [d.cliente?.telefono, d.cliente?.correo].filter(Boolean).join("  ·  ");
+  if (datosCliente) {
+    texto(datosCliente, M, y, 9, normal, gris);
     y -= 14;
   }
 
-  y -= 10;
+  y -= 12;
+
+  /* ---------------- Detalle en tabla ---------------- */
+  pagina.drawRectangle({ x: M, y: y - 5, width: derecha - M, height: 20, color: zebra });
+  texto("DETALLE", M + 8, y, 8, bold, gris);
+  aDerecha("MONTO", y, 8, bold, gris, derecha - 8);
+  y -= 24;
+
+  const anchoDesc = derecha - M - 110;
+  d.lineas.forEach((l, i) => {
+    const detalle = l.detalle ? envolver(l.detalle, normal, 8.5, anchoDesc) : [];
+    const altoFila = 18 + detalle.length * 11;
+    if (i % 2 === 1) {
+      pagina.drawRectangle({
+        x: M,
+        y: y - altoFila + 13,
+        width: derecha - M,
+        height: altoFila,
+        color: zebra,
+      });
+    }
+    for (const t of envolver(l.descripcion, bold, 10.5, anchoDesc)) {
+      texto(t, M + 8, y, 10.5, bold);
+      y -= 13;
+    }
+    aDerecha(clp(l.monto), y + 13, 10.5, normal, tinta, derecha - 8);
+    for (const t of detalle) {
+      texto(t, M + 8, y, 8.5, normal, gris);
+      y -= 11;
+    }
+    y -= 7;
+    if (y < 260) return;
+  });
+
   pagina.drawLine({ start: { x: M, y }, end: { x: derecha, y }, thickness: 1, color: linea });
   y -= 22;
 
-  /* Detalle */
-  texto(pagina, "DETALLE", M, y, 8, bold, gris);
-  aDerecha("MONTO", y, 8, bold, gris);
-  y -= 18;
-
-  for (const l of d.lineas) {
-    texto(pagina, l.descripcion, M, y, 11, bold);
-    aDerecha(clp(l.monto), y, 11, normal);
-    y -= 13;
-    if (l.detalle) {
-      texto(pagina, l.detalle, M, y, 8.5, normal, gris);
-      y -= 13;
-    }
-    y -= 5;
-    if (y < 200) break;
-  }
-
-  y -= 6;
-  pagina.drawLine({ start: { x: M, y }, end: { x: derecha, y }, thickness: 1, color: linea });
-  y -= 20;
-
   if (d.conBoleta && d.recargo > 0) {
-    texto(pagina, "Recargo boleta (9%)", M, y, 10, normal, gris);
-    aDerecha(clp(d.recargo), y, 10, normal, gris);
-    y -= 20;
+    texto("Recargo boleta (9%)", M + 8, y, 10, normal, gris);
+    aDerecha(clp(d.recargo), y, 10, normal, gris, derecha - 8);
+    y -= 22;
   }
 
-  texto(pagina, "TOTAL", M, y, 13, bold);
-  aDerecha(clp(d.total), y, 18, bold, acento);
-  y -= 34;
+  /* ---------------- Total ---------------- */
+  const altoTotal = 44;
+  pagina.drawRectangle({
+    x: M,
+    y: y - altoTotal + 18,
+    width: derecha - M,
+    height: altoTotal,
+    color: acento,
+  });
+  texto("TOTAL", M + 14, y, 12, bold, blanco);
+  aDerecha(clp(d.total), y - 3, 20, bold, blanco, derecha - 14);
+  y -= altoTotal + 18;
 
-  /* Pagos */
-  texto(pagina, "FORMAS DE PAGO", M, y, 8, bold, gris);
+  /* ---------------- Pagos ---------------- */
+  texto("FORMAS DE PAGO", M, y, 8, bold, gris);
   y -= 16;
   for (const p of d.pagos) {
-    texto(pagina, p.nombre ? `${p.metodo} · ${p.nombre}` : p.metodo, M, y, 10, normal);
-    aDerecha(clp(p.monto), y, 10, normal);
-    y -= 16;
+    texto(p.nombre ? `${p.metodo} · ${p.nombre}` : p.metodo, M + 8, y, 10, normal);
+    aDerecha(clp(p.monto), y, 10, normal, tinta, derecha - 8);
+    y -= 15;
   }
 
-  /* Pie */
-  const pie = 74;
+  /* ---------------- Pie con garantía ---------------- */
+  const altoPie = 34 + GARANTIA_CONDICIONES.length * 11;
+  let yPie = 40 + altoPie;
   pagina.drawLine({
-    start: { x: M, y: pie + 30 },
-    end: { x: derecha, y: pie + 30 },
+    start: { x: M, y: yPie + 12 },
+    end: { x: derecha, y: yPie + 12 },
     thickness: 1,
     color: linea,
   });
-  texto(
-    pagina,
-    "Garantía de 3 meses por fallas de fábrica. Presenta este comprobante en la tienda.",
-    M,
-    pie + 14,
-    8.5,
-    normal,
-    gris,
-  );
-  texto(pagina, `${d.tienda.nombre} · iPhonizate OS`, M, pie, 8.5, normal, gris);
+  texto(GARANTIA_TITULO, M, yPie - 4, 10, bold, acento);
+  yPie -= 20;
+  for (const c of GARANTIA_CONDICIONES) {
+    for (const t of envolver(`· ${c}`, normal, 8, derecha - M)) {
+      texto(t, M, yPie, 8, normal, gris);
+      yPie -= 11;
+    }
+  }
+  texto(`${d.tienda.nombre} · iPhonizate OS`, M, 30, 8.5, normal, gris);
+  aDerecha(`Comprobante N° ${d.numero}`, 30, 8.5, normal, gris);
 
   return await doc.save();
 }

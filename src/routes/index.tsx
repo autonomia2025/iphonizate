@@ -15,7 +15,7 @@ import {
 import { useStore } from "@/components/StoreContext";
 import { useAuth } from "@/components/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCLP, formatNumero } from "@/lib/stores";
+import { STORES, formatCLP, formatNumero } from "@/lib/stores";
 import { equipoTexto, nivelSla, textoSla } from "@/lib/garantias";
 import { puedeVerGanancias } from "@/lib/pos";
 import { claveModelo } from "@/lib/pos";
@@ -59,20 +59,35 @@ function Metrica({
   valor,
   formato,
   sub,
+  destacada = false,
 }: {
   label: string;
   valor: number;
   formato: (n: number) => string;
   sub?: string;
+  /** Resalta la cifra en verde flúor (ganancia del día en Oficina Central). */
+  destacada?: boolean;
 }) {
   return (
-    <TarjetaViva className="p-5">
-      <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+    <TarjetaViva
+      className={cn("p-5", destacada && "border-neon/40 bg-neon/[0.06] shadow-[0_0_28px_-14px_var(--neon)]")}
+    >
+      <p
+        className={cn(
+          "text-[11px] uppercase tracking-[0.16em]",
+          destacada ? "text-neon" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </p>
       <Cifra
         valor={valor}
         formato={formato}
-        degradada
-        className="mt-3 block text-[1.8rem] font-semibold leading-none"
+        degradada={!destacada}
+        className={cn(
+          "mt-3 block text-[1.8rem] font-semibold leading-none",
+          destacada && "text-neon",
+        )}
       />
       {sub && <p className="mt-3 text-[11px] text-muted-foreground">{sub}</p>}
     </TarjetaViva>
@@ -114,27 +129,33 @@ function Dashboard() {
     () => (tiendas.data ?? []).find((t) => t.slug === store.id) ?? null,
     [tiendas.data, store.id],
   );
+  /* En Oficina Central el panel pasa a modo cadena: suma las 3 tiendas */
+  const esCadena = !!tienda?.es_bodega;
+  const tiendasVenta = useMemo(
+    () => (tiendas.data ?? []).filter((t) => !t.es_bodega),
+    [tiendas.data],
+  );
 
-  /* Ventas del mes de la tienda activa (excluye anuladas) */
+  /* Ventas del mes de la tienda activa (o de toda la cadena; excluye anuladas) */
   const ventas = useQuery({
-    queryKey: ["dash-ventas", tienda?.id, periodo],
+    queryKey: ["dash-ventas", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("ventas")
-        .select("id, total, fecha, con_boleta, cliente_id, clientes(nombre)")
-        .eq("tienda_id", tienda!.id)
+        .select("id, total, fecha, con_boleta, cliente_id, tienda_id, clientes(nombre)")
         .eq("anulada", false)
         .gte("fecha", inicioMes.toISOString())
-        .lt("fecha", finMes.toISOString())
-        .order("fecha", { ascending: false })
-        .limit(1000);
+        .lt("fecha", finMes.toISOString());
+      if (!esCadena) q = q.eq("tienda_id", tienda!.id);
+      const { data, error } = await q.order("fecha", { ascending: false }).limit(1000);
       if (error) throw error;
       return (data ?? []) as unknown as {
         id: string;
         total: number;
         fecha: string;
         con_boleta: boolean;
+        tienda_id: string;
         clientes: { nombre: string } | null;
       }[];
     },
@@ -142,43 +163,48 @@ function Dashboard() {
 
   /* Ítems de equipos vendidos del mes (para conteo y modelos más vendidos) */
   const items = useQuery({
-    queryKey: ["dash-items", tienda?.id, periodo],
+    queryKey: ["dash-items", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("venta_items")
         .select("id, venta_id, precio, equipos(modelo, gb, bateria), ventas!inner(tienda_id, fecha, anulada)")
         .not("equipo_id", "is", null)
-        .eq("ventas.tienda_id", tienda!.id)
         .eq("ventas.anulada", false)
         .gte("ventas.fecha", inicioMes.toISOString())
-        .lt("ventas.fecha", finMes.toISOString())
-        .limit(3000);
+        .lt("ventas.fecha", finMes.toISOString());
+      if (!esCadena) q = q.eq("ventas.tienda_id", tienda!.id);
+      const { data, error } = await q.limit(3000);
       if (error) throw error;
       return (data ?? []) as unknown as {
         id: string;
         venta_id: string;
         precio: number;
         equipos: { modelo: string; gb: number | null; bateria: number | null } | null;
-        ventas: { fecha: string };
+        ventas: { fecha: string; tienda_id: string };
       }[];
     },
   });
 
   const gananciasMes = useQuery({
-    queryKey: ["dash-ganancias", tienda?.id, periodo],
+    queryKey: ["dash-ganancias", tienda?.id, esCadena, periodo],
     enabled: !!tienda && verGanancias,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("v_ventas_full")
-        .select("id, ganancia, fecha")
-        .eq("tienda_id", tienda!.id)
+        .select("id, ganancia, fecha, tienda_id")
         .eq("anulada", false)
         .gte("fecha", inicioMes.toISOString())
-        .lt("fecha", finMes.toISOString())
-        .limit(1000);
+        .lt("fecha", finMes.toISOString());
+      if (!esCadena) q = q.eq("tienda_id", tienda!.id);
+      const { data, error } = await q.limit(1000);
       if (error) throw error;
-      return (data ?? []) as unknown as { id: string; ganancia: number; fecha: string }[];
+      return (data ?? []) as unknown as {
+        id: string;
+        ganancia: number;
+        fecha: string;
+        tienda_id: string;
+      }[];
     },
   });
 
@@ -387,14 +413,47 @@ function Dashboard() {
   const ultimas = ventasMes.slice(0, 8);
   const totalUltimas = ultimas.reduce((a, v) => a + Number(v.total ?? 0), 0);
 
+  /* ---------- Detalle por tienda (solo en Oficina Central) ---------- */
+  const porTienda = useMemo(() => {
+    if (!esCadena) return [];
+    const ganancias = gananciasMes.data ?? [];
+    return tiendasVenta.map((t) => {
+      const vMes = ventasMes.filter((v) => v.tienda_id === t.id);
+      const vHoy = vMes.filter((v) => new Date(v.fecha).getTime() >= hoyMs);
+      const iMes = itemsMes.filter((i) => i.ventas.tienda_id === t.id);
+      const iHoy = iMes.filter((i) => new Date(i.ventas.fecha).getTime() >= hoyMs);
+      const gMes = ganancias.filter((g) => g.tienda_id === t.id);
+      const accent = STORES.find((s) => s.id === t.slug)?.hex ?? "#F59E0B";
+      return {
+        id: t.id as string,
+        nombre: t.nombre as string,
+        accent,
+        equiposHoy: iHoy.length,
+        ingresosHoy: vHoy.reduce((a, v) => a + Number(v.total ?? 0), 0),
+        equiposMes: iMes.length,
+        ingresosMes: vMes.reduce((a, v) => a + Number(v.total ?? 0), 0),
+        gananciaMes: gMes.reduce((a, g) => a + Number(g.ganancia ?? 0), 0),
+      };
+    });
+  }, [esCadena, tiendasVenta, ventasMes, itemsMes, gananciasMes.data, hoyMs]);
+
   return (
     <div className="mx-auto max-w-[86rem] space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold">Resumen del día</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Operación de <span style={{ color: store.accent }}>{store.nombre}</span> ·{" "}
-            {periodoTexto(periodo)}
+            {esCadena ? (
+              <>
+                Operación combinada de{" "}
+                <span style={{ color: store.accent }}>las {tiendasVenta.length} tiendas</span>
+              </>
+            ) : (
+              <>
+                Operación de <span style={{ color: store.accent }}>{store.nombre}</span>
+              </>
+            )}{" "}
+            · {periodoTexto(periodo)}
           </p>
         </div>
       </div>
@@ -404,30 +463,31 @@ function Dashboard() {
       ) : (
         <Cascada className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Metrica
-            label="Ventas hoy"
+            label={esCadena ? "Ventas de hoy · 3 tiendas" : "Ventas hoy"}
             valor={itemsHoy.length}
             formato={formatNumero}
             sub={`${ventasHoy.length} boletas emitidas hoy`}
           />
           <Metrica
-            label="Ingresos hoy"
+            label={esCadena ? "Ingresos de hoy · 3 tiendas" : "Ingresos hoy"}
             valor={ingresosHoy}
             formato={formatCLP}
             sub={`${formatCLP(ingresosMes)} en el mes`}
           />
           {verGanancias ? (
             <Metrica
-              label="Ganancia hoy"
+              label={esCadena ? "Ganancia de hoy · 3 tiendas" : "Ganancia hoy"}
               valor={gananciaHoy}
               formato={formatCLP}
               sub={`${formatCLP(gananciaMes)} en el mes`}
+              destacada={esCadena}
             />
           ) : (
             <Metrica
-              label="Stock en la tienda"
-              valor={disponiblesTienda.length}
+              label={esCadena ? "Stock en las tiendas" : "Stock en la tienda"}
+              valor={esCadena ? disponiblesCadena.length : disponiblesTienda.length}
               formato={formatNumero}
-              sub={`${store.nombre} · equipos disponibles`}
+              sub={`${esCadena ? "Toda la cadena" : store.nombre} · equipos disponibles`}
             />
           )}
           <Metrica
@@ -442,19 +502,20 @@ function Dashboard() {
       <section className="glass grid gap-4 p-5 sm:grid-cols-3">
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Ventas del mes
+            Ventas del mes{esCadena ? " · 3 tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold">{formatNumero(equiposMes)} equipos</p>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Ingresos del mes
+            Ingresos del mes{esCadena ? " · 3 tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold">{formatCLP(ingresosMes)}</p>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             {verGanancias ? "Ganancia del mes" : "Ticket promedio del mes"}
+            {esCadena ? " · 3 tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold text-positive">
             {verGanancias
@@ -463,6 +524,68 @@ function Dashboard() {
           </p>
         </div>
       </section>
+
+      {esCadena && (
+        <section className="solid-panel overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3.5">
+            <h2 className="font-display text-sm font-semibold">Ventas y ganancias por tienda</h2>
+            <span className="text-[11px] text-muted-foreground">{periodoTexto(periodo)}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[44rem] border-collapse text-[13px]">
+              <thead>
+                <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="px-5 py-2.5 font-medium">Tienda</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ventas hoy</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ingresos hoy</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ventas del mes</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ingresos del mes</th>
+                  {verGanancias && (
+                    <th className="px-5 py-2.5 text-right font-medium">Ganancia del mes</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {porTienda.map((t) => (
+                  <tr key={t.id} className="border-t border-white/[0.05] hover:bg-surface-alt">
+                    <td className="px-5 py-2.5 font-medium">
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{ background: t.accent }}
+                        />
+                        {t.nombre}
+                      </span>
+                    </td>
+                    <td className="num px-3 py-2.5 text-right">{formatNumero(t.equiposHoy)}</td>
+                    <td className="num px-3 py-2.5 text-right">{formatCLP(t.ingresosHoy)}</td>
+                    <td className="num px-3 py-2.5 text-right">{formatNumero(t.equiposMes)}</td>
+                    <td className="num px-3 py-2.5 text-right">{formatCLP(t.ingresosMes)}</td>
+                    {verGanancias && (
+                      <td className="num px-5 py-2.5 text-right text-positive">
+                        {formatCLP(t.gananciaMes)}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+                <tr className="border-t border-white/[0.12] bg-white/[0.03] font-semibold">
+                  <td className="px-5 py-2.5">Total cadena</td>
+                  <td className="num px-3 py-2.5 text-right">{formatNumero(itemsHoy.length)}</td>
+                  <td className="num px-3 py-2.5 text-right">{formatCLP(ingresosHoy)}</td>
+                  <td className="num px-3 py-2.5 text-right">{formatNumero(equiposMes)}</td>
+                  <td className="num px-3 py-2.5 text-right">{formatCLP(ingresosMes)}</td>
+                  {verGanancias && (
+                    <td className="num px-5 py-2.5 text-right text-positive">
+                      {formatCLP(gananciaMes)}
+                    </td>
+                  )}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
         {/* Alertas */}

@@ -93,8 +93,9 @@ const Email = ({
         ) : null}
 
         <Text style={pie}>
-          Gracias por tu compra en {tienda}. Guarda este comprobante para cualquier gestión de
-          garantía.
+          Gracias por tu compra en {tienda}. Tu equipo tiene garantía de 6 meses por fallas de
+          fábrica. No cubre golpes, humedad ni equipos abiertos por terceros. Guarda este
+          comprobante para cualquier gestión de garantía.
         </Text>
       </Container>
     </Body>
