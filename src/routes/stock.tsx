@@ -296,6 +296,7 @@ function StockPage() {
                   <th className="px-4 py-3 font-medium">Modelo</th>
                   <th className="px-4 py-3 text-right font-medium">GB</th>
                   <th className="px-4 py-3 font-medium">Color</th>
+                  <th className="px-4 py-3 font-medium">Categoría</th>
                   <th className="px-4 py-3 text-right font-medium">Batería %</th>
                   <th className="px-4 py-3 text-right font-medium">Precio de lista</th>
                   <th className="px-4 py-3 text-right font-medium">Días en stock</th>
