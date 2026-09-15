@@ -59,20 +59,35 @@ function Metrica({
   valor,
   formato,
   sub,
+  destacada = false,
 }: {
   label: string;
   valor: number;
   formato: (n: number) => string;
   sub?: string;
+  /** Resalta la cifra en verde flúor (ganancia del día en Oficina Central). */
+  destacada?: boolean;
 }) {
   return (
-    <TarjetaViva className="p-5">
-      <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+    <TarjetaViva
+      className={cn("p-5", destacada && "border-neon/40 bg-neon/[0.06] shadow-[0_0_28px_-14px_var(--neon)]")}
+    >
+      <p
+        className={cn(
+          "text-[11px] uppercase tracking-[0.16em]",
+          destacada ? "text-neon" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </p>
       <Cifra
         valor={valor}
         formato={formato}
-        degradada
-        className="mt-3 block text-[1.8rem] font-semibold leading-none"
+        degradada={!destacada}
+        className={cn(
+          "mt-3 block text-[1.8rem] font-semibold leading-none",
+          destacada && "text-neon",
+        )}
       />
       {sub && <p className="mt-3 text-[11px] text-muted-foreground">{sub}</p>}
     </TarjetaViva>
@@ -448,30 +463,31 @@ function Dashboard() {
       ) : (
         <Cascada className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Metrica
-            label="Ventas hoy"
+            label={esCadena ? "Ventas de hoy · 3 tiendas" : "Ventas hoy"}
             valor={itemsHoy.length}
             formato={formatNumero}
             sub={`${ventasHoy.length} boletas emitidas hoy`}
           />
           <Metrica
-            label="Ingresos hoy"
+            label={esCadena ? "Ingresos de hoy · 3 tiendas" : "Ingresos hoy"}
             valor={ingresosHoy}
             formato={formatCLP}
             sub={`${formatCLP(ingresosMes)} en el mes`}
           />
           {verGanancias ? (
             <Metrica
-              label="Ganancia hoy"
+              label={esCadena ? "Ganancia de hoy · 3 tiendas" : "Ganancia hoy"}
               valor={gananciaHoy}
               formato={formatCLP}
               sub={`${formatCLP(gananciaMes)} en el mes`}
+              destacada={esCadena}
             />
           ) : (
             <Metrica
-              label="Stock en la tienda"
-              valor={disponiblesTienda.length}
+              label={esCadena ? "Stock en las tiendas" : "Stock en la tienda"}
+              valor={esCadena ? disponiblesCadena.length : disponiblesTienda.length}
               formato={formatNumero}
-              sub={`${store.nombre} · equipos disponibles`}
+              sub={`${esCadena ? "Toda la cadena" : store.nombre} · equipos disponibles`}
             />
           )}
           <Metrica
@@ -486,19 +502,20 @@ function Dashboard() {
       <section className="glass grid gap-4 p-5 sm:grid-cols-3">
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Ventas del mes
+            Ventas del mes{esCadena ? " · 3 tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold">{formatNumero(equiposMes)} equipos</p>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Ingresos del mes
+            Ingresos del mes{esCadena ? " · 3 tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold">{formatCLP(ingresosMes)}</p>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             {verGanancias ? "Ganancia del mes" : "Ticket promedio del mes"}
+            {esCadena ? " · 3 tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold text-positive">
             {verGanancias
@@ -507,6 +524,68 @@ function Dashboard() {
           </p>
         </div>
       </section>
+
+      {esCadena && (
+        <section className="solid-panel overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-3.5">
+            <h2 className="font-display text-sm font-semibold">Ventas y ganancias por tienda</h2>
+            <span className="text-[11px] text-muted-foreground">{periodoTexto(periodo)}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[44rem] border-collapse text-[13px]">
+              <thead>
+                <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  <th className="px-5 py-2.5 font-medium">Tienda</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ventas hoy</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ingresos hoy</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ventas del mes</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Ingresos del mes</th>
+                  {verGanancias && (
+                    <th className="px-5 py-2.5 text-right font-medium">Ganancia del mes</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {porTienda.map((t) => (
+                  <tr key={t.id} className="border-t border-white/[0.05] hover:bg-surface-alt">
+                    <td className="px-5 py-2.5 font-medium">
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{ background: t.accent }}
+                        />
+                        {t.nombre}
+                      </span>
+                    </td>
+                    <td className="num px-3 py-2.5 text-right">{formatNumero(t.equiposHoy)}</td>
+                    <td className="num px-3 py-2.5 text-right">{formatCLP(t.ingresosHoy)}</td>
+                    <td className="num px-3 py-2.5 text-right">{formatNumero(t.equiposMes)}</td>
+                    <td className="num px-3 py-2.5 text-right">{formatCLP(t.ingresosMes)}</td>
+                    {verGanancias && (
+                      <td className="num px-5 py-2.5 text-right text-positive">
+                        {formatCLP(t.gananciaMes)}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+                <tr className="border-t border-white/[0.12] bg-white/[0.03] font-semibold">
+                  <td className="px-5 py-2.5">Total cadena</td>
+                  <td className="num px-3 py-2.5 text-right">{formatNumero(itemsHoy.length)}</td>
+                  <td className="num px-3 py-2.5 text-right">{formatCLP(ingresosHoy)}</td>
+                  <td className="num px-3 py-2.5 text-right">{formatNumero(equiposMes)}</td>
+                  <td className="num px-3 py-2.5 text-right">{formatCLP(ingresosMes)}</td>
+                  {verGanancias && (
+                    <td className="num px-5 py-2.5 text-right text-positive">
+                      {formatCLP(gananciaMes)}
+                    </td>
+                  )}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
         {/* Alertas */}
