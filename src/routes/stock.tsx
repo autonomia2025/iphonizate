@@ -13,6 +13,7 @@ import { RESORTE_RAPIDO, varsFila, varsListaFilas } from "@/lib/motion";
 import { formatCLP } from "@/lib/stores";
 import { limpiarImei } from "@/components/CampoImei";
 import {
+  CATEGORIA_ETIQUETA,
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
   diasEnStock,
@@ -265,7 +266,7 @@ function StockPage() {
 
       {stock.isLoading && (
         <div className="solid-panel mt-6 overflow-hidden p-4">
-          <SkeletonFilas filas={6} columnas={conCostos ? 8 : 7} />
+          <SkeletonFilas filas={6} columnas={conCostos ? 9 : 8} />
         </div>
       )}
 
