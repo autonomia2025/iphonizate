@@ -5,7 +5,12 @@
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 
-import { STORES } from "@/lib/stores";
+import {
+  CONTACTO_TIENDA,
+  GARANTIA_CONDICIONES,
+  GARANTIA_TITULO,
+  STORES,
+} from "@/lib/stores";
 import { METODO_ETIQUETA, type MetodoPago } from "@/lib/pos";
 
 const BUCKET = "comprobantes";
