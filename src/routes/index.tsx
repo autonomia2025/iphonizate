@@ -114,27 +114,33 @@ function Dashboard() {
     () => (tiendas.data ?? []).find((t) => t.slug === store.id) ?? null,
     [tiendas.data, store.id],
   );
+  /* En Oficina Central el panel pasa a modo cadena: suma las 3 tiendas */
+  const esCadena = !!tienda?.es_bodega;
+  const tiendasVenta = useMemo(
+    () => (tiendas.data ?? []).filter((t) => !t.es_bodega),
+    [tiendas.data],
+  );
 
-  /* Ventas del mes de la tienda activa (excluye anuladas) */
+  /* Ventas del mes de la tienda activa (o de toda la cadena; excluye anuladas) */
   const ventas = useQuery({
-    queryKey: ["dash-ventas", tienda?.id, periodo],
+    queryKey: ["dash-ventas", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("ventas")
-        .select("id, total, fecha, con_boleta, cliente_id, clientes(nombre)")
-        .eq("tienda_id", tienda!.id)
+        .select("id, total, fecha, con_boleta, cliente_id, tienda_id, clientes(nombre)")
         .eq("anulada", false)
         .gte("fecha", inicioMes.toISOString())
-        .lt("fecha", finMes.toISOString())
-        .order("fecha", { ascending: false })
-        .limit(1000);
+        .lt("fecha", finMes.toISOString());
+      if (!esCadena) q = q.eq("tienda_id", tienda!.id);
+      const { data, error } = await q.order("fecha", { ascending: false }).limit(1000);
       if (error) throw error;
       return (data ?? []) as unknown as {
         id: string;
         total: number;
         fecha: string;
         con_boleta: boolean;
+        tienda_id: string;
         clientes: { nombre: string } | null;
       }[];
     },
@@ -142,43 +148,48 @@ function Dashboard() {
 
   /* Ítems de equipos vendidos del mes (para conteo y modelos más vendidos) */
   const items = useQuery({
-    queryKey: ["dash-items", tienda?.id, periodo],
+    queryKey: ["dash-items", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("venta_items")
         .select("id, venta_id, precio, equipos(modelo, gb, bateria), ventas!inner(tienda_id, fecha, anulada)")
         .not("equipo_id", "is", null)
-        .eq("ventas.tienda_id", tienda!.id)
         .eq("ventas.anulada", false)
         .gte("ventas.fecha", inicioMes.toISOString())
-        .lt("ventas.fecha", finMes.toISOString())
-        .limit(3000);
+        .lt("ventas.fecha", finMes.toISOString());
+      if (!esCadena) q = q.eq("ventas.tienda_id", tienda!.id);
+      const { data, error } = await q.limit(3000);
       if (error) throw error;
       return (data ?? []) as unknown as {
         id: string;
         venta_id: string;
         precio: number;
         equipos: { modelo: string; gb: number | null; bateria: number | null } | null;
-        ventas: { fecha: string };
+        ventas: { fecha: string; tienda_id: string };
       }[];
     },
   });
 
   const gananciasMes = useQuery({
-    queryKey: ["dash-ganancias", tienda?.id, periodo],
+    queryKey: ["dash-ganancias", tienda?.id, esCadena, periodo],
     enabled: !!tienda && verGanancias,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("v_ventas_full")
-        .select("id, ganancia, fecha")
-        .eq("tienda_id", tienda!.id)
+        .select("id, ganancia, fecha, tienda_id")
         .eq("anulada", false)
         .gte("fecha", inicioMes.toISOString())
-        .lt("fecha", finMes.toISOString())
-        .limit(1000);
+        .lt("fecha", finMes.toISOString());
+      if (!esCadena) q = q.eq("tienda_id", tienda!.id);
+      const { data, error } = await q.limit(1000);
       if (error) throw error;
-      return (data ?? []) as unknown as { id: string; ganancia: number; fecha: string }[];
+      return (data ?? []) as unknown as {
+        id: string;
+        ganancia: number;
+        fecha: string;
+        tienda_id: string;
+      }[];
     },
   });
 
