@@ -47,9 +47,12 @@ const selectClase =
 function MovimientosPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const esVendedor = rol === "vendedor";
+  const permisos = usePermisos();
+  /* Vendedor con permiso especial: puede trasladar entre tiendas, siempre desde la suya */
+  const vendedorEntreTiendas = permisos.tiene(PERMISOS.movimientosTienda);
+  const esVendedor = rol === "vendedor" && !vendedorEntreTiendas;
   /* El vendedor solo puede devolver a bodega desde su tienda */
-  const puedeTrasladar = puedeIngresarEquipos(rol) || esVendedor;
+  const puedeTrasladar = puedeIngresarEquipos(rol) || rol === "vendedor";
   const esJefe = rol === "jefe_tienda";
   const origenFijo = esJefe || esVendedor;
   const queryClient = useQueryClient();
