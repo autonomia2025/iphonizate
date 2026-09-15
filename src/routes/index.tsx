@@ -398,14 +398,47 @@ function Dashboard() {
   const ultimas = ventasMes.slice(0, 8);
   const totalUltimas = ultimas.reduce((a, v) => a + Number(v.total ?? 0), 0);
 
+  /* ---------- Detalle por tienda (solo en Oficina Central) ---------- */
+  const porTienda = useMemo(() => {
+    if (!esCadena) return [];
+    const ganancias = gananciasMes.data ?? [];
+    return tiendasVenta.map((t) => {
+      const vMes = ventasMes.filter((v) => v.tienda_id === t.id);
+      const vHoy = vMes.filter((v) => new Date(v.fecha).getTime() >= hoyMs);
+      const iMes = itemsMes.filter((i) => i.ventas.tienda_id === t.id);
+      const iHoy = iMes.filter((i) => new Date(i.ventas.fecha).getTime() >= hoyMs);
+      const gMes = ganancias.filter((g) => g.tienda_id === t.id);
+      const accent = STORES.find((s) => s.id === t.slug)?.hex ?? "#F59E0B";
+      return {
+        id: t.id as string,
+        nombre: t.nombre as string,
+        accent,
+        equiposHoy: iHoy.length,
+        ingresosHoy: vHoy.reduce((a, v) => a + Number(v.total ?? 0), 0),
+        equiposMes: iMes.length,
+        ingresosMes: vMes.reduce((a, v) => a + Number(v.total ?? 0), 0),
+        gananciaMes: gMes.reduce((a, g) => a + Number(g.ganancia ?? 0), 0),
+      };
+    });
+  }, [esCadena, tiendasVenta, ventasMes, itemsMes, gananciasMes.data, hoyMs]);
+
   return (
     <div className="mx-auto max-w-[86rem] space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-semibold">Resumen del día</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Operación de <span style={{ color: store.accent }}>{store.nombre}</span> ·{" "}
-            {periodoTexto(periodo)}
+            {esCadena ? (
+              <>
+                Operación combinada de{" "}
+                <span style={{ color: store.accent }}>las {tiendasVenta.length} tiendas</span>
+              </>
+            ) : (
+              <>
+                Operación de <span style={{ color: store.accent }}>{store.nombre}</span>
+              </>
+            )}{" "}
+            · {periodoTexto(periodo)}
           </p>
         </div>
       </div>
