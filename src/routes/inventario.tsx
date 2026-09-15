@@ -77,7 +77,8 @@ function Chip({
 function InventarioPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const conCostos = puedeVerCostos(rol);
+  const permisos = usePermisos();
+  const conCostos = puedeVerCostos(rol) || permisos.tiene(PERMISOS.equiposCosto);
   const puedeIngresar = puedeIngresarEquipos(rol);
 
   const [busqueda, setBusqueda] = useState("");
