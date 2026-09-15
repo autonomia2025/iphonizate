@@ -13,6 +13,7 @@ import { RESORTE_RAPIDO, varsFila, varsListaFilas } from "@/lib/motion";
 import { formatCLP } from "@/lib/stores";
 import { limpiarImei } from "@/components/CampoImei";
 import {
+  CATEGORIA_ETIQUETA,
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
   diasEnStock,
@@ -265,7 +266,7 @@ function StockPage() {
 
       {stock.isLoading && (
         <div className="solid-panel mt-6 overflow-hidden p-4">
-          <SkeletonFilas filas={6} columnas={conCostos ? 8 : 7} />
+          <SkeletonFilas filas={6} columnas={conCostos ? 9 : 8} />
         </div>
       )}
 
@@ -295,6 +296,7 @@ function StockPage() {
                   <th className="px-4 py-3 font-medium">Modelo</th>
                   <th className="px-4 py-3 text-right font-medium">GB</th>
                   <th className="px-4 py-3 font-medium">Color</th>
+                  <th className="px-4 py-3 font-medium">Categoría</th>
                   <th className="px-4 py-3 text-right font-medium">Batería %</th>
                   <th className="px-4 py-3 text-right font-medium">Precio de lista</th>
                   <th className="px-4 py-3 text-right font-medium">Días en stock</th>
@@ -321,6 +323,9 @@ function StockPage() {
                       <td className="px-4 py-2.5">{e.modelo}</td>
                       <td className="num px-4 py-2.5 text-right">{e.gb ?? "—"}</td>
                       <td className="px-4 py-2.5 text-muted-foreground">{e.color ?? "—"}</td>
+                      <td className="px-4 py-2.5 capitalize text-muted-foreground">
+                        {e.categoria ? CATEGORIA_ETIQUETA[e.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? e.categoria : "—"}
+                      </td>
                       <td className="num px-4 py-2.5 text-right">{e.bateria ?? "—"}</td>
                       <td className="num px-4 py-2.5 text-right">
                         {e.precio != null ? (
