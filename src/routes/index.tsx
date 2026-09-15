@@ -15,7 +15,7 @@ import {
 import { useStore } from "@/components/StoreContext";
 import { useAuth } from "@/components/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCLP, formatNumero } from "@/lib/stores";
+import { STORES, formatCLP, formatNumero } from "@/lib/stores";
 import { equipoTexto, nivelSla, textoSla } from "@/lib/garantias";
 import { puedeVerGanancias } from "@/lib/pos";
 import { claveModelo } from "@/lib/pos";
