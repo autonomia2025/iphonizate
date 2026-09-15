@@ -50,6 +50,13 @@
       "when": 1789417732738,
       "tag": "0006_reset_operativo_y_borrado_equipos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789433810809,
+      "tag": "0007_reset_operativo_2",
+      "breakpoints": true
     }
   ]
 }
