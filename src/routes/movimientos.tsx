@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useFlashEscaneo } from "@/components/motion";
 import { useAuth } from "@/components/AuthContext";
+import { PERMISOS, usePermisos } from "@/lib/permisos";
 import { Button } from "@/components/ui/button";
 import { CampoImei } from "@/components/CampoImei";
 import {
@@ -54,7 +55,7 @@ function MovimientosPage() {
   /* El vendedor solo puede devolver a bodega desde su tienda */
   const puedeTrasladar = puedeIngresarEquipos(rol) || rol === "vendedor";
   const esJefe = rol === "jefe_tienda";
-  const origenFijo = esJefe || esVendedor;
+  const origenFijo = esJefe || rol === "vendedor";
   const queryClient = useQueryClient();
 
   const [origen, setOrigen] = useState<string>("");
