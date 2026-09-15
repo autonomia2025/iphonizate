@@ -323,6 +323,9 @@ function StockPage() {
                       <td className="px-4 py-2.5">{e.modelo}</td>
                       <td className="num px-4 py-2.5 text-right">{e.gb ?? "—"}</td>
                       <td className="px-4 py-2.5 text-muted-foreground">{e.color ?? "—"}</td>
+                      <td className="px-4 py-2.5 capitalize text-muted-foreground">
+                        {e.categoria ? CATEGORIA_ETIQUETA[e.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? e.categoria : "—"}
+                      </td>
                       <td className="num px-4 py-2.5 text-right">{e.bateria ?? "—"}</td>
                       <td className="num px-4 py-2.5 text-right">
                         {e.precio != null ? (
