@@ -8,6 +8,10 @@ import { useAuth } from "@/components/AuthContext";
 export const PERMISOS = {
   metasEditar: "metas.editar",
   permisosAdministrar: "permisos.administrar",
+  /** Puede ingresar y ver el costo/precio de compra de los equipos */
+  equiposCosto: "equipos.costo",
+  /** Vendedor que puede trasladar equipos entre tiendas, no solo devolver a bodega */
+  movimientosTienda: "movimientos.tienda",
 } as const;
 
 export type Permiso = (typeof PERMISOS)[keyof typeof PERMISOS];

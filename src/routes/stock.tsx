@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
+import { PERMISOS, usePermisos } from "@/lib/permisos";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 import { AnimatePresence, EstadoVacio, SkeletonFilas, motion } from "@/components/motion";
@@ -68,7 +69,8 @@ function Chip({
 function StockPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const conCostos = puedeVerCostos(rol);
+  const permisos = usePermisos();
+  const conCostos = puedeVerCostos(rol) || permisos.tiene(PERMISOS.equiposCosto);
 
   const [busqueda, setBusqueda] = useState("");
   const [extras, setExtras] = useState<EquipoEstado[]>([]);

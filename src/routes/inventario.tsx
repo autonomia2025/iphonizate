@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
+import { PERMISOS, usePermisos } from "@/lib/permisos";
 import { Button } from "@/components/ui/button";
 import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
 import type { EquipoEtiqueta } from "@/lib/etiquetas";
@@ -77,7 +78,8 @@ function Chip({
 function InventarioPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const conCostos = puedeVerCostos(rol);
+  const permisos = usePermisos();
+  const conCostos = puedeVerCostos(rol) || permisos.tiene(PERMISOS.equiposCosto);
   const puedeIngresar = puedeIngresarEquipos(rol);
 
   const [busqueda, setBusqueda] = useState("");
