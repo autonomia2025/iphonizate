@@ -431,56 +431,76 @@ function RevisionPage() {
             </div>
 
             <h3 className="mt-6 font-display text-base">Desglose de pagos</h3>
-            <div className="mt-3 space-y-2">
-              {(venta.pagos ?? []).map((p) => (
-                <div
-                  key={p.id}
-                  className={`rounded-xl border p-3 transition-colors duration-200 ${
-                    p.confirmado
-                      ? "border-emerald-400/30 bg-emerald-500/10"
-                      : "border-white/10 bg-white/[0.04]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm">
-                      {METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <span className="num text-base">{formatCLP(p.monto)}</span>
-                      <button
-                        type="button"
-                        onClick={() => void confirmarPago(p.id, !p.confirmado)}
-                        aria-label={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
-                        title={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
-                        className={`flex size-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+            {(() => {
+              const lista = pagosDe(venta);
+              const suma = lista.reduce((a, p) => a + p.monto, 0);
+              return (
+                <>
+                  <p className="num mt-1 text-xs text-muted-foreground">
+                    {lista.length} pago{lista.length === 1 ? "" : "s"} · suman {formatCLP(suma)}
+                    {suma !== venta.total && " (no cuadra con el total)"}
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    {lista.map((p) => (
+                      <div
+                        key={p.id}
+                        className={`rounded-xl border p-3 transition-colors duration-200 ${
                           p.confirmado
-                            ? "border-emerald-400/40 bg-emerald-500/25 text-emerald-200"
-                            : "border-white/12 text-muted-foreground hover:border-emerald-400/40 hover:text-emerald-300"
+                            ? "border-emerald-400/30 bg-emerald-500/10"
+                            : "border-white/10 bg-white/[0.04]"
                         }`}
                       >
-                        <Check className="size-4" />
-                      </button>
-                    </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm">
+                            {METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo}
+                            {p.abono && (
+                              <span className="ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                abono de reserva
+                              </span>
+                            )}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="num text-base">{formatCLP(p.monto)}</span>
+                            <button
+                              type="button"
+                              onClick={() => void confirmarPago(p.id, !p.confirmado)}
+                              aria-label={
+                                p.confirmado ? "Quitar confirmación" : "Confirmar este pago"
+                              }
+                              title={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
+                              className={`flex size-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+                                p.confirmado
+                                  ? "border-emerald-400/40 bg-emerald-500/25 text-emerald-200"
+                                  : "border-white/12 text-muted-foreground hover:border-emerald-400/40 hover:text-emerald-300"
+                              }`}
+                            >
+                              <Check className="size-4" />
+                            </button>
+                          </div>
+                        </div>
+                        {p.nombre_pagador && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {p.metodo === "partePago" ? "Recibido: " : "Transfirió: "}
+                            <span className="text-foreground">{p.nombre_pagador}</span>
+                          </p>
+                        )}
+                        <p className="num mt-1 text-xs text-muted-foreground">
+                          {fechaHora(p.fecha)} ·{" "}
+                          {p.confirmado
+                            ? `Confirmado${p.confirmado_at ? ` · ${fechaHora(p.confirmado_at)}` : ""}`
+                            : "Sin confirmar"}
+                        </p>
+                      </div>
+                    ))}
+                    {!lista.length && (
+                      <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-muted-foreground">
+                        Esta venta no tiene pagos registrados.
+                      </p>
+                    )}
                   </div>
-                  {p.nombre_pagador && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {p.metodo === "partePago" ? "Recibido: " : "Transfirió: "}
-                      <span className="text-foreground">{p.nombre_pagador}</span>
-                    </p>
-                  )}
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {p.confirmado
-                      ? `Confirmado${p.confirmado_at ? ` · ${fechaHora(p.confirmado_at)}` : ""}`
-                      : "Sin confirmar"}
-                  </p>
-                </div>
-              ))}
-              {!(venta.pagos ?? []).length && (
-                <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-muted-foreground">
-                  Esta venta no tiene pagos registrados.
-                </p>
-              )}
-            </div>
+                </>
+              );
+            })()}
 
             <div className="mt-6 border-t border-white/8 pt-4">
               <span className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
