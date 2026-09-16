@@ -79,7 +79,7 @@ function RevisionPage() {
       const { data, error } = await supabase
         .from("ventas")
         .select(
-          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha)",
+          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at)",
         )
         .order("fecha", { ascending: false })
         .limit(500);
