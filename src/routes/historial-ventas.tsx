@@ -53,6 +53,18 @@ function HistorialVentasPage() {
   const [busqueda, setBusqueda] = useState("");
   const [tiendaFiltro, setTiendaFiltro] = useState("todas");
   const [conAnuladas, setConAnuladas] = useState(false);
+  const [borrando, setBorrando] = useState<string | null>(null);
+
+  /* Solo Renato y Liz pueden eliminar ventas: lo decide la base de datos */
+  const permisoBorrar = useQuery({
+    queryKey: ["puede_borrar_equipos"],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("puede_borrar_equipos");
+      if (error) throw error;
+      return data === true;
+    },
+  });
 
   const tiendas = useQuery({
     queryKey: ["tiendas-historial"],
