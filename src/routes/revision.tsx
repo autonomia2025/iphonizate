@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -79,7 +79,7 @@ function RevisionPage() {
       const { data, error } = await supabase
         .from("ventas")
         .select(
-          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha)",
+          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at)",
         )
         .order("fecha", { ascending: false })
         .limit(500);
@@ -114,6 +114,20 @@ function RevisionPage() {
     () => (ventas.data ?? []).find((v) => v.id === abierta) ?? null,
     [ventas.data, abierta],
   );
+
+  /** Confirma o desconfirma un pago puntual (transferencia, efectivo o parte de pago). */
+  const confirmarPago = async (pagoId: string, confirmado: boolean) => {
+    try {
+      const { error } = await supabase.rpc("confirmar_pago", {
+        _pago: pagoId,
+        _confirmado: confirmado,
+      });
+      if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
+      await ventas.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo confirmar el pago");
+    }
+  };
 
   const marcar = async (estado: "revisado" | "problema") => {
     if (!venta) return;
@@ -254,6 +268,7 @@ function RevisionPage() {
                 <th className="px-4 py-3 font-medium">Cliente</th>
                 <th className="px-4 py-3 text-right font-medium">Total</th>
                 <th className="px-4 py-3 font-medium">Métodos de pago</th>
+                <th className="px-4 py-3 font-medium">Pagos confirmados</th>
                 <th className="px-4 py-3 font-medium">Revisión</th>
               </tr>
             </thead>
@@ -280,6 +295,25 @@ function RevisionPage() {
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>
                     <td className="px-4 py-2.5 text-muted-foreground">{metodosDe(v.pagos)}</td>
                     <td className="px-4 py-2.5">
+                      {(() => {
+                        const total = (v.pagos ?? []).length;
+                        const ok = (v.pagos ?? []).filter((p) => p.confirmado).length;
+                        if (!total) return <span className="text-muted-foreground">—</span>;
+                        return (
+                          <span
+                            className={`num inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] ${
+                              ok === total
+                                ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-300"
+                                : "border-white/10 bg-white/5 text-muted-foreground"
+                            }`}
+                          >
+                            {ok === total && <Check className="size-3" />}
+                            {ok}/{total}
+                          </span>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-4 py-2.5">
                       <span className={`rounded-full border px-2 py-0.5 text-[11px] ${badge(rev)}`}>
                         {rev === "revisado"
                           ? "Revisado"
@@ -293,7 +327,7 @@ function RevisionPage() {
               })}
               {!filas.length && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
                     No hay ventas con esos filtros.
                   </td>
                 </tr>
@@ -345,12 +379,34 @@ function RevisionPage() {
             <h3 className="mt-6 font-display text-base">Desglose de pagos</h3>
             <div className="mt-3 space-y-2">
               {(venta.pagos ?? []).map((p) => (
-                <div key={p.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                  <div className="flex items-baseline justify-between">
+                <div
+                  key={p.id}
+                  className={`rounded-xl border p-3 transition-colors duration-200 ${
+                    p.confirmado
+                      ? "border-emerald-400/30 bg-emerald-500/10"
+                      : "border-white/10 bg-white/[0.04]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
                     <span className="text-sm">
                       {METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo}
                     </span>
-                    <span className="num text-base">{formatCLP(p.monto)}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="num text-base">{formatCLP(p.monto)}</span>
+                      <button
+                        type="button"
+                        onClick={() => void confirmarPago(p.id, !p.confirmado)}
+                        aria-label={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
+                        title={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
+                        className={`flex size-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+                          p.confirmado
+                            ? "border-emerald-400/40 bg-emerald-500/25 text-emerald-200"
+                            : "border-white/12 text-muted-foreground hover:border-emerald-400/40 hover:text-emerald-300"
+                        }`}
+                      >
+                        <Check className="size-4" />
+                      </button>
+                    </div>
                   </div>
                   {p.nombre_pagador && (
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -358,6 +414,11 @@ function RevisionPage() {
                       <span className="text-foreground">{p.nombre_pagador}</span>
                     </p>
                   )}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {p.confirmado
+                      ? `Confirmado${p.confirmado_at ? ` · ${fechaHora(p.confirmado_at)}` : ""}`
+                      : "Sin confirmar"}
+                  </p>
                 </div>
               ))}
               {!(venta.pagos ?? []).length && (

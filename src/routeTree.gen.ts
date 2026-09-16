@@ -21,6 +21,7 @@ import { Route as CostosArregloRouteImport } from './routes/costos-arreglo'
 import { Route as EscanearRouteImport } from './routes/escanear'
 import { Route as GarantiasRouteImport } from './routes/garantias'
 import { Route as GastosRouteImport } from './routes/gastos'
+import { Route as HistorialVentasRouteImport } from './routes/historial-ventas'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimientosRouteImport } from './routes/movimientos'
@@ -105,6 +106,11 @@ const GarantiasRoute = GarantiasRouteImport.update({
 const GastosRoute = GastosRouteImport.update({
   id: '/gastos',
   path: '/gastos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistorialVentasRoute = HistorialVentasRouteImport.update({
+  id: '/historial-ventas',
+  path: '/historial-ventas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventarioRoute = InventarioRouteImport.update({
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
+  '/historial-ventas': typeof HistorialVentasRoute
   '/inventario': typeof InventarioRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
+  '/historial-ventas': typeof HistorialVentasRoute
   '/inventario': typeof InventarioRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
@@ -329,6 +337,7 @@ export interface FileRoutesById {
   '/escanear': typeof EscanearRoute
   '/garantias': typeof GarantiasRoute
   '/gastos': typeof GastosRoute
+  '/historial-ventas': typeof HistorialVentasRoute
   '/inventario': typeof InventarioRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/escanear'
     | '/garantias'
     | '/gastos'
+    | '/historial-ventas'
     | '/inventario'
     | '/metas'
     | '/movimientos'
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/escanear'
     | '/garantias'
     | '/gastos'
+    | '/historial-ventas'
     | '/inventario'
     | '/metas'
     | '/movimientos'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/escanear'
     | '/garantias'
     | '/gastos'
+    | '/historial-ventas'
     | '/inventario'
     | '/metas'
     | '/movimientos'
@@ -488,6 +500,7 @@ export interface RootRouteChildren {
   EscanearRoute: typeof EscanearRoute
   GarantiasRoute: typeof GarantiasRoute
   GastosRoute: typeof GastosRoute
+  HistorialVentasRoute: typeof HistorialVentasRoute
   InventarioRoute: typeof InventarioRoute
   MetasRoute: typeof MetasRoute
   MovimientosRoute: typeof MovimientosRoute
@@ -599,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/gastos'
       fullPath: '/gastos'
       preLoaderRoute: typeof GastosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historial-ventas': {
+      id: '/historial-ventas'
+      path: '/historial-ventas'
+      fullPath: '/historial-ventas'
+      preLoaderRoute: typeof HistorialVentasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventario': {
@@ -792,6 +812,7 @@ const rootRouteChildren: RootRouteChildren = {
   EscanearRoute: EscanearRoute,
   GarantiasRoute: GarantiasRoute,
   GastosRoute: GastosRoute,
+  HistorialVentasRoute: HistorialVentasRoute,
   InventarioRoute: InventarioRoute,
   MetasRoute: MetasRoute,
   MovimientosRoute: MovimientosRoute,

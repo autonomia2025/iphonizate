@@ -17,9 +17,14 @@ import {
   CATEGORIA_ETIQUETA,
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
+  FAMILIAS,
   diasEnStock,
+  familiaDeModelo,
+  ordenarSeries,
   puedeVerCostos,
+  serieDeModelo,
   type EquipoEstado,
+  type Familia,
 } from "@/lib/inventario";
 
 const DESC = "Equipos disponibles por tienda, con batería, capacidad y precio de lista.";
@@ -73,6 +78,8 @@ function StockPage() {
   const conCostos = puedeVerCostos(rol) || permisos.tiene(PERMISOS.equiposCosto);
 
   const [busqueda, setBusqueda] = useState("");
+  const [serie, setSerie] = useState<string | null>(null);
+  const [familia, setFamilia] = useState<Familia | null>(null);
   const [extras, setExtras] = useState<EquipoEstado[]>([]);
   const [seleccionado, setSeleccionado] = useState<EquipoFila | null>(null);
   const buscadorRef = useRef<HTMLInputElement>(null);
@@ -168,7 +175,8 @@ function StockPage() {
     return mapa;
   }, [todas]);
 
-  const filtradas = useMemo(() => {
+  /** Equipos visibles según estado y búsqueda, antes de los filtros de serie/variante. */
+  const visiblesBase = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     const visibles: EquipoEstado[] = ["DISPONIBLE", ...extras];
     return todas.filter((e) => {
@@ -181,6 +189,37 @@ function StockPage() {
       );
     });
   }, [todas, extras, busqueda]);
+
+  /** Series presentes con su conteo, de la más nueva a la más antigua. */
+  const series = useMemo(() => {
+    const mapa = new Map<string, number>();
+    visiblesBase.forEach((e) => {
+      const s = serieDeModelo(e.modelo);
+      mapa.set(s, (mapa.get(s) ?? 0) + 1);
+    });
+    return ordenarSeries([...mapa.keys()]).map((s) => ({ serie: s, total: mapa.get(s) ?? 0 }));
+  }, [visiblesBase]);
+
+  /** Variantes (mini, Normal, Plus, Air, Pro, Pro Max) dentro de la serie elegida. */
+  const familias = useMemo(() => {
+    const base = serie ? visiblesBase.filter((e) => serieDeModelo(e.modelo) === serie) : visiblesBase;
+    const mapa = new Map<Familia, number>();
+    base.forEach((e) => {
+      const f = familiaDeModelo(e.modelo);
+      mapa.set(f, (mapa.get(f) ?? 0) + 1);
+    });
+    return FAMILIAS.filter((f) => mapa.has(f)).map((f) => ({ familia: f, total: mapa.get(f) ?? 0 }));
+  }, [visiblesBase, serie]);
+
+  const filtradas = useMemo(
+    () =>
+      visiblesBase.filter((e) => {
+        if (serie && serieDeModelo(e.modelo) !== serie) return false;
+        if (familia && familiaDeModelo(e.modelo) !== familia) return false;
+        return true;
+      }),
+    [visiblesBase, serie, familia],
+  );
 
   const porTienda = useMemo(() => {
     const mapa = new Map<string, { tienda: string; filas: typeof filtradas }>();
@@ -243,6 +282,51 @@ function StockPage() {
             className="num h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-10 pr-4 text-sm outline-none transition-all duration-200 placeholder:font-sans placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25"
           />
         </label>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">Serie</span>
+          <Chip
+            activo={serie === null}
+            onClick={() => {
+              setSerie(null);
+              setFamilia(null);
+            }}
+          >
+            Todas
+          </Chip>
+          {series.map((s) => (
+            <Chip
+              key={s.serie}
+              activo={serie === s.serie}
+              onClick={() => {
+                setSerie(serie === s.serie ? null : s.serie);
+                setFamilia(null);
+              }}
+            >
+              {Number.isNaN(Number(s.serie)) ? s.serie : `Serie ${s.serie}`}{" "}
+              <span className="num opacity-70">{s.total}</span>
+            </Chip>
+          ))}
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">Modelo</span>
+          <Chip activo={familia === null} onClick={() => setFamilia(null)}>
+            Todos
+          </Chip>
+          {familias.map((f) => (
+            <Chip
+              key={f.familia}
+              activo={familia === f.familia}
+              onClick={() => setFamilia(familia === f.familia ? null : f.familia)}
+            >
+              {f.familia} <span className="num opacity-70">{f.total}</span>
+            </Chip>
+          ))}
+          {!familias.length && (
+            <span className="text-xs text-muted-foreground">Sin equipos en esta serie</span>
+          )}
+        </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">

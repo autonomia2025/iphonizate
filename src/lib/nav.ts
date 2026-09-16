@@ -74,6 +74,12 @@ export const NAV = [
     roles: ["direccion", "jefe_tienda", "administracion", "vendedor"] as AppRol[],
   },
   {
+    to: "/historial-ventas",
+    label: "Historial de ventas",
+    icon: ReceiptText,
+    roles: ["direccion", "jefe_tienda", "administracion"] as AppRol[],
+  },
+  {
     to: "/comprobantes",
     label: "Comprobantes",
     icon: FileText,
@@ -201,6 +207,7 @@ const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
   "/precios": "Inventario",
   "/costos-arreglo": "Inventario",
   "/caja": "Administración",
+  "/historial-ventas": "Administración",
   "/comprobantes": "Administración",
   "/revision": "Administración",
   "/gastos": "Administración",

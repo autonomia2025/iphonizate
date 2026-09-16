@@ -1355,6 +1355,9 @@ export type Database = {
       }
       pagos: {
         Row: {
+          confirmado: boolean
+          confirmado_at: string | null
+          confirmado_por: string | null
           fecha: string
           id: string
           metodo: Database["public"]["Enums"]["metodo_pago"]
@@ -1364,6 +1367,9 @@ export type Database = {
           venta_id: string | null
         }
         Insert: {
+          confirmado?: boolean
+          confirmado_at?: string | null
+          confirmado_por?: string | null
           fecha?: string
           id?: string
           metodo: Database["public"]["Enums"]["metodo_pago"]
@@ -1373,6 +1379,9 @@ export type Database = {
           venta_id?: string | null
         }
         Update: {
+          confirmado?: boolean
+          confirmado_at?: string | null
+          confirmado_por?: string | null
           fecha?: string
           id?: string
           metodo?: Database["public"]["Enums"]["metodo_pago"]
@@ -1382,6 +1391,13 @@ export type Database = {
           venta_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pagos_confirmado_por_fkey"
+            columns: ["confirmado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pagos_reserva_id_fkey"
             columns: ["reserva_id"]
@@ -2752,6 +2768,10 @@ export type Database = {
       completar_reserva: {
         Args: { _pagos: Json; _reserva: string }
         Returns: string
+      }
+      confirmar_pago: {
+        Args: { _confirmado: boolean; _pago: string }
+        Returns: undefined
       }
       crear_garantia: {
         Args: {
