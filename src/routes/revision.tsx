@@ -359,12 +359,34 @@ function RevisionPage() {
             <h3 className="mt-6 font-display text-base">Desglose de pagos</h3>
             <div className="mt-3 space-y-2">
               {(venta.pagos ?? []).map((p) => (
-                <div key={p.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                  <div className="flex items-baseline justify-between">
+                <div
+                  key={p.id}
+                  className={`rounded-xl border p-3 transition-colors duration-200 ${
+                    p.confirmado
+                      ? "border-emerald-400/30 bg-emerald-500/10"
+                      : "border-white/10 bg-white/[0.04]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
                     <span className="text-sm">
                       {METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo}
                     </span>
-                    <span className="num text-base">{formatCLP(p.monto)}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="num text-base">{formatCLP(p.monto)}</span>
+                      <button
+                        type="button"
+                        onClick={() => void confirmarPago(p.id, !p.confirmado)}
+                        aria-label={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
+                        title={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
+                        className={`flex size-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+                          p.confirmado
+                            ? "border-emerald-400/40 bg-emerald-500/25 text-emerald-200"
+                            : "border-white/12 text-muted-foreground hover:border-emerald-400/40 hover:text-emerald-300"
+                        }`}
+                      >
+                        <Check className="size-4" />
+                      </button>
+                    </div>
                   </div>
                   {p.nombre_pagador && (
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -372,6 +394,11 @@ function RevisionPage() {
                       <span className="text-foreground">{p.nombre_pagador}</span>
                     </p>
                   )}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {p.confirmado
+                      ? `Confirmado${p.confirmado_at ? ` · ${fechaHora(p.confirmado_at)}` : ""}`
+                      : "Sin confirmar"}
+                  </p>
                 </div>
               ))}
               {!(venta.pagos ?? []).length && (
