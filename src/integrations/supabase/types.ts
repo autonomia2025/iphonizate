@@ -2795,6 +2795,7 @@ export type Database = {
         Returns: string
       }
       eliminar_equipo: { Args: { _equipo: string }; Returns: undefined }
+      eliminar_venta: { Args: { _venta: string }; Returns: undefined }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
       fn_sin_sensibles: { Args: { _fila: Json }; Returns: Json }
       garantia_buscar_imei: {

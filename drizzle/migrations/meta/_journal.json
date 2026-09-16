@@ -71,6 +71,13 @@
       "when": 1789526263816,
       "tag": "0009_confirmar_pagos_individuales",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789579004408,
+      "tag": "0010_eliminar_venta_renato_liz",
+      "breakpoints": true
     }
   ]
 }
