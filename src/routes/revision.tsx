@@ -327,7 +327,7 @@ function RevisionPage() {
               })}
               {!filas.length && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
                     No hay ventas con esos filtros.
                   </td>
                 </tr>
