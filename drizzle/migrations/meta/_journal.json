@@ -64,6 +64,13 @@
       "when": 1789489301953,
       "tag": "0008_permisos_costo_y_movimientos",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789526263816,
+      "tag": "0009_confirmar_pagos_individuales",
+      "breakpoints": true
     }
   ]
 }
