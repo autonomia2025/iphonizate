@@ -295,6 +295,25 @@ function RevisionPage() {
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>
                     <td className="px-4 py-2.5 text-muted-foreground">{metodosDe(v.pagos)}</td>
                     <td className="px-4 py-2.5">
+                      {(() => {
+                        const total = (v.pagos ?? []).length;
+                        const ok = (v.pagos ?? []).filter((p) => p.confirmado).length;
+                        if (!total) return <span className="text-muted-foreground">—</span>;
+                        return (
+                          <span
+                            className={`num inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] ${
+                              ok === total
+                                ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-300"
+                                : "border-white/10 bg-white/5 text-muted-foreground"
+                            }`}
+                          >
+                            {ok === total && <Check className="size-3" />}
+                            {ok}/{total}
+                          </span>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-4 py-2.5">
                       <span className={`rounded-full border px-2 py-0.5 text-[11px] ${badge(rev)}`}>
                         {rev === "revisado"
                           ? "Revisado"
