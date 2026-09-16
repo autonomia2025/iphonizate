@@ -175,7 +175,8 @@ function StockPage() {
     return mapa;
   }, [todas]);
 
-  const filtradas = useMemo(() => {
+  /** Equipos visibles según estado y búsqueda, antes de los filtros de serie/variante. */
+  const visiblesBase = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     const visibles: EquipoEstado[] = ["DISPONIBLE", ...extras];
     return todas.filter((e) => {
@@ -188,6 +189,37 @@ function StockPage() {
       );
     });
   }, [todas, extras, busqueda]);
+
+  /** Series presentes con su conteo, de la más nueva a la más antigua. */
+  const series = useMemo(() => {
+    const mapa = new Map<string, number>();
+    visiblesBase.forEach((e) => {
+      const s = serieDeModelo(e.modelo);
+      mapa.set(s, (mapa.get(s) ?? 0) + 1);
+    });
+    return ordenarSeries([...mapa.keys()]).map((s) => ({ serie: s, total: mapa.get(s) ?? 0 }));
+  }, [visiblesBase]);
+
+  /** Variantes (mini, Normal, Plus, Air, Pro, Pro Max) dentro de la serie elegida. */
+  const familias = useMemo(() => {
+    const base = serie ? visiblesBase.filter((e) => serieDeModelo(e.modelo) === serie) : visiblesBase;
+    const mapa = new Map<Familia, number>();
+    base.forEach((e) => {
+      const f = familiaDeModelo(e.modelo);
+      mapa.set(f, (mapa.get(f) ?? 0) + 1);
+    });
+    return FAMILIAS.filter((f) => mapa.has(f)).map((f) => ({ familia: f, total: mapa.get(f) ?? 0 }));
+  }, [visiblesBase, serie]);
+
+  const filtradas = useMemo(
+    () =>
+      visiblesBase.filter((e) => {
+        if (serie && serieDeModelo(e.modelo) !== serie) return false;
+        if (familia && familiaDeModelo(e.modelo) !== familia) return false;
+        return true;
+      }),
+    [visiblesBase, serie, familia],
+  );
 
   const porTienda = useMemo(() => {
     const mapa = new Map<string, { tienda: string; filas: typeof filtradas }>();
