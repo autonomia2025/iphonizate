@@ -106,3 +106,42 @@ export const fechaLarga = (fecha?: string | null) =>
         minute: "2-digit",
       })
     : "—";
+
+/* ---------------- Agrupación comercial de modelos ---------------- */
+
+/** Serie del modelo: "17", "16", "SE", "XR"… Sirve para el filtro principal de Stock. */
+export const serieDeModelo = (modelo?: string | null) => {
+  const m = (modelo ?? "").toLowerCase();
+  const num = m.match(/(?:iphone\s*)?(\d{1,2})/);
+  if (num) return num[1];
+  if (m.includes("se")) return "SE";
+  if (m.includes("xs")) return "XS";
+  if (m.includes("xr")) return "XR";
+  if (/\bx\b/.test(m)) return "X";
+  return "Otros";
+};
+
+export const FAMILIAS = ["mini", "Normal", "Plus", "Air", "Pro", "Pro Max"] as const;
+export type Familia = (typeof FAMILIAS)[number];
+
+/** Variante dentro de la serie: mini, Normal, Plus, Air, Pro o Pro Max. */
+export const familiaDeModelo = (modelo?: string | null): Familia => {
+  const m = (modelo ?? "").toLowerCase();
+  if (m.includes("pro max")) return "Pro Max";
+  if (m.includes("pro")) return "Pro";
+  if (m.includes("plus")) return "Plus";
+  if (m.includes("air")) return "Air";
+  if (m.includes("mini")) return "mini";
+  return "Normal";
+};
+
+/** Orden natural de series: las más nuevas primero, luego los modelos con letra. */
+export const ordenarSeries = (series: string[]) =>
+  [...series].sort((a, b) => {
+    const na = Number(a);
+    const nb = Number(b);
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return nb - na;
+    if (!Number.isNaN(na)) return -1;
+    if (!Number.isNaN(nb)) return 1;
+    return a.localeCompare(b, "es");
+  });
