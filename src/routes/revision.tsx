@@ -169,7 +169,7 @@ function RevisionPage() {
         _confirmado: confirmado,
       });
       if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
-      await ventas.refetch();
+      await Promise.all([ventas.refetch(), abonos.refetch()]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo confirmar el pago");
     }
