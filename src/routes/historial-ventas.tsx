@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Receipt, Search } from "lucide-react";
+import { Receipt, Search, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
@@ -52,6 +53,18 @@ function HistorialVentasPage() {
   const [busqueda, setBusqueda] = useState("");
   const [tiendaFiltro, setTiendaFiltro] = useState("todas");
   const [conAnuladas, setConAnuladas] = useState(false);
+  const [borrando, setBorrando] = useState<string | null>(null);
+
+  /* Solo Renato y Liz pueden eliminar ventas: lo decide la base de datos */
+  const permisoBorrar = useQuery({
+    queryKey: ["puede_borrar_equipos"],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("puede_borrar_equipos");
+      if (error) throw error;
+      return data === true;
+    },
+  });
 
   const tiendas = useQuery({
     queryKey: ["tiendas-historial"],
@@ -137,6 +150,28 @@ function HistorialVentasPage() {
     [...new Set((pagos ?? []).map((p) => METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo))].join(
       " · ",
     ) || "—";
+
+  const puedeEliminar = permisoBorrar.data === true;
+
+  const eliminarVenta = async (v: (typeof filas)[number]) => {
+    if (
+      !window.confirm(
+        `¿Eliminar la venta de ${formatCLP(v.total)} del ${fechaHora(v.fecha)}?\n\nEs definitivo: se borran sus pagos y su detalle, y los equipos vuelven a estar disponibles.`,
+      )
+    )
+      return;
+    setBorrando(v.id);
+    const { error } = await supabase.rpc("eliminar_venta", { _venta: v.id });
+    setBorrando(null);
+    if (error) {
+      toast.error("No se pudo eliminar la venta", {
+        description: error.message.replace(/^.*?:\s*/, ""),
+      });
+      return;
+    }
+    toast.success("Venta eliminada");
+    void ventas.refetch();
+  };
 
   return (
     <div className="mx-auto max-w-[92rem]">
@@ -280,6 +315,7 @@ function HistorialVentasPage() {
                   <th className="px-4 py-3 text-right font-medium">Total</th>
                   {conGanancias && <th className="px-4 py-3 text-right font-medium">Ganancia</th>}
                   <th className="px-4 py-3 font-medium">Comprobante</th>
+                  {puedeEliminar && <th className="px-4 py-3 font-medium">Eliminar</th>}
                 </tr>
               </thead>
               <tbody>
@@ -310,6 +346,19 @@ function HistorialVentasPage() {
                         <BotonComprobante ventaId={v.id} />
                       )}
                     </td>
+                    {puedeEliminar && (
+                      <td className="px-4 py-2.5">
+                        <button
+                          type="button"
+                          disabled={borrando !== null}
+                          onClick={() => void eliminarVenta(v)}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-red-400/25 bg-red-400/10 px-3 py-1 text-xs text-red-300 transition-colors hover:text-red-200 disabled:opacity-50"
+                        >
+                          <Trash2 className="size-3.5" />
+                          {borrando === v.id ? "Eliminando…" : "Eliminar"}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
