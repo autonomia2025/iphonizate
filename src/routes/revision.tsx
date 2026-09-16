@@ -79,7 +79,7 @@ function RevisionPage() {
       const { data, error } = await supabase
         .from("ventas")
         .select(
-          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at)",
+          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, reserva_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at)",
         )
         .order("fecha", { ascending: false })
         .limit(500);
@@ -87,6 +87,52 @@ function RevisionPage() {
       return data ?? [];
     },
   });
+
+  /** Reservas que originaron alguna de estas ventas: sus abonos son parte del pago total. */
+  const reservaIds = useMemo(
+    () =>
+      [...new Set((ventas.data ?? []).map((v) => v.reserva_id).filter(Boolean))] as string[],
+    [ventas.data],
+  );
+
+  const abonos = useQuery({
+    queryKey: ["pagos-reservas", reservaIds.join(",")],
+    enabled: autorizado && reservaIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pagos")
+        .select("id, reserva_id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at")
+        .in("reserva_id", reservaIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  /** Todos los pagos de una venta: abonos de la reserva + pagos del cierre. */
+  const pagosDe = (v: {
+    reserva_id?: string | null;
+    pagos?:
+      | {
+          id: string;
+          metodo: string;
+          monto: number;
+          nombre_pagador: string | null;
+          fecha: string;
+          confirmado: boolean;
+          confirmado_at: string | null;
+        }[]
+      | null;
+  }) => {
+    const previos = v.reserva_id
+      ? (abonos.data ?? [])
+          .filter((p) => p.reserva_id === v.reserva_id)
+          .map((p) => ({ ...p, abono: true }))
+      : [];
+    const cierre = (v.pagos ?? []).map((p) => ({ ...p, abono: false }));
+    return [...previos, ...cierre].sort(
+      (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
+    );
+  };
 
   const nombreTienda = (id?: string | null) =>
     (tiendas.data ?? []).find((t) => t.id === id)?.nombre ?? "—";
@@ -123,7 +169,7 @@ function RevisionPage() {
         _confirmado: confirmado,
       });
       if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
-      await ventas.refetch();
+      await Promise.all([ventas.refetch(), abonos.refetch()]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo confirmar el pago");
     }
@@ -293,11 +339,19 @@ function RevisionPage() {
                     </td>
                     <td className="px-4 py-2.5">{v.clientes?.nombre ?? "Sin cliente"}</td>
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{metodosDe(v.pagos)}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">
+                      {metodosDe(pagosDe(v))}
+                      {v.reserva_id && (
+                        <span className="ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px]">
+                          con abono
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-2.5">
                       {(() => {
-                        const total = (v.pagos ?? []).length;
-                        const ok = (v.pagos ?? []).filter((p) => p.confirmado).length;
+                        const lista = pagosDe(v);
+                        const total = lista.length;
+                        const ok = lista.filter((p) => p.confirmado).length;
                         if (!total) return <span className="text-muted-foreground">—</span>;
                         return (
                           <span
@@ -377,56 +431,76 @@ function RevisionPage() {
             </div>
 
             <h3 className="mt-6 font-display text-base">Desglose de pagos</h3>
-            <div className="mt-3 space-y-2">
-              {(venta.pagos ?? []).map((p) => (
-                <div
-                  key={p.id}
-                  className={`rounded-xl border p-3 transition-colors duration-200 ${
-                    p.confirmado
-                      ? "border-emerald-400/30 bg-emerald-500/10"
-                      : "border-white/10 bg-white/[0.04]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm">
-                      {METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <span className="num text-base">{formatCLP(p.monto)}</span>
-                      <button
-                        type="button"
-                        onClick={() => void confirmarPago(p.id, !p.confirmado)}
-                        aria-label={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
-                        title={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
-                        className={`flex size-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+            {(() => {
+              const lista = pagosDe(venta);
+              const suma = lista.reduce((a, p) => a + p.monto, 0);
+              return (
+                <>
+                  <p className="num mt-1 text-xs text-muted-foreground">
+                    {lista.length} pago{lista.length === 1 ? "" : "s"} · suman {formatCLP(suma)}
+                    {suma !== venta.total && " (no cuadra con el total)"}
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    {lista.map((p) => (
+                      <div
+                        key={p.id}
+                        className={`rounded-xl border p-3 transition-colors duration-200 ${
                           p.confirmado
-                            ? "border-emerald-400/40 bg-emerald-500/25 text-emerald-200"
-                            : "border-white/12 text-muted-foreground hover:border-emerald-400/40 hover:text-emerald-300"
+                            ? "border-emerald-400/30 bg-emerald-500/10"
+                            : "border-white/10 bg-white/[0.04]"
                         }`}
                       >
-                        <Check className="size-4" />
-                      </button>
-                    </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm">
+                            {METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo}
+                            {p.abono && (
+                              <span className="ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                abono de reserva
+                              </span>
+                            )}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="num text-base">{formatCLP(p.monto)}</span>
+                            <button
+                              type="button"
+                              onClick={() => void confirmarPago(p.id, !p.confirmado)}
+                              aria-label={
+                                p.confirmado ? "Quitar confirmación" : "Confirmar este pago"
+                              }
+                              title={p.confirmado ? "Quitar confirmación" : "Confirmar este pago"}
+                              className={`flex size-8 items-center justify-center rounded-lg border transition-all duration-200 ${
+                                p.confirmado
+                                  ? "border-emerald-400/40 bg-emerald-500/25 text-emerald-200"
+                                  : "border-white/12 text-muted-foreground hover:border-emerald-400/40 hover:text-emerald-300"
+                              }`}
+                            >
+                              <Check className="size-4" />
+                            </button>
+                          </div>
+                        </div>
+                        {p.nombre_pagador && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {p.metodo === "partePago" ? "Recibido: " : "Transfirió: "}
+                            <span className="text-foreground">{p.nombre_pagador}</span>
+                          </p>
+                        )}
+                        <p className="num mt-1 text-xs text-muted-foreground">
+                          {fechaHora(p.fecha)} ·{" "}
+                          {p.confirmado
+                            ? `Confirmado${p.confirmado_at ? ` · ${fechaHora(p.confirmado_at)}` : ""}`
+                            : "Sin confirmar"}
+                        </p>
+                      </div>
+                    ))}
+                    {!lista.length && (
+                      <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-muted-foreground">
+                        Esta venta no tiene pagos registrados.
+                      </p>
+                    )}
                   </div>
-                  {p.nombre_pagador && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {p.metodo === "partePago" ? "Recibido: " : "Transfirió: "}
-                      <span className="text-foreground">{p.nombre_pagador}</span>
-                    </p>
-                  )}
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {p.confirmado
-                      ? `Confirmado${p.confirmado_at ? ` · ${fechaHora(p.confirmado_at)}` : ""}`
-                      : "Sin confirmar"}
-                  </p>
-                </div>
-              ))}
-              {!(venta.pagos ?? []).length && (
-                <p className="rounded-xl border border-dashed border-white/10 px-3 py-6 text-center text-sm text-muted-foreground">
-                  Esta venta no tiene pagos registrados.
-                </p>
-              )}
-            </div>
+                </>
+              );
+            })()}
 
             <div className="mt-6 border-t border-white/8 pt-4">
               <span className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
