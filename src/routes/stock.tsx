@@ -284,6 +284,51 @@ function StockPage() {
         </label>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">Serie</span>
+          <Chip
+            activo={serie === null}
+            onClick={() => {
+              setSerie(null);
+              setFamilia(null);
+            }}
+          >
+            Todas
+          </Chip>
+          {series.map((s) => (
+            <Chip
+              key={s.serie}
+              activo={serie === s.serie}
+              onClick={() => {
+                setSerie(serie === s.serie ? null : s.serie);
+                setFamilia(null);
+              }}
+            >
+              {Number.isNaN(Number(s.serie)) ? s.serie : `Serie ${s.serie}`}{" "}
+              <span className="num opacity-70">{s.total}</span>
+            </Chip>
+          ))}
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">Modelo</span>
+          <Chip activo={familia === null} onClick={() => setFamilia(null)}>
+            Todos
+          </Chip>
+          {familias.map((f) => (
+            <Chip
+              key={f.familia}
+              activo={familia === f.familia}
+              onClick={() => setFamilia(familia === f.familia ? null : f.familia)}
+            >
+              {f.familia} <span className="num opacity-70">{f.total}</span>
+            </Chip>
+          ))}
+          {!familias.length && (
+            <span className="text-xs text-muted-foreground">Sin equipos en esta serie</span>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">
             Ver también
           </span>
