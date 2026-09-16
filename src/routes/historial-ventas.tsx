@@ -151,6 +151,28 @@ function HistorialVentasPage() {
       " · ",
     ) || "—";
 
+  const puedeEliminar = permisoBorrar.data === true;
+
+  const eliminarVenta = async (v: (typeof filas)[number]) => {
+    if (
+      !window.confirm(
+        `¿Eliminar la venta de ${formatCLP(v.total)} del ${fechaHora(v.fecha)}?\n\nEs definitivo: se borran sus pagos y su detalle, y los equipos vuelven a estar disponibles.`,
+      )
+    )
+      return;
+    setBorrando(v.id);
+    const { error } = await supabase.rpc("eliminar_venta", { _venta: v.id });
+    setBorrando(null);
+    if (error) {
+      toast.error("No se pudo eliminar la venta", {
+        description: error.message.replace(/^.*?:\s*/, ""),
+      });
+      return;
+    }
+    toast.success("Venta eliminada");
+    void ventas.refetch();
+  };
+
   return (
     <div className="mx-auto max-w-[92rem]">
       <div className="flex flex-wrap items-end justify-between gap-4">
