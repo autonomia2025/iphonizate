@@ -268,6 +268,7 @@ function RevisionPage() {
                 <th className="px-4 py-3 font-medium">Cliente</th>
                 <th className="px-4 py-3 text-right font-medium">Total</th>
                 <th className="px-4 py-3 font-medium">Métodos de pago</th>
+                <th className="px-4 py-3 font-medium">Pagos confirmados</th>
                 <th className="px-4 py-3 font-medium">Revisión</th>
               </tr>
             </thead>
