@@ -79,7 +79,7 @@ function RevisionPage() {
       const { data, error } = await supabase
         .from("ventas")
         .select(
-          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at)",
+          "id, fecha, total, revision, anulada, tienda_id, cliente_id, vendedor_id, reserva_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at)",
         )
         .order("fecha", { ascending: false })
         .limit(500);
@@ -87,6 +87,52 @@ function RevisionPage() {
       return data ?? [];
     },
   });
+
+  /** Reservas que originaron alguna de estas ventas: sus abonos son parte del pago total. */
+  const reservaIds = useMemo(
+    () =>
+      [...new Set((ventas.data ?? []).map((v) => v.reserva_id).filter(Boolean))] as string[],
+    [ventas.data],
+  );
+
+  const abonos = useQuery({
+    queryKey: ["pagos-reservas", reservaIds.join(",")],
+    enabled: autorizado && reservaIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pagos")
+        .select("id, reserva_id, metodo, monto, nombre_pagador, fecha, confirmado, confirmado_at")
+        .in("reserva_id", reservaIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  /** Todos los pagos de una venta: abonos de la reserva + pagos del cierre. */
+  const pagosDe = (v: {
+    reserva_id?: string | null;
+    pagos?:
+      | {
+          id: string;
+          metodo: string;
+          monto: number;
+          nombre_pagador: string | null;
+          fecha: string;
+          confirmado: boolean;
+          confirmado_at: string | null;
+        }[]
+      | null;
+  }) => {
+    const previos = v.reserva_id
+      ? (abonos.data ?? [])
+          .filter((p) => p.reserva_id === v.reserva_id)
+          .map((p) => ({ ...p, abono: true }))
+      : [];
+    const cierre = (v.pagos ?? []).map((p) => ({ ...p, abono: false }));
+    return [...previos, ...cierre].sort(
+      (a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime(),
+    );
+  };
 
   const nombreTienda = (id?: string | null) =>
     (tiendas.data ?? []).find((t) => t.id === id)?.nombre ?? "—";
