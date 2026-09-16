@@ -339,11 +339,19 @@ function RevisionPage() {
                     </td>
                     <td className="px-4 py-2.5">{v.clientes?.nombre ?? "Sin cliente"}</td>
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{metodosDe(v.pagos)}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">
+                      {metodosDe(pagosDe(v))}
+                      {v.reserva_id && (
+                        <span className="ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px]">
+                          con abono
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-2.5">
                       {(() => {
-                        const total = (v.pagos ?? []).length;
-                        const ok = (v.pagos ?? []).filter((p) => p.confirmado).length;
+                        const lista = pagosDe(v);
+                        const total = lista.length;
+                        const ok = lista.filter((p) => p.confirmado).length;
                         if (!total) return <span className="text-muted-foreground">—</span>;
                         return (
                           <span
