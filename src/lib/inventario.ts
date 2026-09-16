@@ -110,10 +110,10 @@ export const fechaLarga = (fecha?: string | null) =>
 /* ---------------- Agrupación comercial de modelos ---------------- */
 
 /** Serie del modelo: "17", "16", "SE", "XR"… Sirve para el filtro principal de Stock. */
-export const serieDeModelo = (modelo?: string | null) => {
+export const serieDeModelo = (modelo?: string | null): string => {
   const m = (modelo ?? "").toLowerCase();
   const num = m.match(/(?:iphone\s*)?(\d{1,2})/);
-  if (num) return num[1];
+  if (num?.[1]) return num[1];
   if (m.includes("se")) return "SE";
   if (m.includes("xs")) return "XS";
   if (m.includes("xr")) return "XR";
