@@ -17,9 +17,14 @@ import {
   CATEGORIA_ETIQUETA,
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
+  FAMILIAS,
   diasEnStock,
+  familiaDeModelo,
+  ordenarSeries,
   puedeVerCostos,
+  serieDeModelo,
   type EquipoEstado,
+  type Familia,
 } from "@/lib/inventario";
 
 const DESC = "Equipos disponibles por tienda, con batería, capacidad y precio de lista.";
@@ -73,6 +78,8 @@ function StockPage() {
   const conCostos = puedeVerCostos(rol) || permisos.tiene(PERMISOS.equiposCosto);
 
   const [busqueda, setBusqueda] = useState("");
+  const [serie, setSerie] = useState<string | null>(null);
+  const [familia, setFamilia] = useState<Familia | null>(null);
   const [extras, setExtras] = useState<EquipoEstado[]>([]);
   const [seleccionado, setSeleccionado] = useState<EquipoFila | null>(null);
   const buscadorRef = useRef<HTMLInputElement>(null);
