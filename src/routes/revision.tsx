@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -114,6 +114,20 @@ function RevisionPage() {
     () => (ventas.data ?? []).find((v) => v.id === abierta) ?? null,
     [ventas.data, abierta],
   );
+
+  /** Confirma o desconfirma un pago puntual (transferencia, efectivo o parte de pago). */
+  const confirmarPago = async (pagoId: string, confirmado: boolean) => {
+    try {
+      const { error } = await supabase.rpc("confirmar_pago", {
+        _pago: pagoId,
+        _confirmado: confirmado,
+      });
+      if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
+      await ventas.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo confirmar el pago");
+    }
+  };
 
   const marcar = async (estado: "revisado" | "problema") => {
     if (!venta) return;
