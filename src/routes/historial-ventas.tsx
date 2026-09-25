@@ -75,13 +75,15 @@ function HistorialVentasPage() {
     },
   });
 
+  /* ganancia y comprobante_numero no están concedidas en la tabla ventas: pedirlas
+     ahí hace fallar la consulta entera. Se leen aparte desde sus vistas. */
   const ventas = useQuery({
     queryKey: ["historial-ventas", desde, hasta],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ventas")
         .select(
-          "id, fecha, total, ganancia, anulada, con_boleta, tienda_id, comprobante_numero, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto), venta_items(id, precio, equipos(imei, modelo, gb), accesorios(nombre))",
+          "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto), venta_items(id, precio, equipos(imei, modelo, gb), accesorios(nombre))",
         )
         .gte("fecha", `${desde}T00:00:00`)
         .lte("fecha", `${hasta}T23:59:59.999`)
@@ -91,6 +93,38 @@ function HistorialVentasPage() {
       return data ?? [];
     },
   });
+
+  const ganancias = useQuery({
+    queryKey: ["historial-ganancias", desde, hasta],
+    enabled: conGanancias,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("v_ventas_full")
+        .select("id, ganancia")
+        .gte("fecha", `${desde}T00:00:00`)
+        .lte("fecha", `${hasta}T23:59:59.999`)
+        .limit(1000);
+      if (error) throw error;
+      return new Map((data ?? []).map((v) => [v.id as string, Number(v.ganancia ?? 0)]));
+    },
+  });
+
+  const numeros = useQuery({
+    queryKey: ["historial-comprobantes", desde, hasta],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("v_comprobantes")
+        .select("id, comprobante_numero")
+        .gte("fecha", `${desde}T00:00:00`)
+        .lte("fecha", `${hasta}T23:59:59.999`)
+        .limit(1000);
+      if (error) throw error;
+      return new Map((data ?? []).map((v) => [v.id as string, v.comprobante_numero ?? ""]));
+    },
+  });
+
+  const gananciaDe = (id: string) => ganancias.data?.get(id) ?? 0;
+  const numeroDe = (id: string) => numeros.data?.get(id) ?? "";
 
   const nombreTienda = (id?: string | null) =>
     (tiendas.data ?? []).find((t) => t.id === id)?.nombre ?? "Sin tienda";
@@ -104,14 +138,14 @@ function HistorialVentasPage() {
       const textos = [
         v.clientes?.nombre ?? "",
         v.usuarios?.nombre ?? "",
-        v.comprobante_numero ?? "",
+        numeroDe(v.id),
         ...(v.venta_items ?? []).map(
           (i) => `${i.equipos?.imei ?? ""} ${i.equipos?.modelo ?? ""} ${i.accesorios?.nombre ?? ""}`,
         ),
       ];
       return textos.join(" ").toLowerCase().includes(q);
     });
-  }, [ventas.data, busqueda, tiendaFiltro, conAnuladas]);
+  }, [ventas.data, numeros.data, busqueda, tiendaFiltro, conAnuladas]);
 
   const porTienda = useMemo(() => {
     const mapa = new Map<
@@ -125,12 +159,12 @@ function HistorialVentasPage() {
       grupo.filas.push(v);
       if (!v.anulada) {
         grupo.total += v.total ?? 0;
-        grupo.ganancia += v.ganancia ?? 0;
+        grupo.ganancia += gananciaDe(v.id);
       }
       mapa.set(clave, grupo);
     });
     return [...mapa.values()].sort((a, b) => b.total - a.total);
-  }, [filas, tiendas.data]);
+  }, [filas, tiendas.data, ganancias.data]);
 
   const totalGeneral = porTienda.reduce((s, g) => s + g.total, 0);
   const gananciaGeneral = porTienda.reduce((s, g) => s + g.ganancia, 0);
@@ -171,6 +205,8 @@ function HistorialVentasPage() {
     }
     toast.success("Venta eliminada");
     void ventas.refetch();
+    void ganancias.refetch();
+    void numeros.refetch();
   };
 
   return (
@@ -279,7 +315,23 @@ function HistorialVentasPage() {
         </div>
       )}
 
-      {!ventas.isLoading && !porTienda.length && (
+      {ventas.isError && (
+        <div className="mt-6 rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-200">
+          <p className="font-medium">No pudimos cargar el historial de ventas.</p>
+          <p className="mt-1 text-xs text-red-200/80">
+            {ventas.error instanceof Error ? ventas.error.message : "Inténtalo otra vez."}
+          </p>
+          <button
+            type="button"
+            onClick={() => void ventas.refetch()}
+            className="mt-3 rounded-full border border-red-400/30 px-3 py-1 text-xs hover:text-red-100"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {!ventas.isLoading && !ventas.isError && !porTienda.length && (
         <div className="solid-panel mt-6 overflow-hidden py-10">
           <EstadoVacio
             icono={Receipt}
@@ -336,7 +388,7 @@ function HistorialVentasPage() {
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>
                     {conGanancias && (
                       <td className="num px-4 py-2.5 text-right text-[var(--positive)]">
-                        {formatCLP(v.ganancia ?? 0)}
+                        {formatCLP(gananciaDe(v.id))}
                       </td>
                     )}
                     <td className="px-4 py-2.5">

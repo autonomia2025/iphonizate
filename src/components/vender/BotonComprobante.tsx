@@ -6,6 +6,24 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { enlaceComprobante } from "@/lib/comprobante.functions";
 
+/**
+ * Abre la pestaña en el mismo clic y la apunta al PDF cuando llega el enlace.
+ * Abrirla después del await la deja fuera del gesto del usuario y Safari la
+ * bloquea sin avisar.
+ */
+export async function abrirEnPestana(obtenerUrl: () => Promise<string>) {
+  const pestana = window.open("", "_blank");
+  if (pestana) pestana.opener = null;
+  try {
+    const url = await obtenerUrl();
+    if (pestana) pestana.location.href = url;
+    else window.location.assign(url);
+  } catch (e) {
+    pestana?.close();
+    throw e;
+  }
+}
+
 /** Abre el PDF del comprobante de una venta; lo genera si aún no existe. */
 export function BotonComprobante({ ventaId }: { ventaId: string }) {
   const pedirEnlace = useServerFn(enlaceComprobante);
@@ -14,8 +32,7 @@ export function BotonComprobante({ ventaId }: { ventaId: string }) {
   const abrir = async () => {
     setCargando(true);
     try {
-      const { url } = (await pedirEnlace({ data: { ventaId } })) as { url: string };
-      window.open(url, "_blank", "noopener");
+      await abrirEnPestana(async () => (await pedirEnlace({ data: { ventaId } })).url);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo abrir el comprobante");
     } finally {

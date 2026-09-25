@@ -69,16 +69,26 @@ export const enlaceComprobante = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    const { data: venta, error } = await context.supabase
+    /* comprobante_ruta no está concedida a los usuarios: con su sesión solo se
+       comprueba que ven la venta, y la ruta se lee con el cliente de servidor. */
+    const { data: visible, error } = await context.supabase
       .from("ventas")
-      .select("id, comprobante_ruta")
+      .select("id")
       .eq("id", data.ventaId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!venta) throw new Error("No tienes acceso a esta venta");
+    if (!visible) throw new Error("No tienes acceso a esta venta");
 
     try {
-      if (!venta.comprobante_ruta) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: venta, error: errorRuta } = await supabaseAdmin
+        .from("ventas")
+        .select("comprobante_ruta")
+        .eq("id", data.ventaId)
+        .maybeSingle();
+      if (errorRuta) throw new Error(errorRuta.message);
+
+      if (!venta?.comprobante_ruta) {
         const { generarYGuardar } = await import("@/lib/comprobante.server");
         const { url } = await generarYGuardar(data.ventaId);
         return { url };

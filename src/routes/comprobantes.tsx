@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { abrirEnPestana } from "@/components/vender/BotonComprobante";
 import { emitirComprobante, enlaceComprobante } from "@/lib/comprobante.functions";
 import { formatCLP } from "@/lib/stores";
 import { fechaLarga } from "@/lib/inventario";
@@ -68,8 +69,7 @@ function ComprobantesPage() {
   const verPdf = async (ventaId: string) => {
     setOcupado(ventaId);
     try {
-      const { url } = await abrirEnlace({ data: { ventaId } });
-      window.open(url, "_blank", "noopener");
+      await abrirEnPestana(async () => (await abrirEnlace({ data: { ventaId } })).url);
     } catch (e) {
       toast.error("No se pudo abrir el comprobante", {
         description: e instanceof Error ? e.message : undefined,
