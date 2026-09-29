@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { BotonComprobante } from "@/components/vender/BotonComprobante";
+import { CorregirPagoModal, type PagoCorregible } from "@/components/vender/CorregirPagoModal";
 import { EstadoVacio, SkeletonFilas } from "@/components/motion";
 import { formatCLP } from "@/lib/stores";
 import { METODO_ETIQUETA, puedeVerGanancias, type MetodoPago } from "@/lib/pos";
@@ -54,13 +55,14 @@ function HistorialVentasPage() {
   const [tiendaFiltro, setTiendaFiltro] = useState("todas");
   const [conAnuladas, setConAnuladas] = useState(false);
   const [borrando, setBorrando] = useState<string | null>(null);
+  const [corrigiendo, setCorrigiendo] = useState<PagoCorregible[] | null>(null);
 
-  /* Solo Renato y Liz pueden eliminar ventas: lo decide la base de datos */
+  /* Renato, Liz y Valentina pueden eliminar ventas y corregir pagos: lo decide la base de datos */
   const permisoBorrar = useQuery({
-    queryKey: ["puede_borrar_equipos"],
+    queryKey: ["puede_corregir_ventas"],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("puede_borrar_equipos");
+      const { data, error } = await supabase.rpc("puede_corregir_ventas");
       if (error) throw error;
       return data === true;
     },
@@ -83,7 +85,7 @@ function HistorialVentasPage() {
       const { data, error } = await supabase
         .from("ventas")
         .select(
-          "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto), venta_items(id, precio, equipos(imei, modelo, gb), accesorios(nombre))",
+          "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb), accesorios(nombre))",
         )
         .gte("fecha", `${desde}T00:00:00`)
         .lte("fecha", `${hasta}T23:59:59.999`)
@@ -384,7 +386,27 @@ function HistorialVentasPage() {
                     <td className="px-4 py-2.5 text-muted-foreground">
                       {v.usuarios?.nombre ?? "—"}
                     </td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{metodos(v.pagos)}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">
+                      {metodos(v.pagos)}
+                      {puedeEliminar && !v.anulada && (v.pagos ?? []).length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCorrigiendo(
+                              (v.pagos ?? []).map((p) => ({
+                                id: p.id,
+                                metodo: p.metodo as MetodoPago,
+                                monto: p.monto,
+                                nombre_pagador: p.nombre_pagador,
+                              })),
+                            )
+                          }
+                          className="ml-2 text-xs text-[var(--accent-store)] hover:underline"
+                        >
+                          Corregir
+                        </button>
+                      )}
+                    </td>
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>
                     {conGanancias && (
                       <td className="num px-4 py-2.5 text-right text-[var(--positive)]">
@@ -418,6 +440,12 @@ function HistorialVentasPage() {
           </div>
         </section>
       ))}
+
+      <CorregirPagoModal
+        pagos={corrigiendo}
+        onCerrar={() => setCorrigiendo(null)}
+        onGuardado={() => void ventas.refetch()}
+      />
     </div>
   );
 }

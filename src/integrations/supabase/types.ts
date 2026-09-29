@@ -2773,6 +2773,14 @@ export type Database = {
         Args: { _confirmado: boolean; _pago: string }
         Returns: undefined
       }
+      corregir_pago: {
+        Args: {
+          _metodo: Database["public"]["Enums"]["metodo_pago"]
+          _nombre_pagador?: string | null
+          _pago: string
+        }
+        Returns: undefined
+      }
       crear_garantia: {
         Args: {
           _cliente_nombre: string
@@ -2868,6 +2876,7 @@ export type Database = {
       mi_usuario_id: { Args: never; Returns: string }
       puede_borrar_equipos: { Args: never; Returns: boolean }
       puede_cartera: { Args: { _tienda: string }; Returns: boolean }
+      puede_corregir_ventas: { Args: never; Returns: boolean }
       puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
       registrar_acceso_finanzas: {
