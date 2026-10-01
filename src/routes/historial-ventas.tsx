@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Receipt, Search, Trash2 } from "lucide-react";
+import { FileSpreadsheet, Receipt, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { BotonComprobante } from "@/components/vender/BotonComprobante";
 import { CorregirPagoModal, type PagoCorregible } from "@/components/vender/CorregirPagoModal";
+import { ImportarVentasModal } from "@/components/vender/ImportarVentasModal";
 import { EstadoVacio, SkeletonFilas } from "@/components/motion";
 import { formatCLP } from "@/lib/stores";
 import { METODO_ETIQUETA, puedeVerGanancias, type MetodoPago } from "@/lib/pos";
@@ -56,6 +57,7 @@ function HistorialVentasPage() {
   const [conAnuladas, setConAnuladas] = useState(false);
   const [borrando, setBorrando] = useState<string | null>(null);
   const [corrigiendo, setCorrigiendo] = useState<PagoCorregible[] | null>(null);
+  const [importando, setImportando] = useState(false);
 
   /* Renato, Liz y Valentina pueden eliminar ventas y corregir pagos: lo decide la base de datos */
   const permisoBorrar = useQuery({
@@ -71,7 +73,7 @@ function HistorialVentasPage() {
   const tiendas = useQuery({
     queryKey: ["tiendas-historial"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tiendas").select("id, nombre").order("nombre");
+      const { data, error } = await supabase.from("tiendas").select("id, nombre, es_bodega").order("nombre");
       if (error) throw error;
       return data ?? [];
     },
@@ -218,7 +220,16 @@ function HistorialVentasPage() {
           <h1 className="font-display text-2xl font-semibold">Historial de ventas</h1>
           <p className="mt-1 text-sm text-muted-foreground">{DESC}</p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-end gap-3">
+          {puedeEliminar && (
+            <button
+              type="button"
+              onClick={() => setImportando(true)}
+              className="glass flex items-center gap-2 px-4 py-3 text-sm transition-colors duration-200 hover:border-[var(--accent-store)]/50"
+            >
+              <FileSpreadsheet className="size-4 text-[var(--accent-store)]" /> Importar ventas
+            </button>
+          )}
           <div className="glass px-5 py-3 text-right">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Ventas</p>
             <p className="num font-display text-2xl font-semibold">{ventasValidas}</p>
@@ -445,6 +456,21 @@ function HistorialVentasPage() {
         pagos={corrigiendo}
         onCerrar={() => setCorrigiendo(null)}
         onGuardado={() => void ventas.refetch()}
+      />
+
+      <ImportarVentasModal
+        abierto={importando}
+        onCerrar={() => setImportando(false)}
+        tiendas={tiendas.data ?? []}
+        puedeCostos={conGanancias}
+        onImportado={(rango) => {
+          setDesde(rango.desde);
+          setHasta(rango.hasta);
+          setConAnuladas(false);
+          void ventas.refetch();
+          void ganancias.refetch();
+          void numeros.refetch();
+        }}
       />
     </div>
   );

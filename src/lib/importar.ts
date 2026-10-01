@@ -50,18 +50,30 @@ const sinTildes = (v: string) =>
 
 export const normalizarTexto = sinTildes;
 
-export function detectarMapeo(encabezados: string[]): Mapeo {
-  const mapeo: Mapeo = {};
+export const detectarMapeo = (encabezados: string[]): Mapeo => detectarColumnas(encabezados, CAMPOS);
+
+/** Asigna a cada campo la primera columna del archivo que calza con alguno de sus alias. */
+export function detectarColumnas<C extends string>(
+  encabezados: string[],
+  campos: { campo: C; alias: string[] }[],
+): Partial<Record<C, string>> {
+  const mapeo: Partial<Record<C, string>> = {};
   const usados = new Set<string>();
-  for (const { campo, alias } of CAMPOS) {
-    const hit = encabezados.find((h) => {
-      if (usados.has(h)) return false;
-      const limpio = sinTildes(String(h));
-      return alias.some((a) => limpio === sinTildes(a)) || alias.some((a) => limpio.includes(sinTildes(a)));
-    });
-    if (hit) {
-      mapeo[campo] = hit;
-      usados.add(hit);
+  /* Primero los nombres exactos, después los parecidos: así "Teléfono cliente" no le gana a "Cliente" */
+  const pasadas = [
+    (limpio: string, a: string) => limpio === a,
+    (limpio: string, a: string) => limpio.includes(a),
+  ];
+  for (const calza of pasadas) {
+    for (const { campo, alias } of campos) {
+      if (mapeo[campo]) continue;
+      const hit = encabezados.find(
+        (h) => !usados.has(h) && alias.some((a) => calza(sinTildes(String(h)), sinTildes(a))),
+      );
+      if (hit) {
+        mapeo[campo] = hit;
+        usados.add(hit);
+      }
     }
   }
   return mapeo;

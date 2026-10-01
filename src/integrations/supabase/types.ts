@@ -2107,6 +2107,7 @@ export type Database = {
       ventas: {
         Row: {
           anulada: boolean
+          clave_importacion: string | null
           cliente_id: string | null
           comprobante_email: string | null
           comprobante_email_at: string | null
@@ -2127,6 +2128,7 @@ export type Database = {
         }
         Insert: {
           anulada?: boolean
+          clave_importacion?: string | null
           cliente_id?: string | null
           comprobante_email?: string | null
           comprobante_email_at?: string | null
@@ -2147,6 +2149,7 @@ export type Database = {
         }
         Update: {
           anulada?: boolean
+          clave_importacion?: string | null
           cliente_id?: string | null
           comprobante_email?: string | null
           comprobante_email_at?: string | null
@@ -2855,6 +2858,10 @@ export type Database = {
       guardar_verificacion_equipo: {
         Args: { _datos: Json; _imei: string; _riesgo_aceptado?: boolean }
         Returns: string
+      }
+      importar_ventas: {
+        Args: { _probar?: boolean; _ventas: Json }
+        Returns: Json
       }
       login_lookup: {
         Args: { _pin: string; _usuario: string }
