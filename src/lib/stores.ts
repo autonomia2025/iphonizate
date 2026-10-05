@@ -30,6 +30,13 @@ export const STORES: Store[] = [
     accentSoft: "oklch(0.769 0.163 70.1 / 0.18)",
   },
   {
+    id: "pro-iphone",
+    nombre: "Pro iPhone",
+    hex: "#16A34A",
+    accent: "oklch(0.627 0.17 149.2)",
+    accentSoft: "oklch(0.627 0.17 149.2 / 0.18)",
+  },
+  {
     id: "bodega",
     nombre: "Oficina Central",
     hex: "#7DD3FC",
@@ -54,6 +61,7 @@ export const CONTACTO_TIENDA: Record<string, ContactoTienda> = {
   "black-pink-phone": {},
   riffstore: {},
   iphonizate: {},
+  "pro-iphone": {},
   bodega: {},
 };
 

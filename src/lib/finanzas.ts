@@ -22,12 +22,18 @@ export function useRegistrarAccesoFinanzas(seccion: string, activo: boolean) {
 
 /* ------------------------------------------------------ Marcas y prorrateo */
 
-export type Asignacion = "compartido" | "iphonizate" | "black-pink-phone" | "riffstore";
+export type Asignacion =
+  | "compartido"
+  | "iphonizate"
+  | "black-pink-phone"
+  | "riffstore"
+  | "pro-iphone";
 
 export const MARCAS: { valor: Asignacion; label: string }[] = [
   { valor: "iphonizate", label: "iPhonizate" },
   { valor: "black-pink-phone", label: "Black Pink Phone" },
   { valor: "riffstore", label: "Riffstore" },
+  { valor: "pro-iphone", label: "Pro iPhone" },
 ];
 
 export const ASIGNACIONES: { valor: Asignacion; label: string }[] = [
@@ -190,7 +196,7 @@ export const fechaLarga = (f: Date) =>
 /* --------------------------------------------------------- Reparto por marca */
 
 /** Marcas realmente en operación: las que existen como tienda en el sistema.
- *  Si no hay datos todavía, se usan las tres marcas del catálogo. */
+ *  Si no hay datos todavía, se usan todas las marcas del catálogo. */
 export function marcasActivas(slugs?: (string | null | undefined)[]) {
   if (!slugs || slugs.length === 0) return MARCAS;
   const set = new Set(slugs.filter(Boolean) as string[]);
