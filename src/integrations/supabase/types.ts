@@ -2779,7 +2779,7 @@ export type Database = {
       corregir_pago: {
         Args: {
           _metodo: Database["public"]["Enums"]["metodo_pago"]
-          _nombre_pagador?: string | null
+          _nombre_pagador?: string
           _pago: string
         }
         Returns: undefined
