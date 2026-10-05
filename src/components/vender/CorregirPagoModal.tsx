@@ -60,7 +60,7 @@ export function CorregirPagoModal({
       const { error } = await supabase.rpc("corregir_pago", {
         _pago: p.id,
         _metodo: f.metodo,
-        _nombre_pagador: pideNombre(f.metodo) ? f.nombre.trim() : null,
+        _nombre_pagador: pideNombre(f.metodo) ? f.nombre.trim() : undefined,
       });
       if (error) {
         setGuardando(false);
