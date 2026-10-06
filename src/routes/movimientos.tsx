@@ -376,7 +376,7 @@ function MovimientosPage() {
           >
             {guardando
               ? "Trasladando…"
-              : `Confirmar traslado de ${lista.length} equipo${lista.length === 1 ? "" : "s"}`}
+              : `Trasladar ${lista.length} equipo${lista.length === 1 ? "" : "s"}${destino ? ` a ${nombreTienda(destino)}` : ""}`}
           </Button>
         </section>
       )}
