@@ -91,7 +91,8 @@ function VenderPage() {
         .select(
           "id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso, icloud_activo, lista_negra",
         )
-
+        /* Solo los disponibles: traer también los vendidos hacía lenta la pantalla */
+        .eq("estado", "DISPONIBLE")
         .order("fecha_ingreso", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -287,27 +288,35 @@ function VenderPage() {
     });
   };
 
-  const escanear = (valor: string) => {
+  const escanear = async (valor: string) => {
     const imei = valor.replace(/\D/g, "");
     if (imei.length !== 15) return;
     const equipo = (stock.data ?? []).find((e) => e.imei === imei);
-    if (!equipo || !equipo.id) {
-      toast.error(`No existe ningún equipo con el IMEI ${imei}`);
+    if (!equipo || !equipo.id || equipo.ubicacion_id !== tiendaActiva?.id) {
+      /* La lista solo trae disponibles: si no está, se busca ese IMEI para decir dónde está */
+      const { data: otro } = equipo
+        ? { data: equipo }
+        : await supabase
+            .from("v_stock")
+            .select("id, estado, ubicacion_id")
+            .eq("imei", imei)
+            .maybeSingle();
       setBusqueda("");
-      return;
-    }
-    if (equipo.estado !== "DISPONIBLE") {
-      toast.error(
-        `Ese equipo está ${ESTADO_ETIQUETA[(equipo.estado ?? "POR_REVISAR") as EquipoEstado].toLowerCase()} en ${nombreTienda(equipo.ubicacion_id)}`,
-      );
-      setBusqueda("");
-      return;
-    }
-    if (equipo.ubicacion_id !== tiendaActiva?.id) {
-      toast.warning(
-        `Ese equipo está en ${nombreTienda(equipo.ubicacion_id)}. Puedes consultarlo, pero no venderlo desde ${store.nombre}: trasládalo primero.`,
-      );
-      setBusqueda("");
+      if (!otro?.id) {
+        toast.error(`No existe ningún equipo con el IMEI ${imei}`);
+      } else if (otro.estado !== "DISPONIBLE") {
+        toast.error(
+          `Ese equipo está ${ESTADO_ETIQUETA[(otro.estado ?? "POR_REVISAR") as EquipoEstado].toLowerCase()} en ${nombreTienda(otro.ubicacion_id)}`,
+        );
+      } else if (otro.ubicacion_id !== tiendaActiva?.id) {
+        toast.warning(
+          `Ese equipo está en ${nombreTienda(otro.ubicacion_id)}. Puedes consultarlo, pero no venderlo desde ${store.nombre}: trasládalo primero.`,
+        );
+      } else {
+        /* Quedó disponible recién: se actualiza la lista y se pide escanear de nuevo */
+        void stock.refetch();
+        toast.info("Actualizando la lista: vuelve a escanear el equipo");
+      }
       return;
     }
     agregarEquipo({
@@ -389,12 +398,12 @@ function VenderPage() {
                 onChange={(e) => {
                   setBusqueda(e.target.value);
                   const limpio = e.target.value.replace(/\D/g, "");
-                  if (limpio.length === 15 && pestana === "equipos") escanear(limpio);
+                  if (limpio.length === 15 && pestana === "equipos") void escanear(limpio);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    escanear(busqueda);
+                    void escanear(busqueda);
                   }
                 }}
                 placeholder="Buscar por modelo o IMEI..."

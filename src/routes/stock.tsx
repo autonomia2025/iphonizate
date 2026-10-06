@@ -80,6 +80,7 @@ function StockPage() {
   const [busqueda, setBusqueda] = useState("");
   const [serie, setSerie] = useState<string | null>(null);
   const [familia, setFamilia] = useState<Familia | null>(null);
+  const [gb, setGb] = useState<number | null>(null);
   const [extras, setExtras] = useState<EquipoEstado[]>([]);
   const [seleccionado, setSeleccionado] = useState<EquipoFila | null>(null);
   const buscadorRef = useRef<HTMLInputElement>(null);
@@ -211,14 +212,27 @@ function StockPage() {
     return FAMILIAS.filter((f) => mapa.has(f)).map((f) => ({ familia: f, total: mapa.get(f) ?? 0 }));
   }, [visiblesBase, serie]);
 
+  /** Capacidades presentes con su conteo, dentro de la serie y modelo elegidos. */
+  const capacidades = useMemo(() => {
+    const mapa = new Map<number, number>();
+    visiblesBase.forEach((e) => {
+      if (e.gb == null) return;
+      if (serie && serieDeModelo(e.modelo) !== serie) return;
+      if (familia && familiaDeModelo(e.modelo) !== familia) return;
+      mapa.set(e.gb, (mapa.get(e.gb) ?? 0) + 1);
+    });
+    return [...mapa.entries()].sort((a, b) => a[0] - b[0]).map(([valor, total]) => ({ valor, total }));
+  }, [visiblesBase, serie, familia]);
+
   const filtradas = useMemo(
     () =>
       visiblesBase.filter((e) => {
         if (serie && serieDeModelo(e.modelo) !== serie) return false;
         if (familia && familiaDeModelo(e.modelo) !== familia) return false;
+        if (gb != null && e.gb !== gb) return false;
         return true;
       }),
-    [visiblesBase, serie, familia],
+    [visiblesBase, serie, familia, gb],
   );
 
   const porTienda = useMemo(() => {
@@ -325,6 +339,24 @@ function StockPage() {
           ))}
           {!familias.length && (
             <span className="text-xs text-muted-foreground">Sin equipos en esta serie</span>
+          )}
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">Capacidad</span>
+          <Chip activo={gb === null} onClick={() => setGb(null)}>
+            Todas
+          </Chip>
+          {capacidades.map((c) => (
+            <Chip key={c.valor} activo={gb === c.valor} onClick={() => setGb(gb === c.valor ? null : c.valor)}>
+              {c.valor >= 1024 ? `${c.valor / 1024} TB` : `${c.valor} GB`}{" "}
+              <span className="num opacity-70">{c.total}</span>
+            </Chip>
+          ))}
+          {gb !== null && !capacidades.some((c) => c.valor === gb) && (
+            <span className="text-xs text-muted-foreground">
+              Sin equipos de {gb >= 1024 ? `${gb / 1024} TB` : `${gb} GB`} con estos filtros
+            </span>
           )}
         </div>
 

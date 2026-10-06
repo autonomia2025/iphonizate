@@ -2115,10 +2115,12 @@ export type Database = {
           comprobante_numero: string | null
           comprobante_ruta: string | null
           con_boleta: boolean
+          envio_detalle: string | null
           fecha: string
           fecha_anulacion: string | null
           ganancia: number
           id: string
+          modalidad: string
           recargo_boleta: number
           reserva_id: string | null
           revision: string | null
@@ -2136,10 +2138,12 @@ export type Database = {
           comprobante_numero?: string | null
           comprobante_ruta?: string | null
           con_boleta?: boolean
+          envio_detalle?: string | null
           fecha?: string
           fecha_anulacion?: string | null
           ganancia?: number
           id?: string
+          modalidad?: string
           recargo_boleta?: number
           reserva_id?: string | null
           revision?: string | null
@@ -2157,10 +2161,12 @@ export type Database = {
           comprobante_numero?: string | null
           comprobante_ruta?: string | null
           con_boleta?: boolean
+          envio_detalle?: string | null
           fecha?: string
           fecha_anulacion?: string | null
           ganancia?: number
           id?: string
+          modalidad?: string
           recargo_boleta?: number
           reserva_id?: string | null
           revision?: string | null

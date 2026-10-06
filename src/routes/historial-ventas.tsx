@@ -87,7 +87,7 @@ function HistorialVentasPage() {
       const { data, error } = await supabase
         .from("ventas")
         .select(
-          "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb), accesorios(nombre))",
+          "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb, color), accesorios(nombre))",
         )
         .gte("fecha", `${desde}T00:00:00`)
         .lte("fecha", `${hasta}T23:59:59.999`)
@@ -127,6 +127,23 @@ function HistorialVentasPage() {
     },
   });
 
+  /* Presencial o envío va en su propia consulta: si falla, el historial se ve igual */
+  const entregas = useQuery({
+    queryKey: ["historial-entregas", desde, hasta],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ventas")
+        .select("id, modalidad, envio_detalle")
+        .eq("modalidad", "envio")
+        .gte("fecha", `${desde}T00:00:00`)
+        .lte("fecha", `${hasta}T23:59:59.999`)
+        .limit(1000);
+      if (error) return new Map<string, string>();
+      return new Map((data ?? []).map((v) => [v.id, v.envio_detalle ?? ""]));
+    },
+  });
+  const envioDe = (id: string) => entregas.data?.get(id);
+
   const gananciaDe = (id: string) => ganancias.data?.get(id) ?? 0;
   const numeroDe = (id: string) => numeros.data?.get(id) ?? "";
 
@@ -143,13 +160,17 @@ function HistorialVentasPage() {
         v.clientes?.nombre ?? "",
         v.usuarios?.nombre ?? "",
         numeroDe(v.id),
+        nombreTienda(v.tienda_id),
+        envioDe(v.id) != null ? `envio ${envioDe(v.id)}` : "presencial",
         ...(v.venta_items ?? []).map(
-          (i) => `${i.equipos?.imei ?? ""} ${i.equipos?.modelo ?? ""} ${i.accesorios?.nombre ?? ""}`,
+          (i) =>
+            `${i.equipos?.imei ?? ""} ${i.equipos?.modelo ?? ""} ${i.equipos?.color ?? ""} ${i.accesorios?.nombre ?? ""}`,
         ),
       ];
       return textos.join(" ").toLowerCase().includes(q);
     });
-  }, [ventas.data, numeros.data, busqueda, tiendaFiltro, conAnuladas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ventas.data, numeros.data, entregas.data, tiendas.data, busqueda, tiendaFiltro, conAnuladas]);
 
   const porTienda = useMemo(() => {
     const mapa = new Map<
@@ -174,15 +195,29 @@ function HistorialVentasPage() {
   const gananciaGeneral = porTienda.reduce((s, g) => s + g.ganancia, 0);
   const ventasValidas = filas.filter((v) => !v.anulada).length;
 
-  const detalle = (v: (typeof filas)[number]) =>
-    (v.venta_items ?? [])
-      .map((i) =>
-        i.equipos
-          ? `${i.equipos.modelo ?? ""}${i.equipos.gb ? ` ${i.equipos.gb} GB` : ""}`
-          : (i.accesorios?.nombre ?? ""),
-      )
-      .filter(Boolean)
-      .join(" · ") || "—";
+  /* Cada producto en su línea; los equipos con color e IMEI a la vista */
+  const detalle = (v: (typeof filas)[number]) => {
+    const items = v.venta_items ?? [];
+    if (items.length === 0) return "—";
+    return items.map((i) =>
+      i.equipos ? (
+        <span key={i.id} className="block">
+          {i.equipos.modelo ?? ""}
+          {i.equipos.gb ? ` ${i.equipos.gb} GB` : ""}
+          {i.equipos.color ? <span className="text-muted-foreground"> · {i.equipos.color}</span> : null}
+          {i.equipos.imei && (
+            <span className="num block text-xs tracking-[0.04em] text-muted-foreground">
+              {i.equipos.imei}
+            </span>
+          )}
+        </span>
+      ) : (
+        <span key={i.id} className="block">
+          {i.accesorios?.nombre ?? "Accesorio"}
+        </span>
+      ),
+    );
+  };
 
   const metodos = (pagos: { metodo: string }[] | null) =>
     [...new Set((pagos ?? []).map((p) => METODO_ETIQUETA[p.metodo as MetodoPago] ?? p.metodo))].join(
@@ -259,7 +294,7 @@ function HistorialVentasPage() {
             <input
               className={`${campo} pl-10`}
               value={busqueda}
-              placeholder="Cliente, vendedor, IMEI, modelo o N° de comprobante"
+              placeholder="Cliente, vendedor, IMEI, modelo, color o N° de comprobante"
               aria-label="Buscar en el historial"
               onChange={(e) => setBusqueda(e.target.value)}
             />
@@ -373,10 +408,12 @@ function HistorialVentasPage() {
               <thead>
                 <tr className="border-b border-white/8 text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3 font-medium">Fecha</th>
+                  <th className="px-4 py-3 font-medium">Tienda</th>
                   <th className="px-4 py-3 font-medium">Detalle</th>
                   <th className="px-4 py-3 font-medium">Cliente</th>
                   <th className="px-4 py-3 font-medium">Vendedor</th>
                   <th className="px-4 py-3 font-medium">Pagos</th>
+                  <th className="px-4 py-3 font-medium">Entrega</th>
                   <th className="px-4 py-3 text-right font-medium">Total</th>
                   {conGanancias && <th className="px-4 py-3 text-right font-medium">Ganancia</th>}
                   <th className="px-4 py-3 font-medium">Comprobante</th>
@@ -391,7 +428,12 @@ function HistorialVentasPage() {
                       v.anulada ? "text-muted-foreground line-through" : ""
                     }`}
                   >
-                    <td className="num px-4 py-2.5 text-muted-foreground">{fechaHora(v.fecha)}</td>
+                    <td className="num px-4 py-2.5 align-top text-muted-foreground">
+                      {fechaHora(v.fecha)}
+                    </td>
+                    <td className="px-4 py-2.5 align-top text-muted-foreground">
+                      {nombreTienda(v.tienda_id)}
+                    </td>
                     <td className="px-4 py-2.5">{detalle(v)}</td>
                     <td className="px-4 py-2.5">{v.clientes?.nombre ?? "Sin cliente"}</td>
                     <td className="px-4 py-2.5 text-muted-foreground">
@@ -416,6 +458,16 @@ function HistorialVentasPage() {
                         >
                           Corregir
                         </button>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-muted-foreground">
+                      {envioDe(v.id) != null ? (
+                        <>
+                          <span className="text-foreground">Envío</span>
+                          {envioDe(v.id) && <span className="block max-w-56 text-xs">{envioDe(v.id)}</span>}
+                        </>
+                      ) : (
+                        "Presencial"
                       )}
                     </td>
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>

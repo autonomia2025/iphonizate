@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { PackageCheck, Pencil, Printer, Trash2, Warehouse } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,14 @@ import {
   type ServicioTipo,
 } from "@/lib/inventario";
 import { VerificacionEquipo, type VerificacionFila } from "@/components/inventario/VerificacionEquipo";
+import {
+  ETIQUETA_CAMPO,
+  camposCambiados,
+  camposQueNoQuedaron,
+  formDesde,
+  valorDe,
+  type EditForm,
+} from "@/lib/equipoFicha";
 
 export type EquipoFila = VerificacionFila & {
   id: string;
@@ -57,27 +66,13 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: ReactNode }) {
   );
 }
 
-type EditForm = {
-  modelo: string;
-  gb: string;
-  color: string;
-  bateria: string;
-  categoria: string;
-  email_vinculado: string;
-  proveedor: string;
-  lote: string;
-  notas: string;
-  ubicacion_id: string;
-  costo: string;
-};
-
-export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
+export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCambio }: {
   equipo: EquipoFila | null;
   onCerrar: () => void;
   puedeCostos: boolean;
   onCambio?: () => void;
 }) {
-  const id = equipo?.id;
+  const id = equipoLista?.id;
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
   const queryClient = useQueryClient();
@@ -107,6 +102,40 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
     },
   });
 
+  /* La ficha se lee fresca de la base al abrirla y después de guardar: la fila de la lista
+     no trae notas, proveedor, lote ni email a quien no ve costos, y al guardar se borraban. */
+  const ficha = useQuery({
+    queryKey: ["equipo_ficha", id, puedeCostos],
+    enabled: !!id,
+    queryFn: async () => {
+      const [base, conCosto] = await Promise.all([
+        supabase
+          .from("equipos")
+          .select("modelo, gb, color, bateria, categoria, email_vinculado, proveedor, lote, notas, ubicacion_id")
+          .eq("id", id!)
+          .maybeSingle(),
+        puedeCostos
+          ? supabase.from("v_equipos_full").select("costo").eq("id", id!).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+      if (base.error) throw base.error;
+      if (!base.data) return null;
+      return { ...base.data, costo: conCosto.data?.costo ?? null };
+    },
+  });
+
+  const equipo: EquipoFila | null = useMemo(() => {
+    if (!equipoLista) return null;
+    if (!ficha.data) return equipoLista;
+    const ubicacion = ficha.data.ubicacion_id;
+    return {
+      ...equipoLista,
+      ...ficha.data,
+      modelo: ficha.data.modelo ?? equipoLista.modelo,
+      tienda: (tiendas.data ?? []).find((t) => t.id === ubicacion)?.nombre ?? equipoLista.tienda,
+    };
+  }, [equipoLista, ficha.data, tiendas.data]);
+
   /* Solo Renato y Liz pueden borrar equipos: lo decide la base de datos */
   const permisoBorrar = useQuery({
     queryKey: ["puede_borrar_equipos"],
@@ -129,31 +158,25 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
   const puedeEliminar = !!equipo && permisoBorrar.data === true;
 
   useEffect(() => {
-    if (!equipo) {
+    if (!id) {
       setEditando(false);
       setForm(null);
-      return;
     }
-    setForm({
-      modelo: equipo.modelo,
-      gb: equipo.gb == null ? "" : String(equipo.gb),
-      color: equipo.color ?? "",
-      bateria: equipo.bateria == null ? "" : String(equipo.bateria),
-      categoria: equipo.categoria ?? "seminuevo",
-      email_vinculado: equipo.email_vinculado ?? "",
-      proveedor: equipo.proveedor ?? "",
-      lote: equipo.lote ?? "",
-      notas: equipo.notas ?? "",
-      ubicacion_id: equipo.ubicacion_id ?? "",
-      costo: equipo.costo == null ? "" : String(equipo.costo),
-    });
-  }, [equipo]);
+  }, [id]);
+
+  /* El formulario se rellena con lo que hay en la base, nunca mientras se está escribiendo */
+  useEffect(() => {
+    if (!equipo || editando) return;
+    setForm(formDesde(equipo));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, ficha.dataUpdatedAt, editando]);
 
   const serviciosEtiqueta = useMemo(() => (servicios.data ?? []).filter((s) => s.estado !== "listo").map((s) => SERVICIO_ETIQUETA[s.tipo as ServicioTipo] ?? s.tipo), [servicios.data]);
   const refrescar = () => {
     void servicios.refetch();
     void queryClient.invalidateQueries({ queryKey: ["v_equipo_timeline"] });
     void queryClient.invalidateQueries({ queryKey: ["v_stock"] });
+    void ficha.refetch();
     onCambio?.();
   };
 
@@ -162,25 +185,46 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
       toast.error("Completa el modelo y la ubicación");
       return;
     }
+    if (!ficha.data) {
+      toast.error(
+        ficha.isSuccess
+          ? "Este equipo está en una tienda que tu usuario no puede editar"
+          : "Todavía se está cargando la ficha: espera un segundo y vuelve a guardar",
+      );
+      return;
+    }
+
+    /* Solo se manda lo que cambió: así nunca se pisa un dato que no se tocó */
+    const campos = camposCambiados(formDesde(equipo), form, puedeCostos);
+    if (campos.length === 0) {
+      toast.info("No hay cambios para guardar");
+      setEditando(false);
+      return;
+    }
+    const payload = Object.fromEntries(
+      campos.map((c) => [c, valorDe(c, form)]),
+    ) as TablesUpdate<"equipos">;
+
     setAccion("guardar");
-    const payload = {
-      modelo: form.modelo.trim(),
-      gb: form.gb ? Number(form.gb) : null,
-      color: form.color.trim() || null,
-      bateria: form.bateria ? Math.min(100, Number(form.bateria)) : null,
-      categoria: form.categoria as "sellado" | "openbox" | "seminuevo" | "reacondicionado",
-      email_vinculado: form.email_vinculado.trim() || null,
-      proveedor: form.proveedor.trim() || null,
-      lote: form.lote.trim() || null,
-      notas: form.notas.trim() || null,
-      ubicacion_id: form.ubicacion_id,
-      ...(puedeCostos ? { costo: form.costo ? Number(form.costo) : 0 } : {}),
-    };
     const { error } = await supabase.from("equipos").update(payload).eq("id", equipo.id);
-    setAccion(null);
     if (error) {
+      setAccion(null);
       toast.error("No se pudo actualizar el equipo", { description: error.message.replace(/^.*?:\s*/, "") });
       return;
+    }
+
+    /* Se comprueba contra la base que de verdad quedó guardado */
+    const { data: guardada } = await ficha.refetch();
+    setAccion(null);
+    if (guardada) {
+      const fresco = formDesde({ ...equipo, ...guardada, modelo: guardada.modelo ?? equipo.modelo });
+      const noQuedaron = camposQueNoQuedaron(campos, form, fresco, guardada.costo != null);
+      if (noQuedaron.length > 0) {
+        toast.error("La base de datos no guardó todos los cambios", {
+          description: `No quedó: ${noQuedaron.map((c) => ETIQUETA_CAMPO[c]).join(", ")}. Avísale al administrador.`,
+        });
+        return;
+      }
     }
     toast.success("Equipo actualizado");
     setEditando(false);
@@ -234,7 +278,7 @@ export function EquipoDetalle({ equipo, onCerrar, puedeCostos, onCambio }: {
 
             <div className="mt-4 flex flex-wrap gap-2">
               <Button size="sm" variant="secondary" className="gap-2" onClick={() => setEtiquetaAbierta(true)}><Printer className="size-4" /> Imprimir etiqueta</Button>
-              {rolPuedeOperar && <Button size="sm" variant="ghost" className="gap-2" onClick={() => setEditando((v) => !v)}><Pencil className="size-4" /> {editando ? "Cerrar edición" : "Editar equipo"}</Button>}
+              {rolPuedeOperar && <Button size="sm" variant="ghost" className="gap-2" disabled={!editando && !ficha.data} onClick={() => setEditando((v) => !v)}><Pencil className="size-4" /> {editando ? "Cerrar edición" : "Editar equipo"}</Button>}
               {puedeEliminar && <Button size="sm" variant="ghost" className="gap-2 text-red-300 hover:text-red-200" disabled={accion !== null} onClick={() => void eliminar()}><Trash2 className="size-4" /> {accion === "eliminar" ? "Eliminando…" : "Eliminar"}</Button>}
             </div>
 

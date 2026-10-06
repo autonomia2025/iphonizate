@@ -22,7 +22,9 @@ export type VentaConfirmada = {
   pagos: PagoFila[];
 };
 
-type Falta = { tipo: "pagos" | "nombre"; texto: string; key?: string };
+type Falta = { tipo: "pagos" | "nombre" | "envio"; texto: string; key?: string };
+
+type Modalidad = "presencial" | "envio";
 
 export function PagoModal({
   abierto,
@@ -46,6 +48,8 @@ export function PagoModal({
   const [pagos, setPagos] = useState<PagoFila[]>([]);
   const [guardando, setGuardando] = useState(false);
   const [flashKey, setFlashKey] = useState<string | null>(null);
+  const [modalidad, setModalidad] = useState<Modalidad>("presencial");
+  const [envioDetalle, setEnvioDetalle] = useState("");
   const contenedorRef = useRef<HTMLDivElement>(null);
 
   const sumado = useMemo(() => pagos.reduce((s, p) => s + aNumero(p.monto), 0), [pagos]);
@@ -70,8 +74,10 @@ export function PagoModal({
             : "Falta el nombre de quien transfirió",
         key: sinNombre.key,
       });
+    if (modalidad === "envio" && !envioDetalle.trim())
+      lista.push({ tipo: "envio", texto: "Faltan los datos del envío (dirección y comuna)" });
     return lista;
-  }, [pagos, diferencia, total, sumado]);
+  }, [pagos, diferencia, total, sumado, modalidad, envioDetalle]);
 
   const bloqueado = faltas.length > 0;
 
@@ -160,9 +166,26 @@ export function PagoModal({
         })),
       });
       if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
+      const ventaId = data as unknown as string;
+
+      if (modalidad === "envio") {
+        const { data: marcada, error: errEnvio } = await supabase
+          .from("ventas")
+          .update({ modalidad: "envio", envio_detalle: envioDetalle.trim() })
+          .eq("id", ventaId)
+          .select("id");
+        if (errEnvio || !marcada?.length) {
+          toast.warning("La venta quedó registrada, pero no se guardó que es con envío", {
+            description: errEnvio?.message ?? "Avísale al administrador para marcarla.",
+          });
+        }
+      }
+
       toast.success("Venta registrada");
-      onConfirmada({ id: data as unknown as string, total, pagos });
+      onConfirmada({ id: ventaId, total, pagos });
       setPagos([]);
+      setModalidad("presencial");
+      setEnvioDetalle("");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo registrar la venta");
     } finally {
@@ -298,6 +321,43 @@ export function PagoModal({
           >
             <Plus className="size-4" /> Agregar pago
           </Button>
+
+          <div className="rounded-xl border border-white/8 bg-white/[0.03] p-3">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Entrega</p>
+            <div className="mt-2 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de entrega">
+              {(
+                [
+                  { valor: "presencial", label: "Presencial" },
+                  { valor: "envio", label: "Envío" },
+                ] as const
+              ).map((m) => (
+                <button
+                  key={m.valor}
+                  type="button"
+                  role="radio"
+                  aria-checked={modalidad === m.valor}
+                  onClick={() => setModalidad(m.valor)}
+                  className={`rounded-lg border px-3 py-2 text-sm transition-colors duration-200 ${
+                    modalidad === m.valor
+                      ? "border-[var(--accent-store)]/60 bg-[var(--accent-store-soft)] text-foreground"
+                      : "border-white/10 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+            {modalidad === "envio" && (
+              <textarea
+                value={envioDetalle}
+                onChange={(e) => setEnvioDetalle(e.target.value.slice(0, 300))}
+                rows={2}
+                placeholder="Dirección, comuna y, si aplica, empresa de envío o N° de seguimiento"
+                aria-label="Datos del envío"
+                className="mt-2 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm outline-none focus:border-[var(--accent-store)]/60"
+              />
+            )}
+          </div>
         </div>
 
         <div className="mt-5 space-y-2 border-t border-white/8 pt-4 text-sm">
