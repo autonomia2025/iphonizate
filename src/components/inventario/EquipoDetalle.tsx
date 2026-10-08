@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
 import { EquipoTimeline } from "@/components/inventario/EquipoTimeline";
+import { useConVentaActiva } from "@/components/inventario/useConVentaActiva";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
@@ -80,6 +81,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
   const [editando, setEditando] = useState(false);
   const [form, setForm] = useState<EditForm | null>(null);
   const [etiquetaAbierta, setEtiquetaAbierta] = useState(false);
+  const conVenta = useConVentaActiva();
   const [etapaEtiqueta, setEtapaEtiqueta] = useState<string | null>(null);
 
   const servicios = useQuery({
@@ -274,6 +276,11 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
               <SheetTitle className="font-display">{equipo.modelo}</SheetTitle>
               <p className="num text-sm tracking-[0.06em] text-muted-foreground">{equipo.imei}</p>
               <span className={`mt-1 inline-flex w-fit rounded-full border px-2 py-0.5 text-xs ${ESTADO_CLASE[equipo.estado]}`}>{ESTADO_ETIQUETA[equipo.estado]}</span>
+              {conVenta.data?.has(equipo.id) && (
+                <p className="mt-1 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-200">
+                  Tiene una venta vigente pero no figura como vendido. Revisa su historial abajo antes de venderlo de nuevo.
+                </p>
+              )}
             </SheetHeader>
 
             <div className="mt-4 flex flex-wrap gap-2">

@@ -1,4 +1,5 @@
 import type { AppRol } from "@/lib/nav";
+import { formatCLP } from "@/lib/stores";
 
 export const ROLES_AUDITORIA: AppRol[] = ["direccion", "administracion"];
 export const puedeVerAuditoria = (rol?: AppRol | null) => !!rol && ROLES_AUDITORIA.includes(rol);
@@ -62,7 +63,16 @@ const OP_TEXTO: Record<Op, string> = {
 const ACCION_ESPECIAL: Record<string, string> = {
   "imei.riesgo_aceptado": "Ingresó un equipo aceptando el riesgo del IMEI",
   "imei.verificado": "Verificó un IMEI",
+  equipo_eliminado: "Eliminó un equipo",
+  equipo_eliminado_respaldo: "Copia del equipo eliminado",
+  venta_eliminada: "Eliminó una venta",
+  pago_corregido: "Corrigió un pago",
+  ventas_importadas: "Importó ventas desde Excel",
 };
+
+/** Filtro especial de Auditoría: todo lo que se borró a mano. */
+export const FILTRO_BORRADOS = "borrados";
+export const ACCIONES_BORRADO = ["equipo_eliminado", "venta_eliminada"];
 
 /** "equipos.update" -> "Modificó un equipo" */
 export const traducirAccion = (accion: string) => {
@@ -212,8 +222,39 @@ export const diffDetalle = (detalle: Detalle): FilaDiff[] => {
     .sort((x, y) => Number(y.cambio) - Number(x.cambio) || x.campo.localeCompare(y.campo, "es-CL"));
 };
 
+type DetalleBorrado = {
+  imei?: string;
+  modelo?: string;
+  estado?: string;
+  total?: number;
+  comprobante?: string;
+  motivo?: string;
+  equipos?: { imei?: string; modelo?: string }[];
+};
+
+/** Resumen de una eliminación: IMEI y modelo del equipo, o comprobante, total, motivo e IMEI de la venta. */
+const resumenBorrado = (accion: string, d: DetalleBorrado) => {
+  if (accion === "equipo_eliminado") {
+    return [d.modelo, d.imei && `IMEI ${d.imei}`, d.estado && `estaba ${d.estado.toLowerCase()}`]
+      .filter(Boolean)
+      .join(" · ");
+  }
+  const equipos = (d.equipos ?? []).map((e) => [e.modelo, e.imei].filter(Boolean).join(" ")).join(", ");
+  return [
+    d.comprobante,
+    d.total != null && `Total ${formatCLP(Number(d.total))}`,
+    equipos,
+    d.motivo ? `Motivo: ${d.motivo}` : "Sin motivo (antes era opcional)",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+};
+
 /** Resumen corto y legible del cambio para la fila de la tabla. */
 export const resumenDetalle = (accion: string, detalle: Detalle) => {
+  if (ACCIONES_BORRADO.includes(accion) && detalle && !detalle.antes && !detalle.despues) {
+    return resumenBorrado(accion, detalle as DetalleBorrado) || "Sin detalle";
+  }
   const fila = detalle?.despues ?? detalle?.antes ?? null;
   const partes: string[] = [];
   if (fila) {

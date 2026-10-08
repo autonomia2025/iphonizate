@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,13 @@ const vacio = {
 const selectClase =
   "h-9 w-full rounded-md border border-white/12 bg-white/5 px-3 text-sm text-foreground outline-none focus:border-[var(--accent-store)] focus:ring-2 focus:ring-[var(--accent-store)]/30";
 
+const MOTIVOS_REINGRESO = [
+  "Garantía",
+  "Devolución del cliente",
+  "Lo recompramos o vino en parte de pago",
+  "Error: la venta no correspondía",
+] as const;
+
 export function IngresarEquipoModal({
   abierto,
   onCerrar,
@@ -64,6 +72,7 @@ export function IngresarEquipoModal({
   puedeCostos,
   onGuardado,
 }: Props) {
+  const { usuario } = useAuth();
   const [form, setForm] = useState({ ...vacio });
   const [servicios, setServicios] = useState<Record<string, string>>({});
   const [guardando, setGuardando] = useState(false);
@@ -76,6 +85,11 @@ export function IngresarEquipoModal({
   const [duplicado, setDuplicado] = useState<{ estado: EquipoEstado; tienda: string | null } | null>(
     null,
   );
+  /* Si el IMEI ya se vendió y vuelve a la cadena, se pide el motivo y queda en la bitácora */
+  const [reingreso, setReingreso] = useState<{ estado: EquipoEstado; tienda: string | null } | null>(
+    null,
+  );
+  const [motivoReingreso, setMotivoReingreso] = useState("");
   /* Etiqueta lista para pegar atrás del equipo recién ingresado */
   const [etiquetaNueva, setEtiquetaNueva] = useState<EquipoEtiqueta | null>(null);
   const imeiRef = useRef<HTMLInputElement>(null);
@@ -139,6 +153,7 @@ export function IngresarEquipoModal({
   useEffect(() => {
     if (!abierto || !imeiOk) {
       setDuplicado(null);
+      setReingreso(null);
       return;
     }
     let vivo = true;
@@ -150,11 +165,9 @@ export function IngresarEquipoModal({
         .maybeSingle();
       if (!vivo) return;
       const estado = data?.estado as EquipoEstado | undefined;
-      setDuplicado(
-        estado && ESTADOS_ACTIVOS.includes(estado)
-          ? { estado, tienda: (data?.tienda as string | null) ?? null }
-          : null,
-      );
+      const tienda = (data?.tienda as string | null) ?? null;
+      setDuplicado(estado && ESTADOS_ACTIVOS.includes(estado) ? { estado, tienda } : null);
+      setReingreso(estado && !ESTADOS_ACTIVOS.includes(estado) ? { estado, tienda } : null);
     }, 250);
     return () => {
       vivo = false;
@@ -217,6 +230,8 @@ export function IngresarEquipoModal({
     setForm((f) => ({ ...vacio, ubicacion_id: f.ubicacion_id, categoria: f.categoria }));
     setServicios({});
     setDuplicado(null);
+    setReingreso(null);
+    setMotivoReingreso("");
     setLecturaAplicada(null);
     setTimeout(() => imeiRef.current?.focus(), 30);
 
@@ -267,6 +282,11 @@ export function IngresarEquipoModal({
         return;
       }
       const esReingreso = !!estadoPrevio;
+      if (esReingreso && !motivoReingreso) {
+        setReingreso({ estado: estadoPrevio, tienda: (previo?.tienda as string | null) ?? null });
+        fallar("Este IMEI ya se vendió: indica el motivo del reingreso antes de guardar.");
+        return;
+      }
 
       const estadoNuevo: EquipoEstado = serviciosMarcados.length ? "POR_REVISAR" : "DISPONIBLE";
       const { error } = await supabase.from("equipos").insert({
@@ -322,6 +342,11 @@ export function IngresarEquipoModal({
 
 
       if (esReingreso && equipoId) {
+        await supabase.from("equipos_historial").insert({
+          equipo_id: equipoId,
+          evento: `Motivo del reingreso: ${motivoReingreso}`,
+          usuario_id: usuario?.id ?? null,
+        });
         const { data: hist } = await supabase
           .from("equipos_historial")
           .select("evento, fecha")
@@ -419,9 +444,36 @@ export function IngresarEquipoModal({
               {duplicado && (
                 <p className="mt-2 rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-xs text-red-200">
                   Este IMEI ya está en el sistema: {ESTADO_ETIQUETA[duplicado.estado]} en{" "}
-                  {duplicado.tienda ?? "una tienda de la cadena"}. No se puede ingresar de nuevo
-                  hasta que se cierre su ciclo.
+                  {duplicado.tienda ?? "una tienda de la cadena"}. No se ingresa de nuevo: si el equipo
+                  está en otra tienda, trasládalo desde Movimientos.
                 </p>
+              )}
+              {reingreso && (
+                <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-500/10 p-2 text-xs text-amber-100">
+                  <p>
+                    Este IMEI ya pasó por la cadena ({ESTADO_ETIQUETA[reingreso.estado]}
+                    {reingreso.tienda ? ` en ${reingreso.tienda}` : ""}). ¿Por qué vuelve?
+                  </p>
+                  <select
+                    value={motivoReingreso}
+                    onChange={(e) => setMotivoReingreso(e.target.value)}
+                    aria-label="Motivo del reingreso"
+                    className="mt-1.5 h-9 w-full rounded-md border border-white/12 bg-[#16131F] px-2 text-sm text-foreground outline-none"
+                  >
+                    <option value="">— elige el motivo (obligatorio) —</option>
+                    {MOTIVOS_REINGRESO.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                  {motivoReingreso === "Error: la venta no correspondía" && (
+                    <p className="mt-1.5 text-amber-200/80">
+                      Si la venta fue un error, es mejor eliminarla desde el Historial de ventas (con su
+                      motivo): el equipo vuelve solo a disponible.
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 

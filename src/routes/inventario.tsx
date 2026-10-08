@@ -19,6 +19,8 @@ import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDe
 import { tieneAlertaImei } from "@/components/inventario/VerificacionEquipo";
 
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
+import { useExtrasEquipos } from "@/components/inventario/useExtrasEquipos";
+import { useConVentaActiva } from "@/components/inventario/useConVentaActiva";
 import {
   AnimatePresence,
   EstadoVacio,
@@ -128,25 +130,10 @@ function InventarioPage() {
     },
   });
 
-  const full = useQuery({
-    queryKey: ["v_equipos_full"],
-    enabled: conCostos,
-    queryFn: async () => {
-      return traerTodo((desde, hasta) =>
-        supabase
-          .from("v_equipos_full")
-          .select("id, costo, email_vinculado, proveedor, lote, notas")
-          .order("id")
-          .range(desde, hasta),
-      );
-    },
-  });
+  const { mapa: extras, actualizar: actualizarExtras, recargar: recargarExtras } = useExtrasEquipos(conCostos);
 
-  const extras = useMemo(() => {
-    const mapa = new Map<string, NonNullable<typeof full.data>[number]>();
-    (full.data ?? []).forEach((f) => f.id && mapa.set(f.id, f));
-    return mapa;
-  }, [full.data]);
+  /* Equipos con una venta vigente que hoy no figuran como vendidos (garantía, devolución o reingreso) */
+  const conVenta = useConVentaActiva();
 
   const filas: EquipoFila[] = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -199,9 +186,10 @@ function InventarioPage() {
   }, [stock.data, extras, busqueda, ubicacion, estado, soloAlertas]);
 
 
-  const { enVivo, destellos } = useEquiposEnVivo(() => {
+  const { enVivo, destellos } = useEquiposEnVivo((ids) => {
     void stock.refetch();
-    if (conCostos) void full.refetch();
+    void actualizarExtras(ids);
+    void conVenta.refetch();
   });
 
   /* Conteo por estado para que nadie crea que un equipo desapareció */
@@ -438,6 +426,14 @@ function InventarioPage() {
                     >
                       {ESTADO_ETIQUETA[e.estado]}
                     </span>
+                    {conVenta.data?.has(e.id) && (
+                      <span
+                        title="Este equipo tiene una venta vigente pero hoy no figura como vendido. Revísalo en Auditoría → Revisión de borrados."
+                        className="ml-1.5 inline-flex rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300"
+                      >
+                        Tiene venta
+                      </span>
+                    )}
                   </td>
                   <td className="num px-4 py-2.5 text-right">{diasEnStock(e.fecha_ingreso)}</td>
                   {conCostos && (
@@ -495,7 +491,7 @@ function InventarioPage() {
             puedeCostos={conCostos}
             onGuardado={() => {
               void stock.refetch();
-              if (conCostos) void full.refetch();
+              recargarExtras();
             }}
           />
           <ImportarEquiposModal
@@ -505,7 +501,7 @@ function InventarioPage() {
             puedeCostos={conCostos}
             onImportado={() => {
               void stock.refetch();
-              if (conCostos) void full.refetch();
+              recargarExtras();
             }}
           />
         </>
@@ -523,7 +519,7 @@ function InventarioPage() {
         puedeCostos={conCostos}
         onCambio={() => {
           void stock.refetch();
-          if (conCostos) void full.refetch();
+          if (seleccionado) void actualizarExtras([seleccionado.id]);
         }}
       />
     </div>

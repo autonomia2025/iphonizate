@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
+import { RevisionBorrados } from "@/components/auditoria/RevisionBorrados";
 import { useAuth } from "@/components/AuthContext";
 import { ROL_ETIQUETA, type AppRol } from "@/lib/nav";
 import { fechaHoraCorta } from "@/lib/caja";
@@ -12,6 +14,8 @@ import {
   diffDetalle,
   etiquetaCampo,
   puedeVerAuditoria,
+  FILTRO_BORRADOS,
+  ACCIONES_BORRADO,
   resumenDetalle,
   traducirAccion,
   valorLegible,
@@ -87,9 +91,9 @@ function AuditoriaPage() {
     queryKey: ["acciones-auditoria"],
     enabled: autorizado,
     queryFn: async () => {
-      const { data, error } = await supabase.from("auditoria").select("accion").limit(2000);
+      const { data, error } = await supabase.rpc("acciones_auditoria");
       if (error) throw error;
-      return Array.from(new Set((data ?? []).map((f) => f.accion))).sort();
+      return ((data ?? []) as string[]).filter((a) => a !== "equipo_eliminado_respaldo");
     },
   });
 
@@ -106,7 +110,8 @@ function AuditoriaPage() {
           .select("id, accion, detalle, usuario_id, rol, tienda_id, fecha", { count: "exact" })
           .order("fecha", { ascending: false });
         if (usuarioFiltro !== "todos") q = q.eq("usuario_id", usuarioFiltro);
-        if (accionFiltro !== "todas") q = q.eq("accion", accionFiltro);
+        if (accionFiltro === FILTRO_BORRADOS) q = q.in("accion", ACCIONES_BORRADO);
+        else if (accionFiltro !== "todas") q = q.eq("accion", accionFiltro);
         if (tiendaFiltro === "general") q = q.is("tienda_id", null);
         else if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
         if (desde) q = q.gte("fecha", new Date(`${desde}T00:00:00`).toISOString());
@@ -117,9 +122,8 @@ function AuditoriaPage() {
       // El detalle es jsonb: el buscador de texto libre se aplica sobre una
       // ventana de registros recientes y luego se pagina en el cliente.
       if (busqueda) {
-        const { data, error } = await armar().range(0, 1999);
-        if (error) throw error;
-        const todas = ((data ?? []) as unknown as FilaAuditoria[]).filter((f) =>
+        const data = await traerTodo((d, h) => armar().order("id").range(d, h), 5000);
+        const todas = (data as unknown as FilaAuditoria[]).filter((f) =>
           JSON.stringify(f.detalle ?? {})
             .toLowerCase()
             .includes(busqueda),
@@ -171,6 +175,8 @@ function AuditoriaPage() {
         </p>
       </div>
 
+      <RevisionBorrados nombreUsuario={nombreUsuario} />
+
       {/* filtros */}
       <div className="glass mt-6 flex flex-wrap items-end gap-3 p-4">
         <div className="min-w-48">
@@ -205,6 +211,9 @@ function AuditoriaPage() {
           >
             <option value="todas" className="bg-[#16131F]">
               Todas
+            </option>
+            <option value={FILTRO_BORRADOS} className="bg-[#16131F]">
+              Borrados (equipos y ventas eliminados)
             </option>
             {(acciones.data ?? []).map((a) => (
               <option key={a} value={a} className="bg-[#16131F]">

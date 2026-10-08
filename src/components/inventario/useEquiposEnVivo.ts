@@ -8,8 +8,9 @@ const ESPERA_RECARGA_MS = 1500;
 /**
  * Suscripción en tiempo real a la tabla equipos.
  * Devuelve si el canal está conectado y los ids con destello reciente.
+ * `onCambio` recibe los ids de los equipos que cambiaron en la tanda.
  */
-export function useEquiposEnVivo(onCambio: () => void) {
+export function useEquiposEnVivo(onCambio: (ids: string[]) => void) {
   const [enVivo, setEnVivo] = useState(false);
   const [destellos, setDestellos] = useState<Record<string, number>>({});
   const cb = useRef(onCambio);
@@ -17,6 +18,7 @@ export function useEquiposEnVivo(onCambio: () => void) {
 
   useEffect(() => {
     let pendiente: ReturnType<typeof setTimeout> | null = null;
+    const cambiados = new Set<string>();
     const canal = supabase
       .channel("equipos-en-vivo")
       .on(
@@ -26,11 +28,16 @@ export function useEquiposEnVivo(onCambio: () => void) {
           const nuevo = payload.new as { id?: string } | null;
           const viejo = payload.old as { id?: string } | null;
           const id = nuevo?.id ?? viejo?.id;
-          if (id) setDestellos((prev) => ({ ...prev, [id]: Date.now() }));
+          if (id) {
+            setDestellos((prev) => ({ ...prev, [id]: Date.now() }));
+            cambiados.add(id);
+          }
           if (pendiente) return;
           pendiente = setTimeout(() => {
             pendiente = null;
-            cb.current();
+            const ids = [...cambiados];
+            cambiados.clear();
+            cb.current(ids);
           }, ESPERA_RECARGA_MS);
         },
       )

@@ -2747,6 +2747,7 @@ export type Database = {
       }
     }
     Functions: {
+      acciones_auditoria: { Args: never; Returns: string[] }
       agregar_comentario_equipo: {
         Args: { _equipo: string; _texto: string }
         Returns: string
@@ -2812,6 +2813,23 @@ export type Database = {
         Returns: string
       }
       eliminar_equipo: { Args: { _equipo: string }; Returns: undefined }
+      equipos_con_venta_activa: {
+        Args: never
+        Returns: {
+          comprobante: string | null
+          equipo_id: string
+          estado: string
+          imei: string
+          modelo: string
+          ubicacion: string | null
+          ultimo_evento: string | null
+          ultimo_evento_fecha: string | null
+          ultimo_evento_por: string | null
+          venta_fecha: string
+          venta_id: string
+          vendida_en: string | null
+        }[]
+      }
       eliminar_equipo_sin_control: {
         Args: { _equipo: string }
         Returns: undefined

@@ -10,6 +10,7 @@ import { useAuth } from "@/components/AuthContext";
 import { PERMISOS, usePermisos } from "@/lib/permisos";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
+import { useExtrasEquipos } from "@/components/inventario/useExtrasEquipos";
 import { AnimatePresence, EstadoVacio, SkeletonFilas, motion } from "@/components/motion";
 import { RESORTE_RAPIDO, varsFila, varsListaFilas } from "@/lib/motion";
 import { formatCLP } from "@/lib/stores";
@@ -115,19 +116,7 @@ function StockPage() {
     },
   });
 
-  const full = useQuery({
-    queryKey: ["v_equipos_full"],
-    enabled: conCostos,
-    queryFn: async () => {
-      return traerTodo((desde, hasta) =>
-        supabase
-          .from("v_equipos_full")
-          .select("id, costo, email_vinculado, proveedor, lote, notas")
-          .order("id")
-          .range(desde, hasta),
-      );
-    },
-  });
+  const { mapa: mapaExtras, actualizar: actualizarExtras, recargar: recargarExtras } = useExtrasEquipos(conCostos);
 
   const mapaPrecios = useMemo(() => {
     const mapa = new Map<string, number>();
@@ -135,15 +124,9 @@ function StockPage() {
     return mapa;
   }, [precios.data]);
 
-  const mapaExtras = useMemo(() => {
-    const mapa = new Map<string, NonNullable<typeof full.data>[number]>();
-    (full.data ?? []).forEach((f) => f.id && mapa.set(f.id, f));
-    return mapa;
-  }, [full.data]);
-
-  const { enVivo } = useEquiposEnVivo(() => {
+  const { enVivo } = useEquiposEnVivo((ids) => {
     void stock.refetch();
-    if (conCostos) void full.refetch();
+    void actualizarExtras(ids);
   });
 
   const todas: (EquipoFila & { precio: number | null })[] = useMemo(
@@ -485,7 +468,7 @@ function StockPage() {
         puedeCostos={conCostos}
         onCambio={() => {
           void stock.refetch();
-          if (conCostos) void full.refetch();
+          if (seleccionado) void actualizarExtras([seleccionado.id]);
         }}
       />
     </div>
