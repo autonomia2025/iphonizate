@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, XCircle } from 
 import * as XLSX from "xlsx";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { formatCLP } from "@/lib/stores";
@@ -133,12 +134,19 @@ export function ImportarEquiposModal({ abierto, onCerrar, tiendas, puedeCostos, 
 
   const validar = async () => {
     setCargando(true);
-    const { data, error } = await supabase.from("v_stock").select("imei, estado");
-    setCargando(false);
-    if (error) {
-      toast.error("No pudimos revisar los IMEI ya cargados", { description: error.message });
+    let data: { imei: string | null; estado: string | null }[];
+    try {
+      data = await traerTodo((desde, hasta) =>
+        supabase.from("v_stock").select("imei, estado").order("id").range(desde, hasta),
+      );
+    } catch (e) {
+      setCargando(false);
+      toast.error("No pudimos revisar los IMEI ya cargados", {
+        description: e instanceof Error ? e.message : (e as { message?: string })?.message,
+      });
       return;
     }
+    setCargando(false);
     const activos = new Set(
       (data ?? [])
         .filter((e) => ESTADOS_ACTIVOS.includes((e.estado ?? "POR_REVISAR") as EquipoEstado))

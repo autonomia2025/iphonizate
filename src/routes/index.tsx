@@ -15,6 +15,7 @@ import {
 import { useStore } from "@/components/StoreContext";
 import { useAuth } from "@/components/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { STORES, formatCLP, formatNumero } from "@/lib/stores";
 import { equipoTexto, nivelSla, textoSla } from "@/lib/garantias";
 import { puedeVerGanancias } from "@/lib/pos";
@@ -141,16 +142,17 @@ function Dashboard() {
     queryKey: ["dash-ventas", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      let q = supabase
-        .from("ventas")
-        .select("id, total, fecha, con_boleta, cliente_id, tienda_id, clientes(nombre)")
-        .eq("anulada", false)
-        .gte("fecha", inicioMes.toISOString())
-        .lt("fecha", finMes.toISOString());
-      if (!esCadena) q = q.eq("tienda_id", tienda!.id);
-      const { data, error } = await q.order("fecha", { ascending: false }).limit(1000);
-      if (error) throw error;
-      return (data ?? []) as unknown as {
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("ventas")
+          .select("id, total, fecha, con_boleta, cliente_id, tienda_id, clientes(nombre)")
+          .eq("anulada", false)
+          .gte("fecha", inicioMes.toISOString())
+          .lt("fecha", finMes.toISOString());
+        if (!esCadena) q = q.eq("tienda_id", tienda!.id);
+        return q.order("fecha", { ascending: false }).order("id").range(desde, hasta);
+      });
+      return data as unknown as {
         id: string;
         total: number;
         fecha: string;
@@ -166,17 +168,18 @@ function Dashboard() {
     queryKey: ["dash-items", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      let q = supabase
-        .from("venta_items")
-        .select("id, venta_id, precio, equipos(modelo, gb, bateria), ventas!inner(tienda_id, fecha, anulada)")
-        .not("equipo_id", "is", null)
-        .eq("ventas.anulada", false)
-        .gte("ventas.fecha", inicioMes.toISOString())
-        .lt("ventas.fecha", finMes.toISOString());
-      if (!esCadena) q = q.eq("ventas.tienda_id", tienda!.id);
-      const { data, error } = await q.limit(3000);
-      if (error) throw error;
-      return (data ?? []) as unknown as {
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("venta_items")
+          .select("id, venta_id, precio, equipos(modelo, gb, bateria), ventas!inner(tienda_id, fecha, anulada)")
+          .not("equipo_id", "is", null)
+          .eq("ventas.anulada", false)
+          .gte("ventas.fecha", inicioMes.toISOString())
+          .lt("ventas.fecha", finMes.toISOString());
+        if (!esCadena) q = q.eq("ventas.tienda_id", tienda!.id);
+        return q.order("id").range(desde, hasta);
+      });
+      return data as unknown as {
         id: string;
         venta_id: string;
         precio: number;
@@ -190,16 +193,17 @@ function Dashboard() {
     queryKey: ["dash-ganancias", tienda?.id, esCadena, periodo],
     enabled: !!tienda && verGanancias,
     queryFn: async () => {
-      let q = supabase
-        .from("v_ventas_full")
-        .select("id, ganancia, fecha, tienda_id")
-        .eq("anulada", false)
-        .gte("fecha", inicioMes.toISOString())
-        .lt("fecha", finMes.toISOString());
-      if (!esCadena) q = q.eq("tienda_id", tienda!.id);
-      const { data, error } = await q.limit(1000);
-      if (error) throw error;
-      return (data ?? []) as unknown as {
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("v_ventas_full")
+          .select("id, ganancia, fecha, tienda_id")
+          .eq("anulada", false)
+          .gte("fecha", inicioMes.toISOString())
+          .lt("fecha", finMes.toISOString());
+        if (!esCadena) q = q.eq("tienda_id", tienda!.id);
+        return q.order("id").range(desde, hasta);
+      });
+      return data as unknown as {
         id: string;
         ganancia: number;
         fecha: string;
@@ -212,12 +216,14 @@ function Dashboard() {
   const stock = useQuery({
     queryKey: ["dash-stock"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_stock")
-        .select("id, imei, modelo, gb, estado, fecha_ingreso, tienda")
-        .limit(3000);
-      if (error) throw error;
-      return (data ?? []) as unknown as {
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("v_stock")
+          .select("id, imei, modelo, gb, estado, fecha_ingreso, tienda")
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data as unknown as {
         id: string;
         imei: string;
         modelo: string;

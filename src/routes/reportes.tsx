@@ -13,6 +13,7 @@ import {
 } from "recharts";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { formatCLP, formatNumero } from "@/lib/stores";
@@ -140,16 +141,17 @@ function ReportesPage() {
     queryKey: ["rep-ventas", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      let q = supabase
-        .from("ventas")
-        .select("id, total, fecha, tienda_id, vendedor_id")
-        .eq("anulada", false)
-        .gte("fecha", desde)
-        .lte("fecha", hasta);
-      if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-      const { data, error } = await q.limit(5000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("ventas")
+          .select("id, total, fecha, tienda_id, vendedor_id")
+          .eq("anulada", false)
+          .gte("fecha", desde)
+          .lte("fecha", hasta);
+        if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
+        return q.order("id").range(desde, hasta);
+      });
+      return data;
     },
   });
 
@@ -157,16 +159,17 @@ function ReportesPage() {
     queryKey: ["rep-ganancias", ...clave],
     enabled: autorizado && verGanancias,
     queryFn: async () => {
-      let q = supabase
-        .from("v_ventas_full")
-        .select("id, ganancia, fecha, tienda_id, vendedor_id")
-        .eq("anulada", false)
-        .gte("fecha", desde)
-        .lte("fecha", hasta);
-      if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-      const { data, error } = await q.limit(5000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("v_ventas_full")
+          .select("id, ganancia, fecha, tienda_id, vendedor_id")
+          .eq("anulada", false)
+          .gte("fecha", desde)
+          .lte("fecha", hasta);
+        if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
+        return q.order("id").range(desde, hasta);
+      });
+      return data;
     },
   });
 
@@ -174,17 +177,18 @@ function ReportesPage() {
     queryKey: ["rep-items", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      let q = supabase
-        .from("v_venta_items")
-        .select("id, venta_id, precio, costo_snapshot, equipo_id, modelo, gb, tienda_id, fecha")
-        .eq("anulada", false)
-        .gte("fecha", desde)
-        .lte("fecha", hasta)
-        .not("equipo_id", "is", null);
-      if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-      const { data, error } = await q.limit(5000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("v_venta_items")
+          .select("id, venta_id, precio, costo_snapshot, equipo_id, modelo, gb, tienda_id, fecha")
+          .eq("anulada", false)
+          .gte("fecha", desde)
+          .lte("fecha", hasta)
+          .not("equipo_id", "is", null);
+        if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
+        return q.order("id").range(desde, hasta);
+      });
+      return data;
     },
   });
 
@@ -192,14 +196,15 @@ function ReportesPage() {
     queryKey: ["rep-stock", tiendaFiltro],
     enabled: autorizado,
     queryFn: async () => {
-      let q = supabase
-        .from("v_stock")
-        .select("id, imei, modelo, gb, color, estado, tienda, ubicacion_id, fecha_ingreso")
-        .eq("estado", "DISPONIBLE");
-      if (tiendaFiltro !== "todas") q = q.eq("ubicacion_id", tiendaFiltro);
-      const { data, error } = await q.limit(3000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("v_stock")
+          .select("id, imei, modelo, gb, color, estado, tienda, ubicacion_id, fecha_ingreso")
+          .eq("estado", "DISPONIBLE");
+        if (tiendaFiltro !== "todas") q = q.eq("ubicacion_id", tiendaFiltro);
+        return q.order("id").range(desde, hasta);
+      });
+      return data;
     },
   });
 
@@ -207,15 +212,16 @@ function ReportesPage() {
     queryKey: ["rep-gastos", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      let q = supabase
-        .from("gastos")
-        .select("id, categoria, monto, fecha, tienda_id")
-        .gte("fecha", desde)
-        .lte("fecha", hasta);
-      if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-      const { data, error } = await q.limit(3000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("gastos")
+          .select("id, categoria, monto, fecha, tienda_id")
+          .gte("fecha", desde)
+          .lte("fecha", hasta);
+        if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
+        return q.order("id").range(desde, hasta);
+      });
+      return data;
     },
   });
 
@@ -223,15 +229,16 @@ function ReportesPage() {
     queryKey: ["rep-garantias", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      let q = supabase
-        .from("v_garantias")
-        .select("id, falla, estado, fecha, fecha_cierre, horas, tienda_id")
-        .gte("fecha", desde)
-        .lte("fecha", hasta);
-      if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-      const { data, error } = await q.limit(3000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) => {
+        let q = supabase
+          .from("v_garantias")
+          .select("id, falla, estado, fecha, fecha_cierre, horas, tienda_id")
+          .gte("fecha", desde)
+          .lte("fecha", hasta);
+        if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
+        return q.order("id").range(desde, hasta);
+      });
+      return data;
     },
   });
 
@@ -239,14 +246,16 @@ function ReportesPage() {
     queryKey: ["rep-servicios", desde, hasta],
     enabled: autorizado,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_servicios_equipo")
-        .select("id, tipo, costo, estado, asignado_at, listo_at, created_at")
-        .gte("created_at", desde)
-        .lte("created_at", hasta)
-        .limit(3000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("v_servicios_equipo")
+          .select("id, tipo, costo, estado, asignado_at, listo_at, created_at")
+          .gte("created_at", desde)
+          .lte("created_at", hasta)
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 

@@ -5,6 +5,7 @@ import { FileSpreadsheet, PackageSearch, Plus, Printer, Search, ShieldAlert } fr
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { PERMISOS, usePermisos } from "@/lib/permisos";
 import { Button } from "@/components/ui/button";
@@ -114,15 +115,16 @@ function InventarioPage() {
   const stock = useQuery({
     queryKey: ["v_stock"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_stock")
-        .select(
-          "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at",
-        )
-        .order("fecha_ingreso", { ascending: false });
-
-      if (error) throw error;
-      return data ?? [];
+      return traerTodo((desde, hasta) =>
+        supabase
+          .from("v_stock")
+          .select(
+            "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at",
+          )
+          .order("fecha_ingreso", { ascending: false })
+          .order("id")
+          .range(desde, hasta),
+      );
     },
   });
 
@@ -130,11 +132,13 @@ function InventarioPage() {
     queryKey: ["v_equipos_full"],
     enabled: conCostos,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_equipos_full")
-        .select("id, costo, email_vinculado, proveedor, lote, notas");
-      if (error) throw error;
-      return data ?? [];
+      return traerTodo((desde, hasta) =>
+        supabase
+          .from("v_equipos_full")
+          .select("id, costo, email_vinculado, proveedor, lote, notas")
+          .order("id")
+          .range(desde, hasta),
+      );
     },
   });
 

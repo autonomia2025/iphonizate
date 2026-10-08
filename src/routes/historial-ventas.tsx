@@ -5,6 +5,7 @@ import { FileSpreadsheet, Receipt, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { BotonComprobante } from "@/components/vender/BotonComprobante";
 import { CorregirPagoModal, type PagoCorregible } from "@/components/vender/CorregirPagoModal";
@@ -85,17 +86,19 @@ function HistorialVentasPage() {
   const ventas = useQuery({
     queryKey: ["historial-ventas", desde, hasta],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ventas")
-        .select(
-          "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb, color), accesorios(nombre))",
-        )
-        .gte("fecha", `${desde}T00:00:00`)
-        .lte("fecha", `${hasta}T23:59:59.999`)
-        .order("fecha", { ascending: false })
-        .limit(1000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("ventas")
+          .select(
+            "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb, color), accesorios(nombre))",
+          )
+          .gte("fecha", `${desde}T00:00:00`)
+          .lte("fecha", `${hasta}T23:59:59.999`)
+          .order("fecha", { ascending: false })
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 
@@ -103,13 +106,15 @@ function HistorialVentasPage() {
     queryKey: ["historial-ganancias", desde, hasta],
     enabled: conGanancias,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_ventas_full")
-        .select("id, ganancia")
-        .gte("fecha", `${desde}T00:00:00`)
-        .lte("fecha", `${hasta}T23:59:59.999`)
-        .limit(1000);
-      if (error) throw error;
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("v_ventas_full")
+          .select("id, ganancia")
+          .gte("fecha", `${desde}T00:00:00`)
+          .lte("fecha", `${hasta}T23:59:59.999`)
+          .order("id")
+          .range(desde, hasta),
+      );
       return new Map((data ?? []).map((v) => [v.id as string, Number(v.ganancia ?? 0)]));
     },
   });
@@ -117,13 +122,15 @@ function HistorialVentasPage() {
   const numeros = useQuery({
     queryKey: ["historial-comprobantes", desde, hasta],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_comprobantes")
-        .select("id, comprobante_numero")
-        .gte("fecha", `${desde}T00:00:00`)
-        .lte("fecha", `${hasta}T23:59:59.999`)
-        .limit(1000);
-      if (error) throw error;
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("v_comprobantes")
+          .select("id, comprobante_numero")
+          .gte("fecha", `${desde}T00:00:00`)
+          .lte("fecha", `${hasta}T23:59:59.999`)
+          .order("id")
+          .range(desde, hasta),
+      );
       return new Map((data ?? []).map((v) => [v.id as string, v.comprobante_numero ?? ""]));
     },
   });

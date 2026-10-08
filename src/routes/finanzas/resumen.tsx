@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { formatCLP } from "@/lib/stores";
 import {
   calcularNomina,
@@ -51,15 +52,17 @@ function ResumenPage() {
     queryKey: ["finanzas-nomina-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("nomina_mensual")
-        .select(
-          "id, periodo, personal_id, liquido_liquidacion, bonificacion_extra, bono_base, faltas, atrasos, otros_descuentos, pagado_quincena, pagado_fin_mes, notas",
-        )
-        .order("periodo")
-        .limit(5000);
-      if (error) throw error;
-      return (data ?? []) as unknown as FilaNomina[];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("nomina_mensual")
+          .select(
+            "id, periodo, personal_id, liquido_liquidacion, bonificacion_extra, bono_base, faltas, atrasos, otros_descuentos, pagado_quincena, pagado_fin_mes, notas",
+          )
+          .order("periodo")
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data as unknown as FilaNomina[];
     },
   });
 
@@ -67,14 +70,16 @@ function ResumenPage() {
     queryKey: ["finanzas-gastos-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("gastos")
-        .select("id, periodo, tipo, monto, asignacion")
-        .not("periodo", "is", null)
-        .in("tipo", ["fijo", "variable"])
-        .limit(5000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("gastos")
+          .select("id, periodo, tipo, monto, asignacion")
+          .not("periodo", "is", null)
+          .in("tipo", ["fijo", "variable"])
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 
@@ -82,12 +87,14 @@ function ResumenPage() {
     queryKey: ["finanzas-impuestos-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("impuestos_mensuales")
-        .select("periodo, monto")
-        .limit(2000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("impuestos_mensuales")
+          .select("periodo, monto")
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 
@@ -95,13 +102,15 @@ function ResumenPage() {
     queryKey: ["finanzas-ingresos"],
     enabled: autorizado,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ventas")
-        .select("total, fecha, anulada, tienda_id")
-        .eq("anulada", false)
-        .limit(5000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("ventas")
+          .select("total, fecha, anulada, tienda_id")
+          .eq("anulada", false)
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 

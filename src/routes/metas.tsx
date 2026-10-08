@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Target } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { STORES, formatCLP, formatNumero } from "@/lib/stores";
@@ -77,16 +78,18 @@ function MetasPage() {
   const items = useQuery({
     queryKey: ["metas-items", periodo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("venta_items")
-        .select("id, equipo_id, ventas!inner(tienda_id, fecha, anulada)")
-        .not("equipo_id", "is", null)
-        .gte("ventas.fecha", inicio.toISOString())
-        .lt("ventas.fecha", fin.toISOString())
-        .eq("ventas.anulada", false)
-        .limit(5000);
-      if (error) throw error;
-      return (data ?? []) as unknown as { id: string; ventas: { tienda_id: string } }[];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("venta_items")
+          .select("id, equipo_id, ventas!inner(tienda_id, fecha, anulada)")
+          .not("equipo_id", "is", null)
+          .gte("ventas.fecha", inicio.toISOString())
+          .lt("ventas.fecha", fin.toISOString())
+          .eq("ventas.anulada", false)
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data as unknown as { id: string; ventas: { tienda_id: string } }[];
     },
   });
 
@@ -94,15 +97,17 @@ function MetasPage() {
     queryKey: ["metas-ganancias", periodo],
     enabled: verGanancias,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_ventas_full")
-        .select("id, tienda_id, ganancia, fecha, anulada")
-        .gte("fecha", inicio.toISOString())
-        .lt("fecha", fin.toISOString())
-        .eq("anulada", false)
-        .limit(5000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("v_ventas_full")
+          .select("id, tienda_id, ganancia, fecha, anulada")
+          .gte("fecha", inicio.toISOString())
+          .lt("fecha", fin.toISOString())
+          .eq("anulada", false)
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 

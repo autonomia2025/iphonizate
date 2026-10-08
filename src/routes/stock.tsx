@@ -5,6 +5,7 @@ import { Boxes, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { PERMISOS, usePermisos } from "@/lib/permisos";
 import { EquipoDetalle, type EquipoFila } from "@/components/inventario/EquipoDetalle";
@@ -92,14 +93,16 @@ function StockPage() {
   const stock = useQuery({
     queryKey: ["v_stock"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_stock")
-        .select(
-          "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
-        )
-        .order("fecha_ingreso", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      return traerTodo((desde, hasta) =>
+        supabase
+          .from("v_stock")
+          .select(
+            "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
+          )
+          .order("fecha_ingreso", { ascending: false })
+          .order("id")
+          .range(desde, hasta),
+      );
     },
   });
 
@@ -116,11 +119,13 @@ function StockPage() {
     queryKey: ["v_equipos_full"],
     enabled: conCostos,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_equipos_full")
-        .select("id, costo, email_vinculado, proveedor, lote, notas");
-      if (error) throw error;
-      return data ?? [];
+      return traerTodo((desde, hasta) =>
+        supabase
+          .from("v_equipos_full")
+          .select("id, costo, email_vinculado, proveedor, lote, notas")
+          .order("id")
+          .range(desde, hasta),
+      );
     },
   });
 

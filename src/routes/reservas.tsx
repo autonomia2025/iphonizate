@@ -5,6 +5,7 @@ import { Plus, Search, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { useStore } from "@/components/StoreContext";
 import { Button } from "@/components/ui/button";
@@ -89,12 +90,14 @@ function ReservasPage() {
   const stock = useQuery({
     queryKey: ["v_stock-reservas"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_stock")
-        .select("id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso")
-        .order("fecha_ingreso", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      return traerTodo((desde, hasta) =>
+        supabase
+          .from("v_stock")
+          .select("id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso")
+          .order("fecha_ingreso", { ascending: false })
+          .order("id")
+          .range(desde, hasta),
+      );
     },
   });
 

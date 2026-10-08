@@ -5,6 +5,7 @@ import { Plus, Search, ShieldAlert, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { useStore } from "@/components/StoreContext";
 import { Button } from "@/components/ui/button";
@@ -114,9 +115,11 @@ function VenderPage() {
     queryKey: ["v_equipos_full-pos"],
     enabled: conCostos,
     queryFn: async () => {
-      const { data, error } = await supabase.from("v_equipos_full").select("id, costo");
-      if (error) throw error;
-      return data ?? [];
+      return traerTodo((desde, hasta) =>
+        supabase.from("v_equipos_full").select("id, costo")
+          .order("id")
+          .range(desde, hasta),
+      );
     },
   });
 

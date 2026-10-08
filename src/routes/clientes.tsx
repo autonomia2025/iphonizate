@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Download, Search, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { descargarCsv } from "@/lib/importar";
@@ -46,26 +47,30 @@ function ClientesPage() {
   const clientes = useQuery({
     queryKey: ["clientes-cartera"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clientes")
-        .select("id, nombre, telefono, correo, instagram, tienda_id, created_at")
-        .order("created_at", { ascending: false })
-        .limit(1000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("clientes")
+          .select("id, nombre, telefono, correo, instagram, tienda_id, created_at")
+          .order("created_at", { ascending: false })
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 
   const ventas = useQuery({
     queryKey: ["ventas-por-cliente"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ventas")
-        .select("cliente_id, total, fecha")
-        .eq("anulada", false)
-        .limit(1000);
-      if (error) throw error;
-      return data ?? [];
+      const data = await traerTodo((desde, hasta) =>
+        supabase
+          .from("ventas")
+          .select("cliente_id, total, fecha")
+          .eq("anulada", false)
+          .order("id")
+          .range(desde, hasta),
+      );
+      return data;
     },
   });
 
