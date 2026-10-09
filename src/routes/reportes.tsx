@@ -141,7 +141,7 @@ function ReportesPage() {
     queryKey: ["rep-ventas", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("ventas")
           .select("id, total, fecha, tienda_id, vendedor_id")
@@ -149,7 +149,7 @@ function ReportesPage() {
           .gte("fecha", desde)
           .lte("fecha", hasta);
         if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data;
     },
@@ -159,7 +159,7 @@ function ReportesPage() {
     queryKey: ["rep-ganancias", ...clave],
     enabled: autorizado && verGanancias,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("v_ventas_full")
           .select("id, ganancia, fecha, tienda_id, vendedor_id")
@@ -167,7 +167,7 @@ function ReportesPage() {
           .gte("fecha", desde)
           .lte("fecha", hasta);
         if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data;
     },
@@ -177,7 +177,7 @@ function ReportesPage() {
     queryKey: ["rep-items", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("v_venta_items")
           .select("id, venta_id, precio, costo_snapshot, equipo_id, modelo, gb, tienda_id, fecha")
@@ -186,7 +186,7 @@ function ReportesPage() {
           .lte("fecha", hasta)
           .not("equipo_id", "is", null);
         if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data;
     },
@@ -196,13 +196,13 @@ function ReportesPage() {
     queryKey: ["rep-stock", tiendaFiltro],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("v_stock")
           .select("id, imei, modelo, gb, color, estado, tienda, ubicacion_id, fecha_ingreso")
           .eq("estado", "DISPONIBLE");
         if (tiendaFiltro !== "todas") q = q.eq("ubicacion_id", tiendaFiltro);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data;
     },
@@ -212,14 +212,14 @@ function ReportesPage() {
     queryKey: ["rep-gastos", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("gastos")
           .select("id, categoria, monto, fecha, tienda_id")
           .gte("fecha", desde)
           .lte("fecha", hasta);
         if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data;
     },
@@ -229,14 +229,14 @@ function ReportesPage() {
     queryKey: ["rep-garantias", ...clave],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("v_garantias")
           .select("id, falla, estado, fecha, fecha_cierre, horas, tienda_id")
           .gte("fecha", desde)
           .lte("fecha", hasta);
         if (tiendaFiltro !== "todas") q = q.eq("tienda_id", tiendaFiltro);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data;
     },
@@ -246,14 +246,14 @@ function ReportesPage() {
     queryKey: ["rep-servicios", desde, hasta],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) =>
+      const data = await traerTodo((filaIni, filaFin) =>
         supabase
           .from("v_servicios_equipo")
           .select("id, tipo, costo, estado, asignado_at, listo_at, created_at")
           .gte("created_at", desde)
           .lte("created_at", hasta)
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
       return data;
     },

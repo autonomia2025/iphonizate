@@ -90,13 +90,13 @@ function ReservasPage() {
   const stock = useQuery({
     queryKey: ["v_stock-reservas"],
     queryFn: async () => {
-      return traerTodo((ini, fin) =>
+      return traerTodo((filaIni, filaFin) =>
         supabase
           .from("v_stock")
           .select("id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso")
           .order("fecha_ingreso", { ascending: false })
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
     },
   });

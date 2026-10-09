@@ -142,7 +142,7 @@ function Dashboard() {
     queryKey: ["dash-ventas", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("ventas")
           .select("id, total, fecha, con_boleta, cliente_id, tienda_id, clientes(nombre)")
@@ -150,7 +150,7 @@ function Dashboard() {
           .gte("fecha", inicioMes.toISOString())
           .lt("fecha", finMes.toISOString());
         if (!esCadena) q = q.eq("tienda_id", tienda!.id);
-        return q.order("fecha", { ascending: false }).order("id").range(ini, fin);
+        return q.order("fecha", { ascending: false }).order("id").range(filaIni, filaFin);
       });
       return data as unknown as {
         id: string;
@@ -168,7 +168,7 @@ function Dashboard() {
     queryKey: ["dash-items", tienda?.id, esCadena, periodo],
     enabled: !!tienda,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("venta_items")
           .select("id, venta_id, precio, equipos(modelo, gb, bateria), ventas!inner(tienda_id, fecha, anulada)")
@@ -177,7 +177,7 @@ function Dashboard() {
           .gte("ventas.fecha", inicioMes.toISOString())
           .lt("ventas.fecha", finMes.toISOString());
         if (!esCadena) q = q.eq("ventas.tienda_id", tienda!.id);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data as unknown as {
         id: string;
@@ -193,7 +193,7 @@ function Dashboard() {
     queryKey: ["dash-ganancias", tienda?.id, esCadena, periodo],
     enabled: !!tienda && verGanancias,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) => {
+      const data = await traerTodo((filaIni, filaFin) => {
         let q = supabase
           .from("v_ventas_full")
           .select("id, ganancia, fecha, tienda_id")
@@ -201,7 +201,7 @@ function Dashboard() {
           .gte("fecha", inicioMes.toISOString())
           .lt("fecha", finMes.toISOString());
         if (!esCadena) q = q.eq("tienda_id", tienda!.id);
-        return q.order("id").range(ini, fin);
+        return q.order("id").range(filaIni, filaFin);
       });
       return data as unknown as {
         id: string;
@@ -216,12 +216,12 @@ function Dashboard() {
   const stock = useQuery({
     queryKey: ["dash-stock"],
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) =>
+      const data = await traerTodo((filaIni, filaFin) =>
         supabase
           .from("v_stock")
           .select("id, imei, modelo, gb, estado, fecha_ingreso, tienda")
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
       return data as unknown as {
         id: string;

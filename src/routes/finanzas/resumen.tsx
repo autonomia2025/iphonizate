@@ -52,7 +52,7 @@ function ResumenPage() {
     queryKey: ["finanzas-nomina-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) =>
+      const data = await traerTodo((filaIni, filaFin) =>
         supabase
           .from("nomina_mensual")
           .select(
@@ -60,7 +60,7 @@ function ResumenPage() {
           )
           .order("periodo")
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
       return data as unknown as FilaNomina[];
     },
@@ -70,14 +70,14 @@ function ResumenPage() {
     queryKey: ["finanzas-gastos-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) =>
+      const data = await traerTodo((filaIni, filaFin) =>
         supabase
           .from("gastos")
           .select("id, periodo, tipo, monto, asignacion")
           .not("periodo", "is", null)
           .in("tipo", ["fijo", "variable"])
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
       return data;
     },
@@ -87,12 +87,12 @@ function ResumenPage() {
     queryKey: ["finanzas-impuestos-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) =>
+      const data = await traerTodo((filaIni, filaFin) =>
         supabase
           .from("impuestos_mensuales")
           .select("periodo, monto")
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
       return data;
     },
@@ -102,13 +102,13 @@ function ResumenPage() {
     queryKey: ["finanzas-ingresos"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((ini, fin) =>
+      const data = await traerTodo((filaIni, filaFin) =>
         supabase
           .from("ventas")
           .select("total, fecha, anulada, tienda_id")
           .eq("anulada", false)
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
       return data;
     },

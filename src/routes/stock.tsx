@@ -94,7 +94,7 @@ function StockPage() {
   const stock = useQuery({
     queryKey: ["v_stock"],
     queryFn: async () => {
-      return traerTodo((ini, fin) =>
+      return traerTodo((filaIni, filaFin) =>
         supabase
           .from("v_stock")
           .select(
@@ -102,7 +102,7 @@ function StockPage() {
           )
           .order("fecha_ingreso", { ascending: false })
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
     },
   });

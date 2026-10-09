@@ -136,8 +136,8 @@ export function ImportarEquiposModal({ abierto, onCerrar, tiendas, puedeCostos, 
     setCargando(true);
     let data: { imei: string | null; estado: string | null }[];
     try {
-      data = await traerTodo((ini, fin) =>
-        supabase.from("v_stock").select("imei, estado").order("id").range(ini, fin),
+      data = await traerTodo((filaIni, filaFin) =>
+        supabase.from("v_stock").select("imei, estado").order("id").range(filaIni, filaFin),
       );
     } catch (e) {
       setCargando(false);

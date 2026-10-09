@@ -115,10 +115,10 @@ function VenderPage() {
     queryKey: ["v_equipos_full-pos"],
     enabled: conCostos,
     queryFn: async () => {
-      return traerTodo((ini, fin) =>
+      return traerTodo((filaIni, filaFin) =>
         supabase.from("v_equipos_full").select("id, costo")
           .order("id")
-          .range(ini, fin),
+          .range(filaIni, filaFin),
       );
     },
   });
