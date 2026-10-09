@@ -86,7 +86,7 @@ function HistorialVentasPage() {
   const ventas = useQuery({
     queryKey: ["historial-ventas", desde, hasta],
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("ventas")
           .select(
@@ -96,7 +96,7 @@ function HistorialVentasPage() {
           .lte("fecha", `${hasta}T23:59:59.999`)
           .order("fecha", { ascending: false })
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data;
     },
@@ -106,14 +106,14 @@ function HistorialVentasPage() {
     queryKey: ["historial-ganancias", desde, hasta],
     enabled: conGanancias,
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("v_ventas_full")
           .select("id, ganancia")
           .gte("fecha", `${desde}T00:00:00`)
           .lte("fecha", `${hasta}T23:59:59.999`)
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return new Map((data ?? []).map((v) => [v.id as string, Number(v.ganancia ?? 0)]));
     },
@@ -122,14 +122,14 @@ function HistorialVentasPage() {
   const numeros = useQuery({
     queryKey: ["historial-comprobantes", desde, hasta],
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("v_comprobantes")
           .select("id, comprobante_numero")
           .gte("fecha", `${desde}T00:00:00`)
           .lte("fecha", `${hasta}T23:59:59.999`)
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return new Map((data ?? []).map((v) => [v.id as string, v.comprobante_numero ?? ""]));
     },

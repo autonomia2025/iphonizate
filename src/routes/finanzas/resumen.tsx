@@ -52,7 +52,7 @@ function ResumenPage() {
     queryKey: ["finanzas-nomina-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("nomina_mensual")
           .select(
@@ -60,7 +60,7 @@ function ResumenPage() {
           )
           .order("periodo")
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data as unknown as FilaNomina[];
     },
@@ -70,14 +70,14 @@ function ResumenPage() {
     queryKey: ["finanzas-gastos-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("gastos")
           .select("id, periodo, tipo, monto, asignacion")
           .not("periodo", "is", null)
           .in("tipo", ["fijo", "variable"])
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data;
     },
@@ -87,12 +87,12 @@ function ResumenPage() {
     queryKey: ["finanzas-impuestos-todo"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("impuestos_mensuales")
           .select("periodo, monto")
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data;
     },
@@ -102,13 +102,13 @@ function ResumenPage() {
     queryKey: ["finanzas-ingresos"],
     enabled: autorizado,
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("ventas")
           .select("total, fecha, anulada, tienda_id")
           .eq("anulada", false)
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data;
     },

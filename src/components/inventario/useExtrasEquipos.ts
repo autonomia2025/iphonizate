@@ -30,8 +30,8 @@ export function useExtrasEquipos(activo: boolean) {
     enabled: activo,
     staleTime: 5 * 60 * 1000,
     queryFn: () =>
-      traerTodo<ExtraEquipo>((desde, hasta) =>
-        supabase.from("v_equipos_full").select(COLUMNAS).order("id").range(desde, hasta),
+      traerTodo<ExtraEquipo>((ini, fin) =>
+        supabase.from("v_equipos_full").select(COLUMNAS).order("id").range(ini, fin),
       ),
   });
 

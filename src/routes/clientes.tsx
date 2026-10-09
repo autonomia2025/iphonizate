@@ -47,13 +47,13 @@ function ClientesPage() {
   const clientes = useQuery({
     queryKey: ["clientes-cartera"],
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("clientes")
           .select("id, nombre, telefono, correo, instagram, tienda_id, created_at")
           .order("created_at", { ascending: false })
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data;
     },
@@ -62,13 +62,13 @@ function ClientesPage() {
   const ventas = useQuery({
     queryKey: ["ventas-por-cliente"],
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("ventas")
           .select("cliente_id, total, fecha")
           .eq("anulada", false)
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data;
     },

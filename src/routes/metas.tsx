@@ -78,7 +78,7 @@ function MetasPage() {
   const items = useQuery({
     queryKey: ["metas-items", periodo],
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("venta_items")
           .select("id, equipo_id, ventas!inner(tienda_id, fecha, anulada)")
@@ -87,7 +87,7 @@ function MetasPage() {
           .lt("ventas.fecha", fin.toISOString())
           .eq("ventas.anulada", false)
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data as unknown as { id: string; ventas: { tienda_id: string } }[];
     },
@@ -97,7 +97,7 @@ function MetasPage() {
     queryKey: ["metas-ganancias", periodo],
     enabled: verGanancias,
     queryFn: async () => {
-      const data = await traerTodo((desde, hasta) =>
+      const data = await traerTodo((ini, fin) =>
         supabase
           .from("v_ventas_full")
           .select("id, tienda_id, ganancia, fecha, anulada")
@@ -105,7 +105,7 @@ function MetasPage() {
           .lt("fecha", fin.toISOString())
           .eq("anulada", false)
           .order("id")
-          .range(desde, hasta),
+          .range(ini, fin),
       );
       return data;
     },
