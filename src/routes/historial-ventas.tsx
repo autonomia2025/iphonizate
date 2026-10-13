@@ -94,7 +94,7 @@ function HistorialVentasPage() {
         supabase
           .from("ventas")
           .select(
-            "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb, color), accesorios(nombre))",
+            "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios!ventas_vendedor_id_fkey(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb, color), accesorios(nombre))",
           )
           .gte("fecha", `${desde}T00:00:00`)
           .lte("fecha", `${hasta}T23:59:59.999`)

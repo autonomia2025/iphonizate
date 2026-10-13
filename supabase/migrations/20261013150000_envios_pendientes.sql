@@ -3,7 +3,10 @@
 
 alter table public.ventas add column if not exists envio_estado text;
 alter table public.ventas add column if not exists enviado_at timestamptz;
-alter table public.ventas add column if not exists enviado_por uuid references public.usuarios(id) on delete set null;
+/* Sin llave foránea a propósito: una segunda relación ventas→usuarios hace que las consultas
+   que piden "usuarios(nombre)" (el vendedor) fallen por ambigüedad. */
+alter table public.ventas add column if not exists enviado_por uuid;
+alter table public.ventas drop constraint if exists ventas_enviado_por_fkey;
 do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'ventas_envio_estado_check') then
