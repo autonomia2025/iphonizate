@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   Clock,
@@ -10,12 +11,14 @@ import {
   ShieldCheck,
   ShoppingBag,
   TrendingDown,
+  Truck,
 } from "lucide-react";
 
 import { useStore } from "@/components/StoreContext";
 import { useAuth } from "@/components/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { traerTodo } from "@/lib/traerTodo";
+import { haceDias, marcarEnvio, productosDeEnvio, useEnviosPendientes } from "@/lib/envios";
 import { STORES, formatCLP, formatNumero } from "@/lib/stores";
 import { equipoTexto, nivelSla, textoSla } from "@/lib/garantias";
 import { puedeVerGanancias } from "@/lib/pos";
@@ -316,6 +319,25 @@ function Dashboard() {
   const disponiblesTienda = disponiblesCadena.filter((e) => e.tienda === tienda?.nombre);
 
   /* ---------- Alertas ---------- */
+  /* Envíos pendientes: los de la tienda activa, o los de toda la cadena desde Oficina Central */
+  const envios = useEnviosPendientes(esCadena ? null : (tienda?.id ?? null), !!tienda);
+  const enviosPendientes = envios.data ?? [];
+  const [marcando, setMarcando] = useState<string | null>(null);
+  const nombreTiendaVenta = (id: string) =>
+    (tiendas.data ?? []).find((t) => t.id === id)?.nombre ?? "";
+  const marcarEnviado = async (id: string) => {
+    setMarcando(id);
+    try {
+      await marcarEnvio(id, true);
+      toast.success("Envío marcado como enviado");
+      void envios.refetch();
+    } catch (e) {
+      toast.error("No se pudo marcar el envío", { description: e instanceof Error ? e.message : undefined });
+    } finally {
+      setMarcando(null);
+    }
+  };
+
   const alertasGarantia = (garantias.data ?? [])
     .filter((g) => (g.horas ?? 0) >= 48)
     .sort((a, b) => (b.horas ?? 0) - (a.horas ?? 0));
@@ -599,7 +621,7 @@ function Dashboard() {
           <div className="flex items-center justify-between gap-2">
             <h2 className="font-display text-sm font-semibold">Alertas</h2>
             <span className="num rounded-full border border-white/[0.08] px-2 py-0.5 text-[11px] text-muted-foreground">
-              {alertas.length + alertasGarantia.length} activas
+              {alertas.length + alertasGarantia.length + enviosPendientes.length} activas
             </span>
           </div>
           <motion.ul
@@ -608,6 +630,36 @@ function Dashboard() {
             animate="visible"
             variants={{ oculto: {}, visible: { transition: { staggerChildren: 0.05 } } }}
           >
+            {enviosPendientes.map((v) => (
+              <motion.li key={`envio-${v.id}`} variants={varsHijo}>
+                <div className="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-500/[0.07] p-3">
+                  <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-warning/15 text-warning">
+                    <Truck className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[13px] font-medium">
+                      Envío pendiente{v.clientes?.nombre ? ` · ${v.clientes.nombre}` : ""} — {haceDias(v.fecha)}
+                    </span>
+                    <span className="block text-[12px] text-muted-foreground">
+                      {productosDeEnvio(v)}
+                      {esCadena && nombreTiendaVenta(v.tienda_id) ? ` · ${nombreTiendaVenta(v.tienda_id)}` : ""}
+                    </span>
+                    {v.envio_detalle && (
+                      <span className="block text-[12px] text-muted-foreground">{v.envio_detalle}</span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={marcando !== null}
+                    onClick={() => void marcarEnviado(v.id)}
+                    className="shrink-0 rounded-full border border-amber-400/40 px-3 py-1 text-xs text-amber-200 transition-colors duration-200 hover:bg-amber-500/15 disabled:opacity-50"
+                  >
+                    {marcando === v.id ? "Marcando…" : "Marcar enviado"}
+                  </button>
+                </div>
+              </motion.li>
+            ))}
+
             {alertasGarantia.map((g) => {
               const horas = g.horas ?? 0;
               const vencida = nivelSla(horas) === "vencida";
@@ -675,7 +727,7 @@ function Dashboard() {
               );
             })}
 
-            {alertas.length + alertasGarantia.length === 0 && (
+            {alertas.length + alertasGarantia.length + enviosPendientes.length === 0 && (
               <li className="rounded-xl border border-white/[0.06] bg-white/[0.03]">
                 {stock.isLoading ? (
                   <p className="p-4 text-[13px] text-muted-foreground">Revisando la operación…</p>

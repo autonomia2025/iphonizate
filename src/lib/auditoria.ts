@@ -68,6 +68,9 @@ const ACCION_ESPECIAL: Record<string, string> = {
   venta_eliminada: "Eliminó una venta",
   pago_corregido: "Corrigió un pago",
   ventas_importadas: "Importó ventas desde Excel",
+  envio_enviado: "Marcó un envío como enviado",
+  envio_pendiente: "Devolvió un envío a pendiente",
+  garantia_cambio_revertido: "Deshizo un cambio por garantía",
 };
 
 /** Filtro especial de Auditoría: todo lo que se borró a mano. */

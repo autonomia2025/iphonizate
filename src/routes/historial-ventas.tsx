@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { traerTodo } from "@/lib/traerTodo";
+import { marcarEnvio } from "@/lib/envios";
 import { useAuth } from "@/components/AuthContext";
 import { BotonComprobante } from "@/components/vender/BotonComprobante";
 import { CorregirPagoModal, type PagoCorregible } from "@/components/vender/CorregirPagoModal";
@@ -17,6 +18,8 @@ import { METODO_ETIQUETA, puedeVerGanancias, type MetodoPago } from "@/lib/pos";
 import { hoyISO } from "@/lib/caja";
 
 const DESC = "Historial de ventas de cada tienda, con totales, métodos de pago y comprobantes.";
+
+type Entrega = { detalle: string; estado: "pendiente" | "enviado" | null; enviadoAt: string | null };
 
 export const Route = createFileRoute("/historial-ventas")({
   head: () => ({
@@ -57,6 +60,7 @@ function HistorialVentasPage() {
   const [busqueda, setBusqueda] = useState("");
   const [tiendaFiltro, setTiendaFiltro] = useState("todas");
   const [conAnuladas, setConAnuladas] = useState(false);
+  const [soloEnviosPendientes, setSoloEnviosPendientes] = useState(false);
   const [aEliminar, setAEliminar] = useState<VentaAEliminar | null>(null);
   const [corrigiendo, setCorrigiendo] = useState<PagoCorregible[] | null>(null);
   const [importando, setImportando] = useState(false);
@@ -139,18 +143,51 @@ function HistorialVentasPage() {
   const entregas = useQuery({
     queryKey: ["historial-entregas", desde, hasta],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ventas")
-        .select("id, modalidad, envio_detalle")
-        .eq("modalidad", "envio")
-        .gte("fecha", `${desde}T00:00:00`)
-        .lte("fecha", `${hasta}T23:59:59.999`)
-        .limit(1000);
-      if (error) return new Map<string, string>();
-      return new Map((data ?? []).map((v) => [v.id, v.envio_detalle ?? ""]));
+      const armar = (columnas: string) =>
+        supabase
+          .from("ventas")
+          .select(columnas)
+          .eq("modalidad", "envio")
+          .gte("fecha", `${desde}T00:00:00`)
+          .lte("fecha", `${hasta}T23:59:59.999`)
+          .limit(1000);
+      /* Si la base aún no tiene el estado del envío, se muestra al menos que es envío */
+      let { data, error } = await armar("id, envio_detalle, envio_estado, enviado_at");
+      if (error) ({ data, error } = await armar("id, envio_detalle"));
+      if (error) return new Map<string, Entrega>();
+      const filas = (data ?? []) as unknown as {
+        id: string;
+        envio_detalle: string | null;
+        envio_estado?: string | null;
+        enviado_at?: string | null;
+      }[];
+      return new Map(
+        filas.map((v) => [
+          v.id,
+          {
+            detalle: v.envio_detalle ?? "",
+            estado: (v.envio_estado ?? null) as Entrega["estado"],
+            enviadoAt: v.enviado_at ?? null,
+          },
+        ]),
+      );
     },
   });
   const envioDe = (id: string) => entregas.data?.get(id);
+
+  const [marcandoEnvio, setMarcandoEnvio] = useState<string | null>(null);
+  const cambiarEnvio = async (id: string, enviado: boolean) => {
+    setMarcandoEnvio(id);
+    try {
+      await marcarEnvio(id, enviado);
+      toast.success(enviado ? "Envío marcado como enviado" : "El envío vuelve a pendiente");
+      void entregas.refetch();
+    } catch (e) {
+      toast.error("No se pudo cambiar el envío", { description: e instanceof Error ? e.message : undefined });
+    } finally {
+      setMarcandoEnvio(null);
+    }
+  };
 
   const gananciaDe = (id: string) => ganancias.data?.get(id) ?? 0;
   const numeroDe = (id: string) => numeros.data?.get(id) ?? "";
@@ -162,6 +199,7 @@ function HistorialVentasPage() {
     const q = busqueda.trim().toLowerCase();
     return (ventas.data ?? []).filter((v) => {
       if (!conAnuladas && v.anulada) return false;
+      if (soloEnviosPendientes && envioDe(v.id)?.estado !== "pendiente") return false;
       if (tiendaFiltro !== "todas" && v.tienda_id !== tiendaFiltro) return false;
       if (!q) return true;
       const textos = [
@@ -169,7 +207,9 @@ function HistorialVentasPage() {
         v.usuarios?.nombre ?? "",
         numeroDe(v.id),
         nombreTienda(v.tienda_id),
-        envioDe(v.id) != null ? `envio ${envioDe(v.id)}` : "presencial",
+        envioDe(v.id)
+          ? `envio ${envioDe(v.id)?.detalle} ${envioDe(v.id)?.estado === "pendiente" ? "pendiente" : ""}`
+          : "presencial",
         ...(v.venta_items ?? []).map(
           (i) =>
             `${i.equipos?.imei ?? ""} ${i.equipos?.modelo ?? ""} ${i.equipos?.color ?? ""} ${i.accesorios?.nombre ?? ""}`,
@@ -178,7 +218,16 @@ function HistorialVentasPage() {
       return textos.join(" ").toLowerCase().includes(q);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ventas.data, numeros.data, entregas.data, tiendas.data, busqueda, tiendaFiltro, conAnuladas]);
+  }, [
+    ventas.data,
+    numeros.data,
+    entregas.data,
+    tiendas.data,
+    busqueda,
+    tiendaFiltro,
+    conAnuladas,
+    soloEnviosPendientes,
+  ]);
 
   const porTienda = useMemo(() => {
     const mapa = new Map<
@@ -359,6 +408,17 @@ function HistorialVentasPage() {
         >
           Incluir anuladas
         </button>
+        <button
+          type="button"
+          onClick={() => setSoloEnviosPendientes((v) => !v)}
+          className={`rounded-full border px-4 py-1.5 text-xs transition-all duration-200 ${
+            soloEnviosPendientes
+              ? "accent-glow border-[var(--accent-store)]/50 bg-[var(--accent-store-soft)] text-foreground"
+              : "border-white/10 bg-white/[0.04] text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Solo envíos pendientes
+        </button>
       </div>
 
       {ventas.isLoading && (
@@ -465,14 +525,40 @@ function HistorialVentasPage() {
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-muted-foreground">
-                      {envioDe(v.id) != null ? (
-                        <>
-                          <span className="text-foreground">Envío</span>
-                          {envioDe(v.id) && <span className="block max-w-56 text-xs">{envioDe(v.id)}</span>}
-                        </>
-                      ) : (
-                        "Presencial"
-                      )}
+                      {(() => {
+                        const envio = envioDe(v.id);
+                        if (!envio) return "Presencial";
+                        return (
+                          <>
+                            {envio.estado === "pendiente" ? (
+                              <span className="inline-flex rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300">
+                                Envío pendiente
+                              </span>
+                            ) : envio.estado === "enviado" ? (
+                              <span className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">
+                                Enviado{envio.enviadoAt ? ` ${fechaHora(envio.enviadoAt).slice(0, 5)}` : ""}
+                              </span>
+                            ) : (
+                              <span className="text-foreground">Envío</span>
+                            )}
+                            {envio.detalle && <span className="mt-1 block max-w-56 text-xs">{envio.detalle}</span>}
+                            {envio.estado && !v.anulada && (
+                              <button
+                                type="button"
+                                disabled={marcandoEnvio !== null}
+                                onClick={() => void cambiarEnvio(v.id, envio.estado === "pendiente")}
+                                className="mt-1 text-xs text-[var(--accent-store)] hover:underline disabled:opacity-50"
+                              >
+                                {marcandoEnvio === v.id
+                                  ? "Guardando…"
+                                  : envio.estado === "pendiente"
+                                    ? "Marcar enviado"
+                                    : "Volver a pendiente"}
+                              </button>
+                            )}
+                          </>
+                        );
+                      })()}
                     </td>
                     <td className="num px-4 py-2.5 text-right">{formatCLP(v.total)}</td>
                     {conGanancias && (

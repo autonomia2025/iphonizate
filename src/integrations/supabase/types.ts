@@ -2115,7 +2115,10 @@ export type Database = {
           comprobante_numero: string | null
           comprobante_ruta: string | null
           con_boleta: boolean
+          enviado_at: string | null
+          enviado_por: string | null
           envio_detalle: string | null
+          envio_estado: string | null
           fecha: string
           fecha_anulacion: string | null
           ganancia: number
@@ -2138,7 +2141,10 @@ export type Database = {
           comprobante_numero?: string | null
           comprobante_ruta?: string | null
           con_boleta?: boolean
+          enviado_at?: string | null
+          enviado_por?: string | null
           envio_detalle?: string | null
+          envio_estado?: string | null
           fecha?: string
           fecha_anulacion?: string | null
           ganancia?: number
@@ -2161,7 +2167,10 @@ export type Database = {
           comprobante_numero?: string | null
           comprobante_ruta?: string | null
           con_boleta?: boolean
+          enviado_at?: string | null
+          enviado_por?: string | null
           envio_detalle?: string | null
+          envio_estado?: string | null
           fecha?: string
           fecha_anulacion?: string | null
           ganancia?: number
@@ -2899,6 +2908,10 @@ export type Database = {
           debe_cambiar_pin: boolean
           email_interno: string
         }[]
+      }
+      marcar_envio: {
+        Args: { _enviado?: boolean; _venta: string }
+        Returns: undefined
       }
       marcar_equipo_disponible: {
         Args: { _equipo: string }
