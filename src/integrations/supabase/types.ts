@@ -2792,6 +2792,10 @@ export type Database = {
         Args: { _confirmado: boolean; _pago: string }
         Returns: undefined
       }
+      corregir_costo_venta_item: {
+        Args: { _costo: number; _item: string }
+        Returns: undefined
+      }
       corregir_pago: {
         Args: {
           _metodo: Database["public"]["Enums"]["metodo_pago"]

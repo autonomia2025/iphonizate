@@ -71,6 +71,7 @@ const ACCION_ESPECIAL: Record<string, string> = {
   envio_enviado: "Marcó un envío como enviado",
   envio_pendiente: "Devolvió un envío a pendiente",
   garantia_cambio_revertido: "Deshizo un cambio por garantía",
+  costo_venta_corregido: "Cargó el costo de un equipo vendido",
 };
 
 /** Filtro especial de Auditoría: todo lo que se borró a mano. */

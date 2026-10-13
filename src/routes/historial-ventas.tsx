@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileSpreadsheet, Receipt, Search, Trash2 } from "lucide-react";
+import { Download, FileSpreadsheet, Receipt, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { BotonComprobante } from "@/components/vender/BotonComprobante";
 import { CorregirPagoModal, type PagoCorregible } from "@/components/vender/CorregirPagoModal";
 import { ImportarVentasModal } from "@/components/vender/ImportarVentasModal";
 import { EliminarVentaModal, type VentaAEliminar } from "@/components/vender/EliminarVentaModal";
+import { CorregirCostoModal, type ItemSinCosto } from "@/components/vender/CorregirCostoModal";
 import { EstadoVacio, SkeletonFilas } from "@/components/motion";
 import { formatCLP } from "@/lib/stores";
 import { METODO_ETIQUETA, puedeVerGanancias, type MetodoPago } from "@/lib/pos";
@@ -61,6 +62,8 @@ function HistorialVentasPage() {
   const [tiendaFiltro, setTiendaFiltro] = useState("todas");
   const [conAnuladas, setConAnuladas] = useState(false);
   const [soloEnviosPendientes, setSoloEnviosPendientes] = useState(false);
+  const [soloSinCosto, setSoloSinCosto] = useState(false);
+  const [corrigiendoCosto, setCorrigiendoCosto] = useState<ItemSinCosto | null>(null);
   const [aEliminar, setAEliminar] = useState<VentaAEliminar | null>(null);
   const [corrigiendo, setCorrigiendo] = useState<PagoCorregible[] | null>(null);
   const [importando, setImportando] = useState(false);
@@ -122,6 +125,27 @@ function HistorialVentasPage() {
       return new Map((data ?? []).map((v) => [v.id as string, Number(v.ganancia ?? 0)]));
     },
   });
+
+  /* Costo de cada equipo vendido (solo para quien ve ganancias): así se ven los que quedaron en 0 */
+  const costos = useQuery({
+    queryKey: ["historial-costos", desde, hasta],
+    enabled: conGanancias,
+    queryFn: async () => {
+      const data = await traerTodo((filaIni, filaFin) =>
+        supabase
+          .from("v_venta_items")
+          .select("id, costo_snapshot")
+          .gte("fecha", `${desde}T00:00:00`)
+          .lte("fecha", `${hasta}T23:59:59.999`)
+          .order("id")
+          .range(filaIni, filaFin),
+      );
+      return new Map(
+        data.map((i) => [i.id as string, i.costo_snapshot == null ? null : Number(i.costo_snapshot)]),
+      );
+    },
+  });
+  const costoDe = (itemId: string) => costos.data?.get(itemId);
 
   const numeros = useQuery({
     queryKey: ["historial-comprobantes", desde, hasta],
@@ -195,11 +219,17 @@ function HistorialVentasPage() {
   const nombreTienda = (id?: string | null) =>
     (tiendas.data ?? []).find((t) => t.id === id)?.nombre ?? "Sin tienda";
 
+  /* Venta con algún equipo cuyo costo quedó en 0: su ganancia está inflada */
+  const tieneSinCosto = (v: NonNullable<typeof ventas.data>[number]) =>
+    conGanancias && (v.venta_items ?? []).some((i) => !!i.equipos && costoDe(i.id) === 0);
+  const ventasSinCosto = (ventas.data ?? []).filter((v) => !v.anulada && tieneSinCosto(v)).length;
+
   const filas = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     return (ventas.data ?? []).filter((v) => {
       if (!conAnuladas && v.anulada) return false;
       if (soloEnviosPendientes && envioDe(v.id)?.estado !== "pendiente") return false;
+      if (soloSinCosto && !tieneSinCosto(v)) return false;
       if (tiendaFiltro !== "todas" && v.tienda_id !== tiendaFiltro) return false;
       if (!q) return true;
       const textos = [
@@ -227,6 +257,8 @@ function HistorialVentasPage() {
     tiendaFiltro,
     conAnuladas,
     soloEnviosPendientes,
+    soloSinCosto,
+    costos.data,
   ]);
 
   const porTienda = useMemo(() => {
@@ -267,6 +299,22 @@ function HistorialVentasPage() {
               {i.equipos.imei}
             </span>
           )}
+          {conGanancias && costoDe(i.id) === 0 && (
+            <button
+              type="button"
+              onClick={() =>
+                setCorrigiendoCosto({
+                  id: i.id,
+                  modelo: `${i.equipos?.modelo ?? ""}${i.equipos?.gb ? ` ${i.equipos.gb} GB` : ""}`,
+                  imei: i.equipos?.imei ?? null,
+                  precio: i.precio,
+                })
+              }
+              className="mt-0.5 inline-flex rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300 hover:bg-amber-500/20"
+            >
+              Sin costo · cargar
+            </button>
+          )}
         </span>
       ) : (
         <span key={i.id} className="block">
@@ -282,6 +330,51 @@ function HistorialVentasPage() {
     ) || "—";
 
   const puedeEliminar = permisoBorrar.data === true;
+
+  /* Excel de lo que está en pantalla (respeta filtros): una fila por producto vendido */
+  const descargarExcel = async () => {
+    const XLSX = await import("xlsx");
+    const entregaTexto = (id: string) => {
+      const e = envioDe(id);
+      if (!e) return "Presencial";
+      return e.estado === "pendiente" ? "Envío pendiente" : e.estado === "enviado" ? "Enviado" : "Envío";
+    };
+    const filasExcel = filas.flatMap((v) => {
+      const items = v.venta_items ?? [];
+      const lineas = items.length ? items : [null];
+      return lineas.map((i, idx) => {
+        const costo = i ? costoDe(i.id) : undefined;
+        return {
+          Fecha: fechaHora(v.fecha),
+          Tienda: nombreTienda(v.tienda_id),
+          Comprobante: numeroDe(v.id),
+          Cliente: v.clientes?.nombre ?? "",
+          Vendedor: v.usuarios?.nombre ?? "",
+          Producto: i ? (i.equipos?.modelo ?? i.accesorios?.nombre ?? "") : "",
+          GB: i?.equipos?.gb ?? "",
+          Color: i?.equipos?.color ?? "",
+          IMEI: i?.equipos?.imei ?? "",
+          "Precio venta": i?.precio ?? "",
+          ...(conGanancias
+            ? {
+                Costo: costo ?? "",
+                Ganancia: i && costo != null ? i.precio - costo : "",
+                "Sin costo": i?.equipos && costo === 0 ? "SÍ" : "",
+              }
+            : {}),
+          "Total venta": idx === 0 ? v.total : "",
+          Pago: idx === 0 ? metodos(v.pagos) : "",
+          Entrega: idx === 0 ? entregaTexto(v.id) : "",
+          Anulada: v.anulada ? "Sí" : "",
+        };
+      });
+    });
+    const hoja = XLSX.utils.json_to_sheet(filasExcel);
+    hoja["!cols"] = Object.keys(filasExcel[0] ?? {}).map((k) => ({ wch: Math.max(10, k.length + 2) }));
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Ventas");
+    XLSX.writeFile(libro, `ventas-${desde}-a-${hasta}.xlsx`);
+  };
 
   /* Resumen en texto plano de lo que se vendió, para la ventana de eliminar */
   const resumenVenta = (v: (typeof filas)[number]) =>
@@ -309,6 +402,14 @@ function HistorialVentasPage() {
           <p className="mt-1 text-sm text-muted-foreground">{DESC}</p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
+          <button
+            type="button"
+            onClick={() => void descargarExcel()}
+            disabled={filas.length === 0}
+            className="glass flex items-center gap-2 px-4 py-3 text-sm transition-colors duration-200 hover:border-[var(--accent-store)]/50 disabled:opacity-50"
+          >
+            <Download className="size-4 text-[var(--accent-store)]" /> Descargar Excel
+          </button>
           {puedeEliminar && (
             <button
               type="button"
@@ -419,6 +520,21 @@ function HistorialVentasPage() {
         >
           Solo envíos pendientes
         </button>
+        {conGanancias && (
+          <button
+            type="button"
+            onClick={() => setSoloSinCosto((v) => !v)}
+            className={`rounded-full border px-4 py-1.5 text-xs transition-all duration-200 ${
+              soloSinCosto
+                ? "accent-glow border-[var(--accent-store)]/50 bg-[var(--accent-store-soft)] text-foreground"
+                : ventasSinCosto > 0
+                  ? "border-amber-400/40 bg-amber-500/10 text-amber-300"
+                  : "border-white/10 bg-white/[0.04] text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Sin costo{ventasSinCosto > 0 ? ` (${ventasSinCosto})` : ""}
+          </button>
+        )}
       </div>
 
       {ventas.isLoading && (
@@ -604,6 +720,16 @@ function HistorialVentasPage() {
         pagos={corrigiendo}
         onCerrar={() => setCorrigiendo(null)}
         onGuardado={() => void ventas.refetch()}
+      />
+
+      <CorregirCostoModal
+        item={corrigiendoCosto}
+        onCerrar={() => setCorrigiendoCosto(null)}
+        onGuardado={() => {
+          setCorrigiendoCosto(null);
+          void costos.refetch();
+          void ganancias.refetch();
+        }}
       />
 
       <EliminarVentaModal
