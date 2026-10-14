@@ -89,6 +89,7 @@ function InventarioPage() {
   const [ubicacion, setUbicacion] = useState<string | null>(null);
   const [estado, setEstado] = useState<EquipoEstado | null>(null);
   const [soloAlertas, setSoloAlertas] = useState(false);
+  const [soloSinCosto, setSoloSinCosto] = useState(false);
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [importAbierto, setImportAbierto] = useState(false);
@@ -135,6 +136,9 @@ function InventarioPage() {
   /* Equipos con una venta vigente que hoy no figuran como vendidos (garantía, devolución o reingreso) */
   const conVenta = useConVentaActiva();
 
+  /* Equipo sin precio de compra (costo 0 o vacío): solo se sabe si quien mira ve costos */
+  const sinCosto = (id: string) => conCostos && extras.has(id) && !Number(extras.get(id)?.costo ?? 0);
+
   const filas: EquipoFila[] = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     return (stock.data ?? [])
@@ -176,6 +180,7 @@ function InventarioPage() {
           return false;
         if (estado && e.estado !== estado) return false;
         if (soloAlertas && !tieneAlertaImei(e)) return false;
+        if (soloSinCosto && !sinCosto(e.id)) return false;
         if (!q) return true;
         return (
           e.imei.toLowerCase().includes(q) ||
@@ -183,7 +188,7 @@ function InventarioPage() {
           (e.color ?? "").toLowerCase().includes(q)
         );
       });
-  }, [stock.data, extras, busqueda, ubicacion, estado, soloAlertas]);
+  }, [stock.data, extras, busqueda, ubicacion, estado, soloAlertas, soloSinCosto]);
 
 
   const { enVivo, destellos } = useEquiposEnVivo((ids) => {
@@ -205,6 +210,13 @@ function InventarioPage() {
   const estadosPresentes = useMemo(
     () => ESTADOS.filter((s) => (conteos.get(s) ?? 0) > 0),
     [conteos],
+  );
+
+  /* Equipos sin precio de compra, de cualquier estado */
+  const sinCostoTotal = useMemo(
+    () => (stock.data ?? []).filter((e) => !!e.id && sinCosto(e.id)).length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stock.data, extras, conCostos],
   );
 
   /* Equipos con iCloud activo o lista negra: no dependen del filtro de estado */
@@ -318,6 +330,19 @@ function InventarioPage() {
           >
             <ShieldAlert className="size-3.5" /> Con alertas {conAlertas}
           </button>
+          {conCostos && (
+            <button
+              type="button"
+              onClick={() => setSoloSinCosto((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all duration-200 ${
+                soloSinCosto
+                  ? "border-amber-400/50 bg-amber-500/15 text-amber-200"
+                  : "border-white/10 bg-white/[0.04] text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Sin costo {sinCostoTotal}
+            </button>
+          )}
         </div>
       </div>
 

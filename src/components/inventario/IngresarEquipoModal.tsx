@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
+import { SelectConOtro } from "@/components/inventario/SelectConOtro";
+import { traerTodo } from "@/lib/traerTodo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,6 +190,52 @@ export function IngresarEquipoModal({
     },
   });
 
+  /* Colores por modelo (catálogo Apple) y proveedores ya usados, para elegir en vez de escribir */
+  const catalogo = useQuery({
+    queryKey: ["catalogo-colores-modelo"],
+    enabled: abierto,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const [modelos, colores] = await Promise.all([
+        supabase.from("modelos_apple").select("modelo_comercial, product_type"),
+        supabase.from("colores_apple").select("product_type, color_comercial"),
+      ]);
+      if (modelos.error) throw modelos.error;
+      if (colores.error) throw colores.error;
+      return { modelos: modelos.data ?? [], colores: colores.data ?? [] };
+    },
+  });
+  const coloresDelModelo = useMemo(() => {
+    const cat = catalogo.data;
+    if (!cat) return [];
+    const modelo = form.modelo.trim().toLowerCase();
+    const tipos = new Set(
+      cat.modelos.filter((m) => m.modelo_comercial.toLowerCase() === modelo).map((m) => m.product_type),
+    );
+    const propios = cat.colores.filter((c) => tipos.has(c.product_type)).map((c) => c.color_comercial);
+    const lista = propios.length ? propios : cat.colores.map((c) => c.color_comercial);
+    return [...new Set(lista)].sort((a, b) => a.localeCompare(b, "es"));
+  }, [catalogo.data, form.modelo]);
+
+  const proveedores = useQuery({
+    queryKey: ["proveedores-equipos"],
+    enabled: abierto,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const data = await traerTodo((filaIni, filaFin) =>
+        supabase
+          .from("equipos")
+          .select("proveedor")
+          .not("proveedor", "is", null)
+          .order("id")
+          .range(filaIni, filaFin),
+      );
+      return [...new Set(data.map((d) => (d.proveedor ?? "").trim()).filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b, "es"),
+      );
+    },
+  });
+
   const costosArreglo = useQuery({
     queryKey: ["costos_arreglo", form.modelo.trim()],
     enabled: abierto && puedeCostos && !!form.modelo.trim(),
@@ -254,6 +302,14 @@ export function IngresarEquipoModal({
     }
     if (!form.modelo.trim()) {
       fallar("Indica el modelo del equipo.");
+      return;
+    }
+    if (puedeCostos && !(Number(form.costo) > 0)) {
+      fallar("Ingresa el costo de compra: sin él la ganancia de la venta queda mal.");
+      return;
+    }
+    if (!form.proveedor.trim()) {
+      fallar("Indica el proveedor del equipo.");
       return;
     }
     if (!form.ubicacion_id) {
@@ -479,19 +535,15 @@ export function IngresarEquipoModal({
 
             <div>
               <Label htmlFor="modelo">Modelo</Label>
-              <Input
+              <SelectConOtro
                 id="modelo"
-                list="modelos-apple"
-                className="mt-1"
-                placeholder="ej: iPhone 13 Pro"
+                className={`${selectClase} mt-1`}
                 value={form.modelo}
-                onChange={(e) => set("modelo", e.target.value)}
+                onChange={(v) => set("modelo", v)}
+                opciones={modelosApple.data ?? []}
+                placeholder="Elige el modelo"
+                otroPlaceholder="Escribe el modelo, ej: iPhone 18 Pro"
               />
-              <datalist id="modelos-apple">
-                {(modelosApple.data ?? []).map((modelo) => (
-                  <option key={modelo} value={modelo} />
-                ))}
-              </datalist>
             </div>
           </div>
 
@@ -517,12 +569,14 @@ export function IngresarEquipoModal({
             </div>
             <div>
               <Label htmlFor="color">Color</Label>
-              <Input
+              <SelectConOtro
                 id="color"
-                className="mt-1"
-                placeholder="ej: Grafito"
+                className={`${selectClase} mt-1`}
                 value={form.color}
-                onChange={(e) => set("color", e.target.value)}
+                onChange={(v) => set("color", v)}
+                opciones={coloresDelModelo}
+                placeholder="Elige el color"
+                otroPlaceholder="Escribe el color"
               />
             </div>
             <div>
@@ -569,7 +623,9 @@ export function IngresarEquipoModal({
             </div>
             {puedeCostos && (
               <div>
-                <Label htmlFor="costo">Costo de compra</Label>
+                <Label htmlFor="costo">
+                  Costo de compra <span className="text-amber-300">obligatorio</span>
+                </Label>
                 <Input
                   id="costo"
                   inputMode="numeric"
@@ -586,13 +642,22 @@ export function IngresarEquipoModal({
               </div>
             )}
             <div>
-              <Label htmlFor="proveedor">Proveedor</Label>
+              <Label htmlFor="proveedor">
+                Proveedor <span className="text-amber-300">obligatorio</span>
+              </Label>
               <Input
                 id="proveedor"
+                list="proveedores-equipos"
                 className="mt-1"
+                placeholder="Escribe o elige uno usado antes"
                 value={form.proveedor}
                 onChange={(e) => set("proveedor", e.target.value)}
               />
+              <datalist id="proveedores-equipos">
+                {(proveedores.data ?? []).map((p) => (
+                  <option key={p} value={p} />
+                ))}
+              </datalist>
             </div>
           </div>
 
