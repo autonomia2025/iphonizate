@@ -5,6 +5,7 @@ import { Plus, Search, ShieldAlert, Trash2, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useVerGanancias } from "@/lib/permisos";
 import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { useStore } from "@/components/StoreContext";
@@ -22,7 +23,6 @@ import {
   aNumero,
   claveModelo,
   puedeAnularVentas,
-  puedeVerGanancias,
   type ItemAccesorio,
   type ItemCarrito,
   type ItemEquipo,
@@ -50,7 +50,7 @@ function VenderPage() {
   const { store } = useStore();
   const rol = usuario?.rol ?? null;
   const conCostos = puedeVerCostos(rol);
-  const conGanancias = puedeVerGanancias(rol);
+  const conGanancias = useVerGanancias(rol);
 
   const [pestana, setPestana] = useState<"equipos" | "accesorios">("equipos");
   const [busqueda, setBusqueda] = useState("");

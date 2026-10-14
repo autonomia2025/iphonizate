@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
+import type { AppRol } from "@/lib/nav";
+import { puedeVerGanancias } from "@/lib/pos";
 
 /** Permisos por persona (no por rol). Se administran en la tabla `permisos_usuario`,
  *  así que mañana se pueden cambiar sin tocar código. */
@@ -12,6 +14,8 @@ export const PERMISOS = {
   equiposCosto: "equipos.costo",
   /** Vendedor que puede trasladar equipos entre tiendas, no solo devolver a bodega */
   movimientosTienda: "movimientos.tienda",
+  /** No ve montos de ganancia aunque su rol sí los vea (dirección con todo menos ganancias) */
+  gananciasOcultas: "ganancias.ocultar",
 } as const;
 
 export type Permiso = (typeof PERMISOS)[keyof typeof PERMISOS];
@@ -43,4 +47,11 @@ export function usePermisos() {
 export function usePermiso(permiso: Permiso) {
   const { tiene, cargando } = usePermisos();
   return { permitido: tiene(permiso), cargando };
+}
+
+/** Ve montos de ganancia: lo decide el rol, salvo que la persona tenga "ganancias.ocultar".
+ *  Mientras cargan los permisos no se muestran, para no dejarlas ver ni un segundo. */
+export function useVerGanancias(rol?: AppRol | null) {
+  const { tiene, cargando } = usePermisos();
+  return puedeVerGanancias(rol) && !cargando && !tiene(PERMISOS.gananciasOcultas);
 }

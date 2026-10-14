@@ -8,7 +8,6 @@ import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { STORES, formatCLP, formatNumero } from "@/lib/stores";
-import { puedeVerGanancias } from "@/lib/pos";
 import {
   CIERRE_CERCA,
   diasParaCierre,
@@ -17,7 +16,7 @@ import {
   periodoTexto,
   rangoPeriodo,
 } from "@/lib/gestion";
-import { PERMISOS, usePermiso } from "@/lib/permisos";
+import { PERMISOS, usePermiso, useVerGanancias } from "@/lib/permisos";
 import { MetaModal, type MetaEditable } from "@/components/metas/MetaModal";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +42,7 @@ const campo =
 function MetasPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const verGanancias = puedeVerGanancias(rol);
+  const verGanancias = useVerGanancias(rol);
   const { permitido: puedeEditar } = usePermiso(PERMISOS.metasEditar);
 
   const [periodo, setPeriodo] = useState(periodoActual());

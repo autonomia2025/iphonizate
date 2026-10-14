@@ -17,11 +17,11 @@ import {
 import { useStore } from "@/components/StoreContext";
 import { useAuth } from "@/components/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useVerGanancias } from "@/lib/permisos";
 import { traerTodo } from "@/lib/traerTodo";
 import { haceDias, marcarEnvio, productosDeEnvio, useEnviosPendientes } from "@/lib/envios";
 import { STORES, formatCLP, formatNumero } from "@/lib/stores";
 import { equipoTexto, nivelSla, textoSla } from "@/lib/garantias";
-import { puedeVerGanancias } from "@/lib/pos";
 import { claveModelo } from "@/lib/pos";
 import { diasEnStock } from "@/lib/inventario";
 import { URGENCIA_INFO, pct, periodoActual, periodoTexto, rangoPeriodo, type Urgencia } from "@/lib/gestion";
@@ -111,7 +111,7 @@ function Dashboard() {
   const { store } = useStore();
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const verGanancias = puedeVerGanancias(rol);
+  const verGanancias = useVerGanancias(rol);
 
   const periodo = periodoActual();
   const { inicio: inicioMes, fin: finMes } = useMemo(() => rangoPeriodo(periodo), [periodo]);

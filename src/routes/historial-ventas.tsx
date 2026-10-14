@@ -5,6 +5,7 @@ import { Download, FileSpreadsheet, Receipt, Search, Trash2 } from "lucide-react
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useVerGanancias } from "@/lib/permisos";
 import { traerTodo } from "@/lib/traerTodo";
 import { marcarEnvio } from "@/lib/envios";
 import { useAuth } from "@/components/AuthContext";
@@ -15,7 +16,7 @@ import { EliminarVentaModal, type VentaAEliminar } from "@/components/vender/Eli
 import { CorregirCostoModal, type ItemSinCosto } from "@/components/vender/CorregirCostoModal";
 import { EstadoVacio, SkeletonFilas } from "@/components/motion";
 import { formatCLP } from "@/lib/stores";
-import { METODO_ETIQUETA, puedeVerGanancias, type MetodoPago } from "@/lib/pos";
+import { METODO_ETIQUETA, type MetodoPago } from "@/lib/pos";
 import { hoyISO } from "@/lib/caja";
 
 const DESC = "Historial de ventas de cada tienda, con totales, métodos de pago y comprobantes.";
@@ -54,7 +55,7 @@ const inicioMesISO = () => `${hoyISO().slice(0, 7)}-01`;
 function HistorialVentasPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
-  const conGanancias = puedeVerGanancias(rol);
+  const conGanancias = useVerGanancias(rol);
 
   const [desde, setDesde] = useState(inicioMesISO());
   const [hasta, setHasta] = useState(hoyISO());

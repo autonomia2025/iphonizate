@@ -13,11 +13,11 @@ import {
 } from "recharts";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useVerGanancias } from "@/lib/permisos";
 import { traerTodo } from "@/lib/traerTodo";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { formatCLP, formatNumero } from "@/lib/stores";
-import { puedeVerGanancias } from "@/lib/pos";
 import { puedeVerCostos, diasEnStock } from "@/lib/inventario";
 import { nivelSla } from "@/lib/garantias";
 import {
@@ -102,7 +102,7 @@ function ReportesPage() {
   const { usuario } = useAuth();
   const rol = usuario?.rol ?? null;
   const autorizado = puedeVerReportes(rol);
-  const verGanancias = puedeVerGanancias(rol);
+  const verGanancias = useVerGanancias(rol);
   const verCostos = puedeVerCostos(rol);
   const todasTiendas = puedeVerTodasTiendas(rol);
 
