@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { SelectConOtro } from "@/components/inventario/SelectConOtro";
-import { traerTodo } from "@/lib/traerTodo";
+import { SelectProveedor } from "@/components/inventario/SelectProveedor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,24 +217,6 @@ export function IngresarEquipoModal({
     return [...new Set(lista)].sort((a, b) => a.localeCompare(b, "es"));
   }, [catalogo.data, form.modelo]);
 
-  const proveedores = useQuery({
-    queryKey: ["proveedores-equipos"],
-    enabled: abierto,
-    staleTime: 10 * 60 * 1000,
-    queryFn: async () => {
-      const data = await traerTodo((filaIni, filaFin) =>
-        supabase
-          .from("equipos")
-          .select("proveedor")
-          .not("proveedor", "is", null)
-          .order("id")
-          .range(filaIni, filaFin),
-      );
-      return [...new Set(data.map((d) => (d.proveedor ?? "").trim()).filter(Boolean))].sort((a, b) =>
-        a.localeCompare(b, "es"),
-      );
-    },
-  });
 
   const costosArreglo = useQuery({
     queryKey: ["costos_arreglo", form.modelo.trim()],
@@ -645,19 +627,12 @@ export function IngresarEquipoModal({
               <Label htmlFor="proveedor">
                 Proveedor <span className="text-amber-300">obligatorio</span>
               </Label>
-              <Input
+              <SelectProveedor
                 id="proveedor"
-                list="proveedores-equipos"
-                className="mt-1"
-                placeholder="Escribe o elige uno usado antes"
+                className={`${selectClase} mt-1`}
                 value={form.proveedor}
-                onChange={(e) => set("proveedor", e.target.value)}
+                onChange={(v) => set("proveedor", v)}
               />
-              <datalist id="proveedores-equipos">
-                {(proveedores.data ?? []).map((p) => (
-                  <option key={p} value={p} />
-                ))}
-              </datalist>
             </div>
           </div>
 

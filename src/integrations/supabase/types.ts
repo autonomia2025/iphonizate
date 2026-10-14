@@ -1613,6 +1613,33 @@ export type Database = {
           },
         ]
       }
+      proveedores: {
+        Row: {
+          activo: boolean
+          clave: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean
+          clave?: never
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activo?: boolean
+          clave?: never
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
       reserva_items: {
         Row: {
           accesorio_id: string | null
@@ -2757,6 +2784,11 @@ export type Database = {
     }
     Functions: {
       acciones_auditoria: { Args: never; Returns: string[] }
+      activar_proveedor: {
+        Args: { _activo: boolean; _id: string }
+        Returns: undefined
+      }
+      agregar_proveedor: { Args: { _nombre: string }; Returns: string }
       agregar_comentario_equipo: {
         Args: { _equipo: string; _texto: string }
         Returns: string
@@ -2906,6 +2938,10 @@ export type Database = {
         Args: { _probar?: boolean; _ventas: Json }
         Returns: Json
       }
+      listar_proveedores: {
+        Args: never
+        Returns: { activo: boolean; equipos: number; id: string; nombre: string }[]
+      }
       login_lookup: {
         Args: { _pin: string; _usuario: string }
         Returns: {
@@ -2933,6 +2969,10 @@ export type Database = {
       puede_corregir_ventas: { Args: never; Returns: boolean }
       puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
+      renombrar_proveedor: {
+        Args: { _id: string; _nombre: string }
+        Returns: undefined
+      }
       registrar_acceso_finanzas: {
         Args: { _seccion: string }
         Returns: undefined
@@ -2968,6 +3008,10 @@ export type Database = {
       tiene_permiso: { Args: { _permiso: string }; Returns: boolean }
       trasladar_equipos: {
         Args: { _destino: string; _imeis: string[]; _origen: string }
+        Returns: number
+      }
+      unir_proveedores: {
+        Args: { _destino: string; _origen: string }
         Returns: number
       }
       ve_costos: { Args: { _tienda?: string }; Returns: boolean }

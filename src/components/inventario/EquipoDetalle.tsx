@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
 import { EquipoTimeline } from "@/components/inventario/EquipoTimeline";
 import { useConVentaActiva } from "@/components/inventario/useConVentaActiva";
+import { SelectProveedor } from "@/components/inventario/SelectProveedor";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
@@ -304,7 +305,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
                   <div><Label>Ubicación</Label><select className={`${campo} mt-1`} value={form.ubicacion_id} onChange={(e) => setForm({ ...form, ubicacion_id: e.target.value })}>{(tiendas.data ?? []).map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}</select></div>
                   <div><Label>Email vinculado</Label><Input className="mt-1" value={form.email_vinculado} onChange={(e) => setForm({ ...form, email_vinculado: e.target.value })} /></div>
                   {puedeCostos && <div><Label>Costo</Label><Input className="num mt-1" inputMode="numeric" value={form.costo} onChange={(e) => setForm({ ...form, costo: e.target.value.replace(/\D/g, "") })} /></div>}
-                  <div><Label>Proveedor</Label><Input className="mt-1" value={form.proveedor} onChange={(e) => setForm({ ...form, proveedor: e.target.value })} /></div>
+                  <div><Label htmlFor="proveedor-edit">Proveedor</Label><SelectProveedor id="proveedor-edit" className={`${campo} mt-1`} value={form.proveedor} onChange={(v) => setForm({ ...form, proveedor: v })} /></div>
                   <div><Label>Lote</Label><Input className="mt-1" value={form.lote} onChange={(e) => setForm({ ...form, lote: e.target.value })} /></div>
                   <div className="sm:col-span-2"><Label>Notas</Label><Textarea className="mt-1" value={form.notas} onChange={(e) => setForm({ ...form, notas: e.target.value })} /></div>
                 </div>
