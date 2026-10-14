@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { SelectConOtro } from "@/components/inventario/SelectConOtro";
 import { SelectProveedor } from "@/components/inventario/SelectProveedor";
+import { coloresParaModelo, type ColorModelo } from "@/lib/colores";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -196,26 +197,25 @@ export function IngresarEquipoModal({
     enabled: abierto,
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const [modelos, colores] = await Promise.all([
+      const [modelos, colores, propios] = await Promise.all([
         supabase.from("modelos_apple").select("modelo_comercial, product_type"),
         supabase.from("colores_apple").select("product_type, color_comercial"),
+        supabase.from("colores_modelo").select("modelo, color, orden"),
       ]);
       if (modelos.error) throw modelos.error;
       if (colores.error) throw colores.error;
-      return { modelos: modelos.data ?? [], colores: colores.data ?? [] };
+      return {
+        modelos: modelos.data ?? [],
+        colores: colores.data ?? [],
+        /* Si la tabla de la tienda todavía no existe, se usa solo el catálogo Apple */
+        propios: (propios.error ? [] : (propios.data ?? [])) as ColorModelo[],
+      };
     },
   });
-  const coloresDelModelo = useMemo(() => {
-    const cat = catalogo.data;
-    if (!cat) return [];
-    const modelo = form.modelo.trim().toLowerCase();
-    const tipos = new Set(
-      cat.modelos.filter((m) => m.modelo_comercial.toLowerCase() === modelo).map((m) => m.product_type),
-    );
-    const propios = cat.colores.filter((c) => tipos.has(c.product_type)).map((c) => c.color_comercial);
-    const lista = propios.length ? propios : cat.colores.map((c) => c.color_comercial);
-    return [...new Set(lista)].sort((a, b) => a.localeCompare(b, "es"));
-  }, [catalogo.data, form.modelo]);
+  const coloresDelModelo = useMemo(
+    () => coloresParaModelo(form.modelo, catalogo.data?.propios ?? [], catalogo.data),
+    [catalogo.data, form.modelo],
+  );
 
 
   const costosArreglo = useQuery({
@@ -557,7 +557,7 @@ export function IngresarEquipoModal({
                 value={form.color}
                 onChange={(v) => set("color", v)}
                 opciones={coloresDelModelo}
-                placeholder="Elige el color"
+                placeholder={form.modelo.trim() ? "Elige el color" : "Primero elige el modelo"}
                 otroPlaceholder="Escribe el color"
               />
             </div>

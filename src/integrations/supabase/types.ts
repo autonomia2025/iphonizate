@@ -248,6 +248,12 @@ export type Database = {
           },
         ]
       }
+      colores_modelo: {
+        Row: { color: string; created_at: string; id: string; modelo: string; orden: number }
+        Insert: { color: string; created_at?: string; id?: string; modelo: string; orden?: number }
+        Update: { color?: string; created_at?: string; id?: string; modelo?: string; orden?: number }
+        Relationships: []
+      }
       colores_apple: {
         Row: {
           color_comercial: string
