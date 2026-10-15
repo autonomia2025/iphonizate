@@ -15,6 +15,8 @@ const PATRONES = [
 ];
 
 const INICIO_B = 104;
+const INICIO_C = 105;
+const CAMBIO_A_B = 100;
 const PARADA = 106;
 
 /** Barras del Code 128B: ancho en módulos, alternando barra/espacio desde barra. */
@@ -27,6 +29,26 @@ export function code128b(texto: string): number[] {
     codigos.push(valor);
     suma += valor * (i + 1);
   });
+  codigos.push(suma % 103);
+  codigos.push(PARADA);
+  return codigos.flatMap((c) => [...PATRONES[c]!].map(Number));
+}
+
+/**
+ * Code 128 para el IMEI: los dígitos van de a pares (set C), así 15 dígitos ocupan ~30% menos
+ * que en el set B y caben en etiquetas de 62 mm con barras legibles. Si sobra un dígito, va
+ * al final en el set B. Cualquier texto que no sea solo números usa el set B.
+ */
+export function code128(texto: string): number[] {
+  if (!/^\d{4,}$/.test(texto)) return code128b(texto);
+  const codigos: number[] = [INICIO_C];
+  let i = 0;
+  for (; i + 1 < texto.length; i += 2) codigos.push(Number(texto.slice(i, i + 2)));
+  if (i < texto.length) {
+    codigos.push(CAMBIO_A_B);
+    codigos.push(texto.charCodeAt(i) - 32);
+  }
+  const suma = codigos.reduce((acc, c, pos) => acc + (pos === 0 ? c : c * pos), 0);
   codigos.push(suma % 103);
   codigos.push(PARADA);
   return codigos.flatMap((c) => [...PATRONES[c]!].map(Number));
@@ -86,15 +108,22 @@ export type EquipoEtiqueta = {
 const fechaCorta = () =>
   new Date().toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "2-digit" });
 
-/** Ancho de módulo real: se reparte el ancho útil y nunca baja del mínimo legible. */
+/** Un punto de la Brother QL-800 (300 dpi), en mm. */
+export const PUNTO_MM = 25.4 / 300;
+
+/**
+ * Ancho de módulo real: el mayor número entero de puntos de la impresora que cabe en el ancho
+ * útil (barras nítidas, sin redondeos desparejos). Nunca baja del mínimo legible por pistola.
+ */
 export function anchoModulo(medida: MedidaEtiqueta, modulos: number) {
   const util = medida.ancho - 6; // 3 mm de margen físico por lado
   const calculado = util / (modulos + QUIET_ZONE_MODULOS * 2);
-  return Math.max(MODULO_MINIMO_MM, Number(calculado.toFixed(4)));
+  const puntos = Math.floor(calculado / PUNTO_MM + 1e-9);
+  return Math.max(MODULO_MINIMO_MM, puntos * PUNTO_MM);
 }
 
 export function svgCodigoBarras(imei: string, medida: MedidaEtiqueta) {
-  const barras = code128b(imei);
+  const barras = code128(imei);
   const modulos = barras.reduce((a, b) => a + b, 0);
   const modulo = anchoModulo(medida, modulos);
   const anchoTotal = (modulos + QUIET_ZONE_MODULOS * 2) * modulo;
