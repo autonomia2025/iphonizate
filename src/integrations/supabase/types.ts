@@ -2979,6 +2979,10 @@ export type Database = {
         Args: { _id: string; _nombre: string }
         Returns: undefined
       }
+      reemplazar_pagos_venta: {
+        Args: { _pagos: Json; _venta: string }
+        Returns: undefined
+      }
       registrar_acceso_finanzas: {
         Args: { _seccion: string }
         Returns: undefined

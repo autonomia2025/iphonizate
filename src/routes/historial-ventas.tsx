@@ -10,7 +10,7 @@ import { traerTodo } from "@/lib/traerTodo";
 import { marcarEnvio } from "@/lib/envios";
 import { useAuth } from "@/components/AuthContext";
 import { BotonComprobante } from "@/components/vender/BotonComprobante";
-import { CorregirPagoModal, type PagoCorregible } from "@/components/vender/CorregirPagoModal";
+import { CorregirPagoModal, type VentaACorregir } from "@/components/vender/CorregirPagoModal";
 import { ImportarVentasModal } from "@/components/vender/ImportarVentasModal";
 import { EliminarVentaModal, type VentaAEliminar } from "@/components/vender/EliminarVentaModal";
 import { CorregirCostoModal, type ItemSinCosto } from "@/components/vender/CorregirCostoModal";
@@ -66,7 +66,7 @@ function HistorialVentasPage() {
   const [soloSinCosto, setSoloSinCosto] = useState(false);
   const [corrigiendoCosto, setCorrigiendoCosto] = useState<ItemSinCosto | null>(null);
   const [aEliminar, setAEliminar] = useState<VentaAEliminar | null>(null);
-  const [corrigiendo, setCorrigiendo] = useState<PagoCorregible[] | null>(null);
+  const [corrigiendo, setCorrigiendo] = useState<VentaACorregir | null>(null);
   const [importando, setImportando] = useState(false);
 
   /* Renato, Liz y Valentina pueden eliminar ventas y corregir pagos: lo decide la base de datos */
@@ -626,14 +626,15 @@ function HistorialVentasPage() {
                         <button
                           type="button"
                           onClick={() =>
-                            setCorrigiendo(
-                              (v.pagos ?? []).map((p) => ({
+                            setCorrigiendo({
+                              id: v.id,
+                              pagos: (v.pagos ?? []).map((p) => ({
                                 id: p.id,
                                 metodo: p.metodo as MetodoPago,
                                 monto: p.monto,
                                 nombre_pagador: p.nombre_pagador,
                               })),
-                            )
+                            })
                           }
                           className="ml-2 text-xs text-[var(--accent-store)] hover:underline"
                         >
@@ -718,7 +719,7 @@ function HistorialVentasPage() {
       ))}
 
       <CorregirPagoModal
-        pagos={corrigiendo}
+        venta={corrigiendo}
         onCerrar={() => setCorrigiendo(null)}
         onGuardado={() => void ventas.refetch()}
       />
