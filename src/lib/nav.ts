@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   BookmarkCheck,
   ShieldCheck,
+  ShieldOff,
   Wrench,
   Banknote,
   ReceiptText,
@@ -46,6 +47,12 @@ export const NAV = [
     to: "/inventario",
     label: "Inventario",
     icon: PackageSearch,
+    roles: ["direccion", "jefe_tienda", "administracion", "operaciones"] as AppRol[],
+  },
+  {
+    to: "/lista-negra",
+    label: "Lista negra",
+    icon: ShieldOff,
     roles: ["direccion", "jefe_tienda", "administracion", "operaciones"] as AppRol[],
   },
   {
@@ -201,6 +208,7 @@ const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
   "/escanear": "Inventario",
   "/stock": "Inventario",
   "/inventario": "Inventario",
+  "/lista-negra": "Inventario",
   "/movimientos": "Inventario",
   "/tecnico": "Inventario",
   "/accesorios": "Inventario",

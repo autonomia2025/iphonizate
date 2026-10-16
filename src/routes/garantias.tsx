@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, ScanLine, ShieldCheck, Wrench } from "lucide-react";
+import { AlertTriangle, PackagePlus, ScanLine, ShieldCheck, Wrench } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,13 @@ import {
 } from "@/components/garantias/MandarTecnicoModal";
 import { ResolverGarantiaModal } from "@/components/garantias/ResolverGarantiaModal";
 import { BuscarVendidos } from "@/components/garantias/BuscarVendidos";
+import { AgregarEquipoGarantiaModal } from "@/components/garantias/AgregarEquipoGarantiaModal";
+import {
+  EQUIPO_PREVIO_VACIO,
+  EquipoPrevioCampos,
+  equipoPrevioJson,
+  type EquipoPrevio,
+} from "@/components/garantias/EquipoPrevioCampos";
 
 const DESC = "Solicitudes de garantía, SLA de 72 horas y resoluciones por reparación o cambio.";
 
@@ -77,6 +84,9 @@ function GarantiasPage() {
   const [guardando, setGuardando] = useState(false);
   const [aTecnico, setATecnico] = useState<GarantiaMinima | null>(null);
   const [aResolver, setAResolver] = useState<GarantiaMinima | null>(null);
+  const [aAgregar, setAAgregar] = useState<GarantiaMinima | null>(null);
+  /* Teléfono vendido antes del sistema: sus datos para agregarlo al inventario con la garantía */
+  const [equipoPrevio, setEquipoPrevio] = useState<EquipoPrevio>(EQUIPO_PREVIO_VACIO);
   const scanRef = useRef<HTMLInputElement>(null);
 
   const tiendas = useQuery({
@@ -126,7 +136,10 @@ function GarantiasPage() {
     [garantias.data],
   );
 
+  const sinEquipo = !!imei && !venta?.equipo_id;
+
   const limpiar = () => {
+    setEquipoPrevio(EQUIPO_PREVIO_VACIO);
     setImei("");
     setVenta(null);
     setSinVenta(false);
@@ -160,7 +173,12 @@ function GarantiasPage() {
     setSinVenta(!hayVenta);
     setCliente(fila?.cliente_nombre ?? "");
     setTelefono(fila?.cliente_telefono ?? "");
-    if (!hayVenta) {
+    setEquipoPrevio(EQUIPO_PREVIO_VACIO);
+    if (!fila?.equipo_id) {
+      flash.error(); toast.warning("Ese IMEI no está en el sistema", {
+        description: "Si se vendió antes del sistema, completa los datos del equipo y la garantía sigue normal.",
+      });
+    } else if (!hayVenta) {
       flash.error(); toast.warning("Ese IMEI no tiene venta registrada", {
         description: "Puedes ingresar la garantía igual, quedará sin venta asociada.",
       });
@@ -185,8 +203,14 @@ function GarantiasPage() {
       toast.error("Describe la falla del equipo");
       return;
     }
+    if (sinEquipo && !equipoPrevio.modelo.trim()) {
+      toast.error("Indica el modelo del equipo", {
+        description: "Así queda en el inventario y se puede mandar a técnico o cambiar.",
+      });
+      return;
+    }
     setGuardando(true);
-    const { error } = await supabase.rpc("crear_garantia", {
+    const { data: garantiaId, error } = await supabase.rpc("crear_garantia", {
       _imei: imei,
       _cliente_nombre: cliente.trim(),
       _cliente_telefono: telefono.trim() || "",
@@ -194,13 +218,29 @@ function GarantiasPage() {
       _notas: notas.trim() || "",
       _tienda: tiendaActiva.id,
     });
-    setGuardando(false);
     if (error) {
+      setGuardando(false);
       toast.error("No se pudo ingresar la garantía", {
         description: error.message.replace(/^.*?:\s*/, ""),
       });
       return;
     }
+    if (sinEquipo && garantiaId) {
+      const { error: errEquipo } = await supabase.rpc("garantia_agregar_equipo", {
+        _garantia: garantiaId,
+        _equipo: equipoPrevioJson(equipoPrevio),
+      });
+      if (errEquipo) {
+        setGuardando(false);
+        toast.warning("Garantía ingresada, pero el equipo no se agregó", {
+          description: `${errEquipo.message.replace(/^.*?:\s*/, "")} · Reinténtalo con “Agregar equipo” en la tarjeta.`,
+        });
+        limpiar();
+        await garantias.refetch();
+        return;
+      }
+    }
+    setGuardando(false);
     toast.success("Garantía ingresada", { description: `${cliente.trim()} · SLA 72 horas` });
     limpiar();
     await garantias.refetch();
@@ -268,7 +308,18 @@ function GarantiasPage() {
                     {equipoTexto(venta?.modelo, venta?.gb)}
                     {venta?.color ? ` · ${venta.color}` : ""}
                   </p>
-                  {sinVenta ? (
+                  {sinEquipo ? (
+                    <>
+                      <p className="mt-2 flex items-start gap-2 text-[12px] text-amber-300">
+                        <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                        Este IMEI no está en el sistema (vendido antes de que existiera). Completa sus
+                        datos: entra al inventario en garantía y se puede mandar a técnico o cambiar.
+                      </p>
+                      <div className="mt-3">
+                        <EquipoPrevioCampos valor={equipoPrevio} onCambio={setEquipoPrevio} />
+                      </div>
+                    </>
+                  ) : sinVenta ? (
                     <p className="mt-2 flex items-start gap-2 text-[12px] text-amber-300">
                       <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                       Sin venta registrada para este IMEI. Se ingresará igual, sin venta asociada.
@@ -407,23 +458,47 @@ function GarantiasPage() {
                     </p>
                   )}
 
+                  {puedeOperar && !g.equipo_id && (
+                    <p className="mt-3 text-[12px] text-amber-300">
+                      Sin equipo en el sistema: agrégalo para mandarlo a técnico o resolver con cambio.
+                    </p>
+                  )}
+
                   {puedeOperar && (
                     <div className="mt-4 flex gap-2">
-                      <Button
-                        variant="ghost"
-                        className="flex-1"
-                        onClick={() =>
-                          setATecnico({
-                            id: g.id as string,
-                            imei: g.imei as string,
-                            modelo: g.modelo ?? null,
-                            gb: g.gb ?? null,
-                          })
-                        }
-                      >
-                        <Wrench className="mr-1.5 size-4" />
-                        Mandar a técnico
-                      </Button>
+                      {g.equipo_id ? (
+                        <Button
+                          variant="ghost"
+                          className="flex-1"
+                          onClick={() =>
+                            setATecnico({
+                              id: g.id as string,
+                              imei: g.imei as string,
+                              modelo: g.modelo ?? null,
+                              gb: g.gb ?? null,
+                            })
+                          }
+                        >
+                          <Wrench className="mr-1.5 size-4" />
+                          Mandar a técnico
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          className="flex-1"
+                          onClick={() =>
+                            setAAgregar({
+                              id: g.id as string,
+                              imei: g.imei as string,
+                              modelo: null,
+                              gb: null,
+                            })
+                          }
+                        >
+                          <PackagePlus className="mr-1.5 size-4" />
+                          Agregar equipo
+                        </Button>
+                      )}
                       <Button
                         className="accent-glow flex-1"
                         onClick={() =>
@@ -540,6 +615,13 @@ function GarantiasPage() {
           garantia={aTecnico}
           puedeCostos={verCostos}
           onCerrar={() => setATecnico(null)}
+          onHecho={() => void garantias.refetch()}
+        />
+      )}
+      {aAgregar && (
+        <AgregarEquipoGarantiaModal
+          garantia={aAgregar}
+          onCerrar={() => setAAgregar(null)}
           onHecho={() => void garantias.refetch()}
         />
       )}

@@ -47,6 +47,7 @@ type Ficha = {
   gb: number | null;
   color: string | null;
   bateria: number | null;
+  sim: string | null;
   categoria: string | null;
   estado: EquipoEstado;
   tienda: string | null;
@@ -157,7 +158,7 @@ function EscanearPage() {
     const { data, error } = await supabase
       .from("v_stock")
       .select(
-        "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
+        "id, imei, modelo, gb, color, bateria, sim, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
       )
       .eq("imei", imei)
       .maybeSingle();
@@ -195,6 +196,7 @@ function EscanearPage() {
       gb: data.gb,
       color: data.color,
       bateria: data.bateria,
+      sim: data.sim,
       categoria: data.categoria,
       estado: (data.estado ?? "POR_REVISAR") as EquipoEstado,
       tienda: data.tienda,
@@ -574,6 +576,8 @@ function EscanearPage() {
                 gb: ficha.gb,
                 color: ficha.color,
                 etapa: etapaEtiqueta ?? ESTADO_ETIQUETA[ficha.estado],
+                bateria: ficha.bateria,
+                sim: ficha.sim,
               },
             ]}
             onCerrar={() => {

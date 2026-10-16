@@ -58,6 +58,19 @@ export const CATEGORIA_ETIQUETA: Record<(typeof CATEGORIAS)[number], string> = {
 
 export const GB_OPCIONES = [64, 128, 256, 512, 1024] as const;
 
+/** SIM física (con bandeja) o solo eSIM. Sale impreso en la etiqueta. */
+export const SIM_OPCIONES = [
+  { valor: "sim", label: "SIM física" },
+  { valor: "esim", label: "eSIM" },
+] as const;
+
+export type TipoSim = (typeof SIM_OPCIONES)[number]["valor"];
+
+export const SIM_ETIQUETA: Record<TipoSim, string> = { sim: "SIM física", esim: "eSIM" };
+
+export const textoSim = (sim?: string | null) =>
+  sim === "sim" || sim === "esim" ? SIM_ETIQUETA[sim] : null;
+
 export const SERVICIOS = [
   { tipo: "bateria", label: "Batería" },
   { tipo: "pantalla", label: "Pantalla" },

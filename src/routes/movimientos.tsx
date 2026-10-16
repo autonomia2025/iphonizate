@@ -143,6 +143,9 @@ function MovimientosPage() {
 
   const nombreTienda = (id: string) =>
     (tiendas.data ?? []).find((t) => t.id === id)?.nombre ?? "la tienda seleccionada";
+  const destinoEsBodega = !!(tiendas.data ?? []).find((t) => t.id === destino)?.es_bodega;
+  /* Se trasladan equipos por revisar o en técnico: llegan, pero la tienda no los puede vender */
+  const noVendibles = lista.filter((e) => e.estado !== "DISPONIBLE").length;
 
   const flash = useFlashEscaneo();
 
@@ -348,6 +351,12 @@ function MovimientosPage() {
                     <p className="num mt-0.5 text-xs tracking-[0.04em] text-muted-foreground">
                       {e.imei} · {e.tienda ?? "sin ubicación"}
                     </p>
+                    {e.estado !== "DISPONIBLE" && destino && !destinoEsBodega && (
+                      <p className="mt-1 text-xs text-amber-300">
+                        Llega a {nombreTienda(destino)} como “{ESTADO_ETIQUETA[e.estado]}”: no se
+                        podrá vender hasta que quede disponible.
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span
@@ -367,6 +376,14 @@ function MovimientosPage() {
                 </li>
               ))}
             </ul>
+          )}
+
+          {noVendibles > 0 && destino && !destinoEsBodega && (
+            <p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-500/10 p-3 text-sm text-amber-100">
+              {noVendibles === 1 ? "1 equipo no está disponible" : `${noVendibles} equipos no están disponibles`}:
+              van a aparecer en {nombreTienda(destino)} pero no en Vender. Termina sus arreglos en Técnico
+              o márcalos como disponibles antes de trasladarlos.
+            </p>
           )}
 
           <Button

@@ -23,6 +23,7 @@ import { Route as GarantiasRouteImport } from './routes/garantias'
 import { Route as GastosRouteImport } from './routes/gastos'
 import { Route as HistorialVentasRouteImport } from './routes/historial-ventas'
 import { Route as InventarioRouteImport } from './routes/inventario'
+import { Route as ListaNegraRouteImport } from './routes/lista-negra'
 import { Route as MetasRouteImport } from './routes/metas'
 import { Route as MovimientosRouteImport } from './routes/movimientos'
 import { Route as PreciosRouteImport } from './routes/precios'
@@ -116,6 +117,11 @@ const HistorialVentasRoute = HistorialVentasRouteImport.update({
 const InventarioRoute = InventarioRouteImport.update({
   id: '/inventario',
   path: '/inventario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListaNegraRoute = ListaNegraRouteImport.update({
+  id: '/lista-negra',
+  path: '/lista-negra',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MetasRoute = MetasRouteImport.update({
@@ -258,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/gastos': typeof GastosRoute
   '/historial-ventas': typeof HistorialVentasRoute
   '/inventario': typeof InventarioRoute
+  '/lista-negra': typeof ListaNegraRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
   '/precios': typeof PreciosRoute
@@ -298,6 +305,7 @@ export interface FileRoutesByTo {
   '/gastos': typeof GastosRoute
   '/historial-ventas': typeof HistorialVentasRoute
   '/inventario': typeof InventarioRoute
+  '/lista-negra': typeof ListaNegraRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
   '/precios': typeof PreciosRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/gastos': typeof GastosRoute
   '/historial-ventas': typeof HistorialVentasRoute
   '/inventario': typeof InventarioRoute
+  '/lista-negra': typeof ListaNegraRoute
   '/metas': typeof MetasRoute
   '/movimientos': typeof MovimientosRoute
   '/precios': typeof PreciosRoute
@@ -381,6 +390,7 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/historial-ventas'
     | '/inventario'
+    | '/lista-negra'
     | '/metas'
     | '/movimientos'
     | '/precios'
@@ -421,6 +431,7 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/historial-ventas'
     | '/inventario'
+    | '/lista-negra'
     | '/metas'
     | '/movimientos'
     | '/precios'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/gastos'
     | '/historial-ventas'
     | '/inventario'
+    | '/lista-negra'
     | '/metas'
     | '/movimientos'
     | '/precios'
@@ -502,6 +514,7 @@ export interface RootRouteChildren {
   GastosRoute: typeof GastosRoute
   HistorialVentasRoute: typeof HistorialVentasRoute
   InventarioRoute: typeof InventarioRoute
+  ListaNegraRoute: typeof ListaNegraRoute
   MetasRoute: typeof MetasRoute
   MovimientosRoute: typeof MovimientosRoute
   PreciosRoute: typeof PreciosRoute
@@ -626,6 +639,13 @@ declare module '@tanstack/react-router' {
       path: '/inventario'
       fullPath: '/inventario'
       preLoaderRoute: typeof InventarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lista-negra': {
+      id: '/lista-negra'
+      path: '/lista-negra'
+      fullPath: '/lista-negra'
+      preLoaderRoute: typeof ListaNegraRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/metas': {
@@ -814,6 +834,7 @@ const rootRouteChildren: RootRouteChildren = {
   GastosRoute: GastosRoute,
   HistorialVentasRoute: HistorialVentasRoute,
   InventarioRoute: InventarioRoute,
+  ListaNegraRoute: ListaNegraRoute,
   MetasRoute: MetasRoute,
   MovimientosRoute: MovimientosRoute,
   PreciosRoute: PreciosRoute,

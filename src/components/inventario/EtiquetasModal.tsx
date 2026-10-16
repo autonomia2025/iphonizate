@@ -11,6 +11,7 @@ import {
   guardarTamano,
   imprimirEtiquetas,
   leerTamanoGuardado,
+  lineaEstadoEtiqueta,
   svgCodigoBarras,
 } from "@/lib/etiquetas";
 import { cn } from "@/lib/utils";
@@ -138,6 +139,7 @@ export function EtiquetasModal({
                 <div className="text-center leading-tight">
                   <div style={{ fontSize: "7.5pt", fontWeight: 700 }}>{descripcionEquipo(muestra)}</div>
                   <div className="num" style={{ fontSize: "8pt", letterSpacing: "0.4pt" }}>{muestra.imei}</div>
+                  {lineaEstadoEtiqueta(muestra) ? <div style={{ maxWidth: "100%", fontSize: "6.5pt", letterSpacing: "0.3pt", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{lineaEstadoEtiqueta(muestra)}</div> : null}
                   {muestra.servicios?.length ? <div style={{ maxWidth: "100%", fontSize: "5.5pt", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Pendiente: {muestra.servicios.join(" · ")}</div> : null}
                 </div>
               </div>

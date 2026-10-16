@@ -103,6 +103,8 @@ export type EquipoEtiqueta = {
   etapa?: string | null;
   /** Servicios pendientes que deben acompañar al equipo desde el primer ingreso. */
   servicios?: string[];
+  bateria?: number | null;
+  sim?: string | null;
 };
 
 const fechaCorta = () =>
@@ -156,6 +158,19 @@ export function descripcionEquipo(e: EquipoEtiqueta) {
   return [e.modelo ?? "Equipo", e.gb ? `${e.gb}GB` : null, e.color].filter(Boolean).join(" · ");
 }
 
+/** "Bat 87% · eSIM": va primero en la línea de la etapa para que nunca quede cortado. */
+export function datosEtiqueta(e: EquipoEtiqueta) {
+  const sim = e.sim === "esim" ? "eSIM" : e.sim === "sim" ? "SIM física" : null;
+  return [e.bateria != null ? `Bat ${e.bateria}%` : null, sim].filter(Boolean).join(" · ");
+}
+
+/** Línea bajo el IMEI: batería y SIM, luego la etapa con su fecha. */
+export function lineaEstadoEtiqueta(e: EquipoEtiqueta) {
+  return [datosEtiqueta(e) || null, e.etapa ? `${e.etapa} · ${fechaCorta()}` : null]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function htmlEtiquetas(
   equipos: EquipoEtiqueta[],
   medida: MedidaEtiqueta,
@@ -165,12 +180,14 @@ export function htmlEtiquetas(
     .map((e) => {
       const { svg } = svgCodigoBarras(e.imei, medida);
       const servicios = e.servicios?.length ? `<div class="servicios">Pendiente: ${escapar(e.servicios.join(" · "))}</div>` : "";
+      const datos = datosEtiqueta(e);
+      const linea = lineaEstadoEtiqueta(e);
       return `<section class="etiqueta">
         <div class="barra">${svg}</div>
         <div class="texto">
           <div class="modelo">${escapar(descripcionEquipo(e))}</div>
           <div class="imei">${escapar(e.imei)}</div>
-          ${e.etapa ? `<div class="etapa">${escapar(`${e.etapa} · ${fechaCorta()}`)}</div>` : ""}
+          ${linea ? `<div class="etapa">${datos ? `<b>${escapar(datos)}</b>${escapar(linea.slice(datos.length))}` : escapar(linea)}</div>` : ""}
           ${servicios}
         </div>
       </section>`;
@@ -222,7 +239,8 @@ export function htmlEtiquetas(
   .texto { text-align: center; line-height: 1.15; }
    .modelo { font-size: 7.5pt; font-weight: 700; }
    .imei { font-size: 8pt; font-family: "Courier New", monospace; letter-spacing: 0.4pt; }
-   .etapa { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3pt; }
+   .etapa { max-width: 100%; font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.3pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+   .etapa b { font-weight: 700; text-transform: none; }
   .servicios { max-width: 100%; font-size: 5.5pt; line-height: 1.05; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   @media screen {
     body { min-height: 100vh; background: #e2e8f0; }

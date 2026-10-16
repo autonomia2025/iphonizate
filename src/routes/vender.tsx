@@ -15,6 +15,7 @@ import { NuevoClienteModal, type ClienteBasico } from "@/components/vender/Nuevo
 import { PagoModal } from "@/components/vender/PagoModal";
 import { VentaExito, type VentaResumen } from "@/components/vender/VentaExito";
 import { tieneAlertaImei } from "@/components/inventario/VerificacionEquipo";
+import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 
 import { formatCLP } from "@/lib/stores";
 import { ESTADO_ETIQUETA, puedeVerCostos, type EquipoEstado } from "@/lib/inventario";
@@ -87,17 +88,26 @@ function VenderPage() {
   const stock = useQuery({
     queryKey: ["v_stock-pos"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_stock")
-        .select(
-          "id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso, icloud_activo, lista_negra",
-        )
-        /* Solo los disponibles: traer también los vendidos hacía lenta la pantalla */
-        .eq("estado", "DISPONIBLE")
-        .order("fecha_ingreso", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      /* En tandas: con más de 1.000 disponibles en la cadena, los ingresados hace más tiempo
+         (los que llegan trasladados desde bodega) quedaban fuera de la lista sin aviso. */
+      return traerTodo((filaIni, filaFin) =>
+        supabase
+          .from("v_stock")
+          .select(
+            "id, imei, modelo, gb, color, bateria, estado, ubicacion_id, fecha_ingreso, icloud_activo, lista_negra",
+          )
+          /* Solo los disponibles: traer también los vendidos hacía lenta la pantalla */
+          .eq("estado", "DISPONIBLE")
+          .order("fecha_ingreso", { ascending: false })
+          .order("id")
+          .range(filaIni, filaFin),
+      );
     },
+  });
+
+  /* Un equipo trasladado a esta tienda (o que salió del técnico) aparece sin recargar la página */
+  useEquiposEnVivo(() => {
+    void stock.refetch();
   });
 
   /* Alertas de verificación por equipo: se advierten antes de cerrar la venta */

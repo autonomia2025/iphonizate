@@ -14,6 +14,7 @@ import { EtiquetasModal } from "@/components/inventario/EtiquetasModal";
 import { EquipoTimeline } from "@/components/inventario/EquipoTimeline";
 import { useConVentaActiva } from "@/components/inventario/useConVentaActiva";
 import { SelectProveedor } from "@/components/inventario/SelectProveedor";
+import { SelectorSim } from "@/components/inventario/SelectorSim";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCLP } from "@/lib/stores";
 import {
@@ -24,8 +25,10 @@ import {
   SERVICIO_ETIQUETA,
   diasEnStock,
   fechaLarga,
+  textoSim,
   type EquipoEstado,
   type ServicioTipo,
+  type TipoSim,
 } from "@/lib/inventario";
 import { VerificacionEquipo, type VerificacionFila } from "@/components/inventario/VerificacionEquipo";
 import {
@@ -44,6 +47,7 @@ export type EquipoFila = VerificacionFila & {
   gb: number | null;
   color: string | null;
   bateria: number | null;
+  sim?: string | null;
   categoria: string | null;
   estado: EquipoEstado;
   tienda: string | null;
@@ -114,7 +118,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
       const [base, conCosto] = await Promise.all([
         supabase
           .from("equipos")
-          .select("modelo, gb, color, bateria, categoria, email_vinculado, proveedor, lote, notas, ubicacion_id")
+          .select("modelo, gb, color, bateria, sim, categoria, email_vinculado, proveedor, lote, notas, ubicacion_id")
           .eq("id", id!)
           .maybeSingle(),
         puedeCostos
@@ -290,7 +294,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
               {puedeEliminar && <Button size="sm" variant="ghost" className="gap-2 text-red-300 hover:text-red-200" disabled={accion !== null} onClick={() => void eliminar()}><Trash2 className="size-4" /> {accion === "eliminar" ? "Eliminando…" : "Eliminar"}</Button>}
             </div>
 
-            <EtiquetasModal abierto={etiquetaAbierta} equipos={[{ imei: equipo.imei, modelo: equipo.modelo, gb: equipo.gb, color: equipo.color, etapa: etapaEtiqueta ?? ESTADO_ETIQUETA[equipo.estado], servicios: serviciosEtiqueta }]} onCerrar={() => { setEtiquetaAbierta(false); setEtapaEtiqueta(null); }} />
+            <EtiquetasModal abierto={etiquetaAbierta} equipos={[{ imei: equipo.imei, modelo: equipo.modelo, gb: equipo.gb, color: equipo.color, etapa: etapaEtiqueta ?? ESTADO_ETIQUETA[equipo.estado], bateria: equipo.bateria, sim: equipo.sim ?? null, servicios: serviciosEtiqueta }]} onCerrar={() => { setEtiquetaAbierta(false); setEtapaEtiqueta(null); }} />
 
             {editando && (
               <section className="mt-4 rounded-xl border border-[var(--accent-store)]/25 bg-white/[0.03] p-4">
@@ -301,6 +305,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
                   <div><Label>GB</Label><Input className="num mt-1" inputMode="numeric" value={form.gb} onChange={(e) => setForm({ ...form, gb: e.target.value.replace(/\D/g, "") })} /></div>
                   <div><Label>Color</Label><Input className="mt-1" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} /></div>
                   <div><Label>Batería %</Label><Input className="num mt-1" inputMode="numeric" value={form.bateria} onChange={(e) => setForm({ ...form, bateria: e.target.value.replace(/\D/g, "").slice(0, 3) })} /></div>
+                  <div><Label>SIM</Label><SelectorSim className="mt-1" value={form.sim as TipoSim | ""} onChange={(v) => setForm({ ...form, sim: v })} /></div>
                   <div><Label>Categoría</Label><select className={`${campo} mt-1`} value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })}>{CATEGORIAS.map((c) => <option key={c} value={c}>{CATEGORIA_ETIQUETA[c]}</option>)}</select></div>
                   <div><Label>Ubicación</Label><select className={`${campo} mt-1`} value={form.ubicacion_id} onChange={(e) => setForm({ ...form, ubicacion_id: e.target.value })}>{(tiendas.data ?? []).map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}</select></div>
                   <div><Label>Email vinculado</Label><Input className="mt-1" value={form.email_vinculado} onChange={(e) => setForm({ ...form, email_vinculado: e.target.value })} /></div>
@@ -316,7 +321,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
             {(puedeMarcarDisponible || puedeDevolverBodega) && <div className="mt-4 flex flex-wrap gap-2">{puedeMarcarDisponible && <Button size="sm" className="accent-glow gap-2" disabled={accion !== null} onClick={() => void marcarDisponible()}><PackageCheck className="size-4" />{accion === "disponible" ? "Marcando…" : "Marcar como disponible"}</Button>}{puedeDevolverBodega && <Button size="sm" variant="secondary" className="gap-2" disabled={accion !== null} onClick={() => void devolverBodega()}><Warehouse className="size-4" />{accion === "bodega" ? "Devolviendo…" : "Devolver a bodega"}</Button>}</div>}
             {rolPuedeOperar && ["POR_REVISAR", "EN_TECNICO"].includes(equipo.estado) && pendientes > 0 && <p className="mt-3 text-xs text-amber-300">Tiene {pendientes} arreglo{pendientes === 1 ? "" : "s"} sin terminar.</p>}
 
-            <div className="mt-5 grid grid-cols-2 gap-2"><Dato etiqueta="Capacidad" valor={equipo.gb ? `${equipo.gb} GB` : "—"} /><Dato etiqueta="Color" valor={equipo.color} /><Dato etiqueta="Batería" valor={equipo.bateria != null ? `${equipo.bateria}%` : "—"} /><Dato etiqueta="Categoría" valor={equipo.categoria ? (CATEGORIA_ETIQUETA[equipo.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? equipo.categoria) : "—"} /><Dato etiqueta="Ubicación" valor={equipo.tienda} /><Dato etiqueta="Días en stock" valor={diasEnStock(equipo.fecha_ingreso)} /><Dato etiqueta="Ingreso" valor={fechaLarga(equipo.fecha_ingreso)} />{puedeCostos && <Dato etiqueta="Costo" valor={equipo.costo != null ? <span className="num">{formatCLP(equipo.costo)}</span> : "—"} />}<Dato etiqueta="Email vinculado" valor={equipo.email_vinculado} /><Dato etiqueta="Proveedor" valor={equipo.proveedor} /><Dato etiqueta="Lote" valor={equipo.lote} /></div>
+            <div className="mt-5 grid grid-cols-2 gap-2"><Dato etiqueta="Capacidad" valor={equipo.gb ? `${equipo.gb} GB` : "—"} /><Dato etiqueta="Color" valor={equipo.color} /><Dato etiqueta="Batería" valor={equipo.bateria != null ? `${equipo.bateria}%` : "—"} /><Dato etiqueta="SIM" valor={textoSim(equipo.sim) ?? "—"} /><Dato etiqueta="Categoría" valor={equipo.categoria ? (CATEGORIA_ETIQUETA[equipo.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? equipo.categoria) : "—"} /><Dato etiqueta="Ubicación" valor={equipo.tienda} /><Dato etiqueta="Días en stock" valor={diasEnStock(equipo.fecha_ingreso)} /><Dato etiqueta="Ingreso" valor={fechaLarga(equipo.fecha_ingreso)} />{puedeCostos && <Dato etiqueta="Costo" valor={equipo.costo != null ? <span className="num">{formatCLP(equipo.costo)}</span> : "—"} />}<Dato etiqueta="Email vinculado" valor={equipo.email_vinculado} /><Dato etiqueta="Proveedor" valor={equipo.proveedor} /><Dato etiqueta="Lote" valor={equipo.lote} /></div>
             {equipo.notas && <div className="mt-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Notas del estado físico</p><p className="mt-0.5 text-sm">{equipo.notas}</p></div>}
             <VerificacionEquipo equipo={equipo} />
             <section className="mt-6"><h3 className="text-sm font-semibold">Servicios</h3>{servicios.data && servicios.data.length > 0 ? <ul className="mt-2 space-y-2">{servicios.data.map((s) => <li key={s.id} className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-sm"><span>{SERVICIO_ETIQUETA[s.tipo as ServicioTipo] ?? s.tipo}</span><span className="flex items-center gap-3">{puedeCostos && s.costo != null && <span className="num text-xs text-muted-foreground">{formatCLP(s.costo)}</span>}<span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-xs text-muted-foreground">{s.estado}</span></span></li>)}</ul> : <p className="mt-2 text-sm text-muted-foreground">{servicios.isLoading ? "Cargando…" : "Sin servicios registrados."}</p>}</section>

@@ -355,6 +355,7 @@ export type Database = {
           riesgo_aceptado_at: string | null
           riesgo_aceptado_por: string | null
           serie: string | null
+          sim: string | null
           ubicacion_id: string | null
           updated_at: string
           verificado_at: string | null
@@ -386,6 +387,7 @@ export type Database = {
           riesgo_aceptado_at?: string | null
           riesgo_aceptado_por?: string | null
           serie?: string | null
+          sim?: string | null
           ubicacion_id?: string | null
           updated_at?: string
           verificado_at?: string | null
@@ -417,6 +419,7 @@ export type Database = {
           riesgo_aceptado_at?: string | null
           riesgo_aceptado_por?: string | null
           serie?: string | null
+          sim?: string | null
           ubicacion_id?: string | null
           updated_at?: string
           verificado_at?: string | null
@@ -2538,6 +2541,33 @@ export type Database = {
           },
         ]
       }
+      v_lista_negra: {
+        Row: {
+          bateria: number | null
+          cerrado_at: string | null
+          cerrado_por: string | null
+          color: string | null
+          costo: number | null
+          equipo_cambio_id: string | null
+          estado: string | null
+          fecha_ingreso: string | null
+          gb: number | null
+          id: string | null
+          imei: string | null
+          imei_cambio: string | null
+          ingresado_por: string | null
+          lote: string | null
+          modelo: string | null
+          modelo_cambio: string | null
+          notas: string | null
+          proveedor: string | null
+          sim: string | null
+          tienda: string | null
+          ubicacion_id: string | null
+          valor_venta: number | null
+        }
+        Relationships: []
+      }
       v_stock: {
         Row: {
           bateria: number | null
@@ -2559,6 +2589,7 @@ export type Database = {
           pais_compra: string | null
           reemplazado_apple: boolean | null
           serie: string | null
+          sim: string | null
           tienda: string | null
           ubicacion_id: string | null
           verificado_at: string | null
@@ -2890,6 +2921,10 @@ export type Database = {
         | { Args: { _motivo: string; _venta: string }; Returns: undefined }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
       fn_sin_sensibles: { Args: { _fila: Json }; Returns: Json }
+      garantia_agregar_equipo: {
+        Args: { _equipo: Json; _garantia: string }
+        Returns: string
+      }
       garantia_buscar_imei: {
         Args: { _imei: string }
         Returns: {
@@ -2943,6 +2978,24 @@ export type Database = {
       importar_ventas: {
         Args: { _probar?: boolean; _ventas: Json }
         Returns: Json
+      }
+      inversion_stock: {
+        Args: never
+        Returns: {
+          equipos: number
+          inventario: number
+          lista_negra: number
+          lista_negra_equipos: number
+        }[]
+      }
+      lista_negra_cambiar: {
+        Args: { _equipo: Json; _id: string }
+        Returns: string
+      }
+      lista_negra_ingresar: { Args: { _datos: Json }; Returns: string }
+      lista_negra_vender: {
+        Args: { _id: string; _notas?: string; _valor: number }
+        Returns: undefined
       }
       listar_proveedores: {
         Args: never

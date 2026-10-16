@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FileSpreadsheet, PackageSearch, Plus, Printer, Search, ShieldAlert } from "lucide-react";
@@ -21,6 +21,7 @@ import { tieneAlertaImei } from "@/components/inventario/VerificacionEquipo";
 import { useEquiposEnVivo } from "@/components/inventario/useEquiposEnVivo";
 import { useExtrasEquipos } from "@/components/inventario/useExtrasEquipos";
 import { useConVentaActiva } from "@/components/inventario/useConVentaActiva";
+import { useInversion } from "@/components/inventario/useInversion";
 import {
   AnimatePresence,
   EstadoVacio,
@@ -122,7 +123,7 @@ function InventarioPage() {
         supabase
           .from("v_stock")
           .select(
-            "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at",
+            "id, imei, modelo, gb, color, bateria, sim, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at",
           )
           .order("fecha_ingreso", { ascending: false })
           .order("id")
@@ -135,6 +136,9 @@ function InventarioPage() {
 
   /* Equipos con una venta vigente que hoy no figuran como vendidos (garantía, devolución o reingreso) */
   const conVenta = useConVentaActiva();
+
+  /* Plata invertida en stock: inventario normal + lista negra */
+  const inversion = useInversion(conCostos);
 
   /* Equipo sin precio de compra (costo 0 o vacío): solo se sabe si quien mira ve costos */
   const sinCosto = (id: string) => conCostos && extras.has(id) && !Number(extras.get(id)?.costo ?? 0);
@@ -152,6 +156,7 @@ function InventarioPage() {
           gb: e.gb,
           color: e.color,
           bateria: e.bateria,
+          sim: e.sim,
           categoria: e.categoria,
           estado: (e.estado ?? "POR_REVISAR") as EquipoEstado,
           tienda: e.tienda,
@@ -195,6 +200,7 @@ function InventarioPage() {
     void stock.refetch();
     void actualizarExtras(ids);
     void conVenta.refetch();
+    void inversion.refetch();
   });
 
   /* Conteo por estado para que nadie crea que un equipo desapareció */
@@ -242,6 +248,8 @@ function InventarioPage() {
     modelo: e.modelo,
     gb: e.gb ?? null,
     color: e.color ?? null,
+    bateria: e.bateria ?? null,
+    sim: e.sim ?? null,
   });
 
   const imprimir = (lista: EquipoFila[]) => {
@@ -275,6 +283,28 @@ function InventarioPage() {
           </div>
         )}
       </div>
+
+      {conCostos && inversion.data && (
+        <div className="glass mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 px-5 py-4">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              Inversión en stock
+            </p>
+            <p className="num mt-1 font-display text-2xl font-semibold leading-none">
+              {formatCLP(inversion.data.total)}
+            </p>
+          </div>
+          <p className="num text-sm text-muted-foreground">
+            Inventario {formatCLP(inversion.data.inventario)}{" "}
+            <span className="text-xs">({inversion.data.equipos} equipos)</span>
+            {" + "}
+            <Link to="/lista-negra" className="underline-offset-4 transition-colors duration-200 hover:text-foreground hover:underline">
+              lista negra {formatCLP(inversion.data.listaNegra)}
+            </Link>{" "}
+            <span className="text-xs">({inversion.data.listaNegraEquipos} equipos)</span>
+          </p>
+        </div>
+      )}
 
       <div className="glass mt-6 p-4">
         <label className="relative block">

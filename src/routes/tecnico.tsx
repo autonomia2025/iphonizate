@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Plus, Wrench, X } from "lucide-react";
+import { ChevronDown, Plus, ScanLine, Wrench, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CampoImei } from "@/components/CampoImei";
+import { CampoImei, limpiarImei } from "@/components/CampoImei";
 import { formatCLP } from "@/lib/stores";
 import {
   ESTADO_ETIQUETA,
@@ -76,6 +76,12 @@ function TecnicoPage() {
   const [guardando, setGuardando] = useState(false);
   const [abierto, setAbierto] = useState<string | null>(null);
   const scanRef = useRef<HTMLInputElement>(null);
+  /* Búsqueda o pistoleo dentro de cada técnico, para marcar listo el equipo que vuelve */
+  const [busquedaTaller, setBusquedaTaller] = useState<Record<string, string>>({});
+  const [resaltado, setResaltado] = useState<string | null>(null);
+  const buscadoresTaller = useRef(new Map<string, HTMLInputElement>());
+  const botonesListo = useRef(new Map<string, HTMLButtonElement>());
+  const flashTaller = useFlashEscaneo();
 
   const tecnicos = useQuery({
     queryKey: ["tecnicos"],
@@ -314,7 +320,7 @@ function TecnicoPage() {
     void queryClient.invalidateQueries({ queryKey: ["v_stock"] });
   };
 
-  const marcarTodos = async (equipoId: string) => {
+  const marcarTodos = async (equipoId: string, tecnicoId?: string) => {
     const { error } = await supabase.rpc("equipo_servicios_listos", { _equipo_id: equipoId });
     if (error) {
       toast.error("No se pudieron marcar los servicios", {
@@ -326,6 +332,12 @@ function TecnicoPage() {
     void taller.refetch();
     void historial.refetch();
     void queryClient.invalidateQueries({ queryKey: ["v_stock"] });
+    /* Si vino de un pistoleo, queda listo para el siguiente equipo */
+    if (tecnicoId && resaltado === equipoId) {
+      setResaltado(null);
+      setBusquedaTaller((prev) => ({ ...prev, [tecnicoId]: "" }));
+      buscadoresTaller.current.get(tecnicoId)?.focus();
+    }
   };
 
   /* Agrupar taller por técnico → equipo */
@@ -380,6 +392,39 @@ function TecnicoPage() {
 
     return [...mapa.values()].map((t) => ({ ...t, equipos: [...t.equipos.values()] }));
   }, [taller.data]);
+
+  /* Enter con un IMEI completo: deja solo ese equipo y el foco en "Marcar todos listos",
+     así un segundo Enter lo marca. Si está con otro técnico, se avisa con quién. */
+  const pistolearEnTaller = (tecnicoId: string, valor: string) => {
+    const imei = limpiarImei(valor);
+    if (imei.length !== 15) return;
+    const tecnico = porTecnico.find((t) => t.tecnico_id === tecnicoId);
+    const equipo = tecnico?.equipos.find((e) => e.imei === imei);
+    if (!equipo) {
+      flashTaller.error();
+      const otro = porTecnico.find((t) => t.equipos.some((e) => e.imei === imei));
+      toast.error(
+        otro ? `Ese equipo está con ${otro.tecnico}, no con ${tecnico?.tecnico ?? "este técnico"}` : "Ese IMEI no está en el taller",
+      );
+      return;
+    }
+    flashTaller.ok();
+    setBusquedaTaller((prev) => ({ ...prev, [tecnicoId]: imei }));
+    setResaltado(equipo.equipo_id);
+    setTimeout(() => botonesListo.current.get(equipo.equipo_id)?.focus(), 30);
+  };
+
+  const equiposFiltrados = (t: (typeof porTecnico)[number]) => {
+    const q = (busquedaTaller[t.tecnico_id] ?? "").trim().toLowerCase();
+    if (!q) return t.equipos;
+    const digitos = q.replace(/\D/g, "");
+    return t.equipos.filter(
+      (e) =>
+        (digitos.length >= 3 && e.imei.includes(digitos)) ||
+        e.modelo.toLowerCase().includes(q) ||
+        (e.color ?? "").toLowerCase().includes(q),
+    );
+  };
 
   return (
     <div className="mx-auto max-w-[86rem]">
@@ -616,64 +661,110 @@ function TecnicoPage() {
                   </button>
 
                   {open && (
-                    <ul className="space-y-2 border-t border-white/8 p-4">
-                      {t.equipos.map((e) => {
-                        const de = dias(e.asignado_at);
-                        const atrasado = de > 3;
-                        return (
-                          <li
-                            key={e.equipo_id}
-                            className={`rounded-xl border px-4 py-3 ${
-                              atrasado
-                                ? "border-amber-400/30 bg-amber-500/10"
-                                : "border-white/8 bg-white/[0.03]"
-                            }`}
-                          >
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div>
-                                <p className="text-sm font-medium">
-                                  {e.modelo}
-                                  {e.gb ? <span className="num text-muted-foreground"> · {e.gb} GB</span> : null}
-                                </p>
-                                <p className="num text-xs tracking-[0.04em] text-muted-foreground">{e.imei}</p>
-                                <p className="num mt-1 text-xs text-muted-foreground">
-                                  {de} día{de === 1 ? "" : "s"} con el técnico
-                                  {e.tienda ? ` · ${e.tienda}` : ""}
-                                </p>
-                              </div>
-                              {puedeOperar && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => void marcarTodos(e.equipo_id)}
-                                >
-                                  Marcar todos listos
-                                </Button>
-                              )}
-                            </div>
-                            <ul className="mt-3 space-y-1.5">
-                              {e.servicios.map((s) => (
-                                <li
-                                  key={s.servicio_id}
-                                  className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.03] px-3 py-2"
-                                >
-                                  <span className="text-sm">{etiquetaServicio(s.tipo)}</span>
-                                  {puedeOperar && (
-                                    <button
-                                      type="button"
-                                      onClick={() => void marcarListo(s.servicio_id)}
-                                      className="rounded-lg border border-emerald-400/25 bg-emerald-500/15 px-2.5 py-1 text-xs text-emerald-300 transition-colors duration-200 hover:bg-emerald-500/25"
-                                    >
-                                      Marcar listo
-                                    </button>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
+                    <div className="border-t border-white/8 p-4">
+                      <label className="relative block">
+                        <ScanLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--accent-store)]" />
+                        <input
+                          ref={(el) => {
+                            if (el) buscadoresTaller.current.set(t.tecnico_id, el);
+                            else buscadoresTaller.current.delete(t.tecnico_id);
+                          }}
+                          autoFocus
+                          autoComplete="off"
+                          value={busquedaTaller[t.tecnico_id] ?? ""}
+                          onChange={(ev) => {
+                            setResaltado(null);
+                            setBusquedaTaller((prev) => ({ ...prev, [t.tecnico_id]: ev.target.value }));
+                          }}
+                          onKeyDown={(ev) => {
+                            if (ev.key === "Enter") {
+                              ev.preventDefault();
+                              pistolearEnTaller(t.tecnico_id, ev.currentTarget.value);
+                            }
+                          }}
+                          placeholder={`Pistolea o busca un equipo de ${t.tecnico} para marcarlo listo`}
+                          className={cn(
+                            flashTaller.clase,
+                            "num h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-9 pr-3 text-sm outline-none transition-all duration-200 placeholder:font-sans placeholder:text-muted-foreground focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25",
+                          )}
+                        />
+                      </label>
+                      {resaltado && t.equipos.some((e) => e.equipo_id === resaltado) && (
+                        <p className="mt-2 text-xs text-emerald-300">
+                          Encontrado: presiona Enter para marcarlo listo, o elige un arreglo puntual.
+                        </p>
+                      )}
+                      <ul className="mt-3 space-y-2">
+                        {equiposFiltrados(t).length === 0 && (
+                          <li className="rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-muted-foreground">
+                            Ningún equipo de {t.tecnico} coincide con la búsqueda.
                           </li>
-                        );
-                      })}
-                    </ul>
+                        )}
+                        {equiposFiltrados(t).map((e) => {
+                          const de = dias(e.asignado_at);
+                          const atrasado = de > 3;
+                          return (
+                            <li
+                              key={e.equipo_id}
+                              className={cn(
+                                "rounded-xl border px-4 py-3 transition-all duration-200",
+                                atrasado
+                                  ? "border-amber-400/30 bg-amber-500/10"
+                                  : "border-white/8 bg-white/[0.03]",
+                                resaltado === e.equipo_id &&
+                                  "border-[var(--accent-store)]/60 ring-2 ring-[var(--accent-store)]/30",
+                              )}
+                            >
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-medium">
+                                    {e.modelo}
+                                    {e.gb ? <span className="num text-muted-foreground"> · {e.gb} GB</span> : null}
+                                  </p>
+                                  <p className="num text-xs tracking-[0.04em] text-muted-foreground">{e.imei}</p>
+                                  <p className="num mt-1 text-xs text-muted-foreground">
+                                    {de} día{de === 1 ? "" : "s"} con el técnico
+                                    {e.tienda ? ` · ${e.tienda}` : ""}
+                                  </p>
+                                </div>
+                                {puedeOperar && (
+                                  <Button
+                                    ref={(el) => {
+                                      if (el) botonesListo.current.set(e.equipo_id, el);
+                                      else botonesListo.current.delete(e.equipo_id);
+                                    }}
+                                    size="sm"
+                                    variant={resaltado === e.equipo_id ? "default" : "outline"}
+                                    onClick={() => void marcarTodos(e.equipo_id, t.tecnico_id)}
+                                  >
+                                    Marcar todos listos
+                                  </Button>
+                                )}
+                              </div>
+                              <ul className="mt-3 space-y-1.5">
+                                {e.servicios.map((s) => (
+                                  <li
+                                    key={s.servicio_id}
+                                    className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.03] px-3 py-2"
+                                  >
+                                    <span className="text-sm">{etiquetaServicio(s.tipo)}</span>
+                                    {puedeOperar && (
+                                      <button
+                                        type="button"
+                                        onClick={() => void marcarListo(s.servicio_id)}
+                                        className="rounded-lg border border-emerald-400/25 bg-emerald-500/15 px-2.5 py-1 text-xs text-emerald-300 transition-colors duration-200 hover:bg-emerald-500/25"
+                                      >
+                                        Marcar listo
+                                      </button>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
                   )}
                 </article>
               );

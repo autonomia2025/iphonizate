@@ -8,6 +8,7 @@ export type EditForm = {
   gb: string;
   color: string;
   bateria: string;
+  sim: string;
   categoria: string;
   email_vinculado: string;
   proveedor: string;
@@ -22,6 +23,7 @@ export type DatosFicha = {
   gb: number | null;
   color: string | null;
   bateria: number | null;
+  sim?: string | null;
   categoria: string | null;
   email_vinculado?: string | null;
   proveedor?: string | null;
@@ -36,6 +38,7 @@ export const formDesde = (e: DatosFicha): EditForm => ({
   gb: e.gb == null ? "" : String(e.gb),
   color: e.color ?? "",
   bateria: e.bateria == null ? "" : String(e.bateria),
+  sim: e.sim ?? "",
   categoria: e.categoria ?? "seminuevo",
   email_vinculado: e.email_vinculado ?? "",
   proveedor: e.proveedor ?? "",
@@ -69,6 +72,7 @@ export const ETIQUETA_CAMPO: Record<keyof EditForm, string> = {
   gb: "capacidad",
   color: "color",
   bateria: "batería",
+  sim: "SIM",
   categoria: "categoría",
   email_vinculado: "email vinculado",
   proveedor: "proveedor",

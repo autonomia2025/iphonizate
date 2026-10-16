@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthContext";
 import { SelectConOtro } from "@/components/inventario/SelectConOtro";
 import { SelectProveedor } from "@/components/inventario/SelectProveedor";
-import { coloresParaModelo, type ColorModelo } from "@/lib/colores";
+import { SelectorSim } from "@/components/inventario/SelectorSim";
+import { useCatalogoModelos } from "@/components/inventario/useCatalogoModelos";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import {
   SERVICIOS,
   type EquipoEstado,
   type ServicioTipo,
+  type TipoSim,
 } from "@/lib/inventario";
 
 
@@ -48,6 +50,7 @@ const vacio = {
   gb: "128",
   color: "",
   bateria: "",
+  sim: "",
   email_vinculado: "",
   categoria: "seminuevo",
   costo: "",
@@ -178,45 +181,7 @@ export function IngresarEquipoModal({
     };
   }, [abierto, imeiOk, form.imei]);
 
-  const modelosApple = useQuery({
-    queryKey: ["modelos_apple"],
-    enabled: abierto,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("modelos_apple")
-        .select("modelo_comercial")
-        .order("modelo_comercial");
-      if (error) throw error;
-      return [...new Set((data ?? []).map((fila) => fila.modelo_comercial))];
-    },
-  });
-
-  /* Colores por modelo (catálogo Apple) y proveedores ya usados, para elegir en vez de escribir */
-  const catalogo = useQuery({
-    queryKey: ["catalogo-colores-modelo"],
-    enabled: abierto,
-    staleTime: 10 * 60 * 1000,
-    queryFn: async () => {
-      const [modelos, colores, propios] = await Promise.all([
-        supabase.from("modelos_apple").select("modelo_comercial, product_type"),
-        supabase.from("colores_apple").select("product_type, color_comercial"),
-        supabase.from("colores_modelo").select("modelo, color, orden"),
-      ]);
-      if (modelos.error) throw modelos.error;
-      if (colores.error) throw colores.error;
-      return {
-        modelos: modelos.data ?? [],
-        colores: colores.data ?? [],
-        /* Si la tabla de la tienda todavía no existe, se usa solo el catálogo Apple */
-        propios: (propios.error ? [] : (propios.data ?? [])) as ColorModelo[],
-      };
-    },
-  });
-  const coloresDelModelo = useMemo(
-    () => coloresParaModelo(form.modelo, catalogo.data?.propios ?? [], catalogo.data),
-    [catalogo.data, form.modelo],
-  );
-
+  const { modelos: modelosApple, colores: coloresDelModelo } = useCatalogoModelos(abierto, form.modelo);
 
   const costosArreglo = useQuery({
     queryKey: ["costos_arreglo", form.modelo.trim()],
@@ -290,6 +255,10 @@ export function IngresarEquipoModal({
       fallar("Ingresa el costo de compra: sin él la ganancia de la venta queda mal.");
       return;
     }
+    if (!form.sim) {
+      fallar("Indica si el equipo es SIM física o eSIM.");
+      return;
+    }
     if (!form.proveedor.trim()) {
       fallar("Indica el proveedor del equipo.");
       return;
@@ -333,6 +302,7 @@ export function IngresarEquipoModal({
         gb: form.gb ? Number(form.gb) : null,
         color: form.color.trim() || null,
         bateria: form.bateria === "" ? null : Number(form.bateria),
+        sim: form.sim || null,
         email_vinculado: form.email_vinculado.trim() || null,
         categoria: form.categoria as (typeof CATEGORIAS)[number],
         costo: puedeCostos && form.costo ? Number(form.costo) : 0,
@@ -410,6 +380,8 @@ export function IngresarEquipoModal({
         gb: form.gb ? Number(form.gb) : null,
         color: form.color?.trim() || null,
         etapa: ESTADO_ETIQUETA[estadoNuevo],
+        bateria: form.bateria === "" ? null : Number(form.bateria),
+        sim: form.sim || null,
         servicios: serviciosMarcados.map((tipo) => SERVICIOS.find((s) => s.tipo === tipo)?.label ?? tipo),
       });
       onGuardado();
@@ -522,7 +494,7 @@ export function IngresarEquipoModal({
                 className={`${selectClase} mt-1`}
                 value={form.modelo}
                 onChange={(v) => set("modelo", v)}
-                opciones={modelosApple.data ?? []}
+                opciones={modelosApple}
                 placeholder="Elige el modelo"
                 otroPlaceholder="Escribe el modelo, ej: iPhone 18 Pro"
               />
@@ -636,7 +608,17 @@ export function IngresarEquipoModal({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <Label>
+                SIM <span className="text-amber-300">obligatorio</span>
+              </Label>
+              <SelectorSim
+                className="mt-1"
+                value={form.sim as TipoSim | ""}
+                onChange={(v) => set("sim", v)}
+              />
+            </div>
             <div>
               <Label htmlFor="lote">Lote</Label>
               <Input
