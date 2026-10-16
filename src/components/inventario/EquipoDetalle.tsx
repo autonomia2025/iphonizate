@@ -60,7 +60,7 @@ export type EquipoFila = VerificacionFila & {
   notas?: string | null;
 };
 
-const NO_TRASLADABLES: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO"];
+const NO_TRASLADABLES: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO", "PERDIDO"];
 const campo = "h-10 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm outline-none transition-all focus:border-[var(--accent-store)]/60 focus:ring-2 focus:ring-[var(--accent-store)]/25";
 
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: ReactNode }) {

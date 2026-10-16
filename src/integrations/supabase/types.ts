@@ -2844,6 +2844,59 @@ export type Database = {
         Returns: number
       }
       anular_venta: { Args: { _venta: string }; Returns: undefined }
+      arqueo_abrir: { Args: never; Returns: string }
+      arqueo_cancelar: { Args: { _arqueo: string }; Returns: undefined }
+      arqueo_escanear: { Args: { _arqueo: string; _imei: string }; Returns: Json }
+      arqueo_lista: {
+        Args: { _arqueo: string }
+        Returns: {
+          bateria: number
+          color: string
+          equipo_id: string
+          gb: number
+          imei: string
+          modelo: string
+          sim: string
+        }[]
+      }
+      arqueo_marcar_perdido: {
+        Args: { _nota?: string; _pendiente: string }
+        Returns: undefined
+      }
+      arqueo_pausar: { Args: { _arqueo: string }; Returns: undefined }
+      arqueo_pendientes_lista: {
+        Args: never
+        Returns: {
+          arqueo_fecha: string
+          arqueo_id: string
+          color: string
+          equipo_id: string
+          gb: number
+          imei: string
+          modelo: string
+          pendiente_id: string
+          sim: string
+        }[]
+      }
+      arqueo_terminar: { Args: { _arqueo: string }; Returns: Json }
+      arqueos_listar: {
+        Args: { _limite?: number }
+        Returns: {
+          abierto_at: string
+          abierto_por: string
+          cerrado_at: string
+          cerrado_por: string
+          contados_en_otro: number
+          escaneados: number
+          esperados: number
+          estado: string
+          faltantes: number
+          id: string
+          quedan: number
+          salieron: number
+          tienda: string
+        }[]
+      }
       asignar_equipos_tecnico: {
         Args: { _imeis: string[]; _tecnico: string }
         Returns: number
@@ -2919,6 +2972,7 @@ export type Database = {
       eliminar_venta:
         | { Args: { _venta: string }; Returns: undefined }
         | { Args: { _motivo: string; _venta: string }; Returns: undefined }
+      equipo_aparecio: { Args: { _equipo: string }; Returns: undefined }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
       fn_sin_sensibles: { Args: { _fila: Json }; Returns: Json }
       garantia_agregar_equipo: {
@@ -3023,6 +3077,22 @@ export type Database = {
       mi_rol: { Args: never; Returns: Database["public"]["Enums"]["app_rol"] }
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
+      perdidos_lista: {
+        Args: never
+        Returns: {
+          color: string
+          equipo_id: string
+          gb: number
+          imei: string
+          marcado_at: string
+          marcado_por: string
+          modelo: string
+          nota: string
+          sim: string
+          tienda: string
+        }[]
+      }
+      puede_arquear: { Args: never; Returns: boolean }
       puede_borrar_equipos: { Args: never; Returns: boolean }
       puede_cartera: { Args: { _tienda: string }; Returns: boolean }
       puede_corregir_ventas: { Args: never; Returns: boolean }
@@ -3104,6 +3174,7 @@ export type Database = {
         | "VENDIDO"
         | "ENTREGADO"
         | "GARANTIA"
+        | "PERDIDO"
       estado_personal: "activo" | "inactivo"
       metodo_pago: "efectivo" | "transferencia" | "credito" | "partePago"
       tipo_gasto: "fijo" | "variable" | "operativo"
@@ -3267,6 +3338,7 @@ export const Constants = {
         "VENDIDO",
         "ENTREGADO",
         "GARANTIA",
+        "PERDIDO",
       ],
       estado_personal: ["activo", "inactivo"],
       metodo_pago: ["efectivo", "transferencia", "credito", "partePago"],

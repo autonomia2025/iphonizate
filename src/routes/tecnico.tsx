@@ -24,7 +24,7 @@ import {
 } from "@/lib/inventario";
 
 const DESC = "Asignación de equipos a técnicos, seguimiento en taller y reparaciones hechas.";
-const NO_TECNICO: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO"];
+const NO_TECNICO: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO", "PERDIDO"];
 
 export const Route = createFileRoute("/tecnico")({
   head: () => ({

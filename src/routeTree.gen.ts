@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccesoriosRouteImport } from './routes/accesorios'
+import { Route as ArqueoRouteImport } from './routes/arqueo'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CajaRouteImport } from './routes/caja'
@@ -57,6 +58,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccesoriosRoute = AccesoriosRouteImport.update({
   id: '/accesorios',
   path: '/accesorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArqueoRoute = ArqueoRouteImport.update({
+  id: '/arqueo',
+  path: '/arqueo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditoriaRoute = AuditoriaRouteImport.update({
@@ -252,6 +258,7 @@ const LovableEmailTransactionalPreviewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/accesorios': typeof AccesoriosRoute
+  '/arqueo': typeof ArqueoRoute
   '/auditoria': typeof AuditoriaRoute
   '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accesorios': typeof AccesoriosRoute
+  '/arqueo': typeof ArqueoRoute
   '/auditoria': typeof AuditoriaRoute
   '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/accesorios': typeof AccesoriosRoute
+  '/arqueo': typeof ArqueoRoute
   '/auditoria': typeof AuditoriaRoute
   '/auth': typeof AuthRoute
   '/caja': typeof CajaRoute
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/accesorios'
+    | '/arqueo'
     | '/auditoria'
     | '/auth'
     | '/caja'
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/accesorios'
+    | '/arqueo'
     | '/auditoria'
     | '/auth'
     | '/caja'
@@ -460,6 +471,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/accesorios'
+    | '/arqueo'
     | '/auditoria'
     | '/auth'
     | '/caja'
@@ -502,6 +514,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccesoriosRoute: typeof AccesoriosRoute
+  ArqueoRoute: typeof ArqueoRoute
   AuditoriaRoute: typeof AuditoriaRoute
   AuthRoute: typeof AuthRoute
   CajaRoute: typeof CajaRoute
@@ -555,6 +568,13 @@ declare module '@tanstack/react-router' {
       path: '/accesorios'
       fullPath: '/accesorios'
       preLoaderRoute: typeof AccesoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arqueo': {
+      id: '/arqueo'
+      path: '/arqueo'
+      fullPath: '/arqueo'
+      preLoaderRoute: typeof ArqueoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auditoria': {
@@ -822,6 +842,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccesoriosRoute: AccesoriosRoute,
+  ArqueoRoute: ArqueoRoute,
   AuditoriaRoute: AuditoriaRoute,
   AuthRoute: AuthRoute,
   CajaRoute: CajaRoute,

@@ -7,7 +7,8 @@ export type EquipoEstado =
   | "RESERVADO"
   | "VENDIDO"
   | "ENTREGADO"
-  | "GARANTIA";
+  | "GARANTIA"
+  | "PERDIDO";
 
 export const ESTADOS: EquipoEstado[] = [
   "DISPONIBLE",
@@ -17,6 +18,7 @@ export const ESTADOS: EquipoEstado[] = [
   "GARANTIA",
   "VENDIDO",
   "ENTREGADO",
+  "PERDIDO",
 ];
 
 export const ESTADOS_ACTIVOS: EquipoEstado[] = [
@@ -35,6 +37,7 @@ export const ESTADO_ETIQUETA: Record<EquipoEstado, string> = {
   VENDIDO: "Vendido",
   ENTREGADO: "Entregado",
   GARANTIA: "Garantía",
+  PERDIDO: "Perdido",
 };
 
 /* Badges de estado */
@@ -46,6 +49,7 @@ export const ESTADO_CLASE: Record<EquipoEstado, string> = {
   GARANTIA: "bg-red-500/15 text-red-300 border-red-400/25",
   VENDIDO: "bg-white/5 text-muted-foreground border-white/8",
   ENTREGADO: "bg-white/5 text-muted-foreground border-white/8",
+  PERDIDO: "bg-red-500/25 text-red-200 border-red-400/40",
 };
 
 export const CATEGORIAS = ["sellado", "openbox", "seminuevo", "reacondicionado"] as const;

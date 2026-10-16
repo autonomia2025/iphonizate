@@ -8,6 +8,7 @@ import {
   BookmarkCheck,
   ShieldCheck,
   ShieldOff,
+  ScanBarcode,
   Wrench,
   Banknote,
   ReceiptText,
@@ -54,6 +55,12 @@ export const NAV = [
     label: "Lista negra",
     icon: ShieldOff,
     roles: ["direccion", "jefe_tienda", "administracion", "operaciones"] as AppRol[],
+  },
+  {
+    to: "/arqueo",
+    label: "Arqueo de bodega",
+    icon: ScanBarcode,
+    roles: ["direccion", "administracion"] as AppRol[],
   },
   {
     to: "/movimientos",
@@ -209,6 +216,7 @@ const GRUPO_POR_RUTA: Record<string, GrupoNav> = {
   "/stock": "Inventario",
   "/inventario": "Inventario",
   "/lista-negra": "Inventario",
+  "/arqueo": "Inventario",
   "/movimientos": "Inventario",
   "/tecnico": "Inventario",
   "/accesorios": "Inventario",

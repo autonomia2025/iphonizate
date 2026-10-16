@@ -72,6 +72,15 @@ const ACCION_ESPECIAL: Record<string, string> = {
   envio_pendiente: "Devolvió un envío a pendiente",
   garantia_cambio_revertido: "Deshizo un cambio por garantía",
   costo_venta_corregido: "Cargó el costo de un equipo vendido",
+  arqueo_abierto: "Abrió un arqueo de bodega",
+  arqueo_escaneo: "Escaneó un equipo en el arqueo",
+  arqueo_terminado: "Terminó un arqueo de bodega",
+  arqueo_cancelado: "Canceló un arqueo de bodega",
+  equipo_perdido: "Marcó un equipo como perdido",
+  equipo_aparecio: "Marcó que apareció un equipo perdido",
+  lista_negra_ingreso: "Ingresó un equipo a lista negra",
+  lista_negra_vendido: "Vendió un equipo de lista negra",
+  lista_negra_cambiado: "Cambió un equipo de lista negra",
 };
 
 /** Filtro especial de Auditoría: todo lo que se borró a mano. */
@@ -259,10 +268,11 @@ export const resumenDetalle = (accion: string, detalle: Detalle) => {
   if (ACCIONES_BORRADO.includes(accion) && detalle && !detalle.antes && !detalle.despues) {
     return resumenBorrado(accion, detalle as DetalleBorrado) || "Sin detalle";
   }
-  const fila = detalle?.despues ?? detalle?.antes ?? null;
+  /* Las acciones especiales (arqueo, lista negra…) guardan el detalle plano, sin antes/después */
+  const fila = (detalle?.despues ?? detalle?.antes ?? (ACCION_ESPECIAL[accion] ? detalle : null) ?? null) as Record<string, unknown> | null;
   const partes: string[] = [];
   if (fila) {
-    for (const clave of ["imei", "modelo", "nombre", "titulo", "categoria", "total", "monto", "precio"]) {
+    for (const clave of ["imei", "modelo", "nombre", "titulo", "categoria", "total", "monto", "precio", "esperados", "escaneados", "faltantes", "escaneos_descartados", "nota"]) {
       const valor = fila[clave];
       if (valor !== null && valor !== undefined && valor !== "") {
         partes.push(`${etiquetaCampo(clave)}: ${valorLegible(valor)}`);
