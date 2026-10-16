@@ -36,6 +36,7 @@ import {
   ESTADO_CLASE,
   ESTADO_ETIQUETA,
   diasEnStock,
+  textoSim,
   puedeIngresarEquipos,
   puedeVerCostos,
   type EquipoEstado,
@@ -138,7 +139,9 @@ function InventarioPage() {
   const conVenta = useConVentaActiva();
 
   /* Plata invertida en stock: inventario normal + lista negra */
-  const inversion = useInversion(conCostos);
+  /* La inversión solo la ven quienes tienen el permiso (hoy Renato y Valentina) */
+  const verInversion = conCostos && permisos.tiene(PERMISOS.inversionVer);
+  const inversion = useInversion(verInversion);
 
   /* Equipo sin precio de compra (costo 0 o vacío): solo se sabe si quien mira ve costos */
   const sinCosto = (id: string) => conCostos && extras.has(id) && !Number(extras.get(id)?.costo ?? 0);
@@ -284,7 +287,7 @@ function InventarioPage() {
         )}
       </div>
 
-      {conCostos && inversion.data && (
+      {verInversion && inversion.data && (
         <div className="glass mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 px-5 py-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -408,6 +411,7 @@ function InventarioPage() {
                 <th className="px-4 py-3 text-right font-medium">GB</th>
                 <th className="px-4 py-3 font-medium">Color</th>
                 <th className="px-4 py-3 text-right font-medium">Batería %</th>
+                <th className="px-4 py-3 font-medium">SIM</th>
                 <th className="px-4 py-3 font-medium">Categoría</th>
                 <th className="px-4 py-3 font-medium">Ubicación</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
@@ -468,6 +472,7 @@ function InventarioPage() {
                   <td className="num px-4 py-2.5 text-right">{e.gb ?? "—"}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">{e.color ?? "—"}</td>
                   <td className="num px-4 py-2.5 text-right">{e.bateria ?? "—"}</td>
+                  <td className="px-4 py-2.5 whitespace-nowrap">{textoSim(e.sim) ?? "—"}</td>
                   <td className="px-4 py-2.5 text-muted-foreground">
                     {e.categoria
                       ? (CATEGORIA_ETIQUETA[e.categoria as keyof typeof CATEGORIA_ETIQUETA] ??
@@ -512,11 +517,11 @@ function InventarioPage() {
               {filas.length === 0 && (
                 <tr>
                   <td
-                    colSpan={conCostos ? 12 : 11}
+                    colSpan={conCostos ? 13 : 12}
                     className="px-4 py-10 text-center text-sm text-muted-foreground"
                   >
                     {stock.isLoading ? (
-                      <SkeletonFilas filas={6} columnas={conCostos ? 12 : 11} />
+                      <SkeletonFilas filas={6} columnas={conCostos ? 13 : 12} />
                     ) : (
                       <EstadoVacio
                         icono={PackageSearch}

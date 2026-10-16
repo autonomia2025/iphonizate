@@ -123,7 +123,9 @@ function ListaNegraPage() {
     },
   });
 
-  const inversion = useInversion(conCostos);
+  /* La inversión solo la ven quienes tienen el permiso (hoy Renato y Valentina) */
+  const verInversion = conCostos && permisos.tiene(PERMISOS.inversionVer);
+  const inversion = useInversion(verInversion);
 
   const recargar = () => {
     void lista.refetch();
@@ -184,7 +186,7 @@ function ListaNegraPage() {
           formato={contar}
           sub="equipos sin vender ni cambiar"
         />
-        {conCostos && inversion.data && (
+        {verInversion && inversion.data && (
           <>
             <Metrica
               label="Inversión lista negra"

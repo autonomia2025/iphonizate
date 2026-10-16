@@ -16,6 +16,8 @@ export const PERMISOS = {
   movimientosTienda: "movimientos.tienda",
   /** No ve montos de ganancia aunque su rol sí los vea (dirección con todo menos ganancias) */
   gananciasOcultas: "ganancias.ocultar",
+  /** Ve la inversión en stock (inventario + lista negra): hoy Renato y Valentina */
+  inversionVer: "inversion.ver",
 } as const;
 
 export type Permiso = (typeof PERMISOS)[keyof typeof PERMISOS];

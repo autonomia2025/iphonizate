@@ -21,6 +21,7 @@ import {
   ESTADO_ETIQUETA,
   FAMILIAS,
   diasEnStock,
+  textoSim,
   familiaDeModelo,
   ordenarSeries,
   puedeVerCostos,
@@ -98,7 +99,7 @@ function StockPage() {
         supabase
           .from("v_stock")
           .select(
-            "id, imei, modelo, gb, color, bateria, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
+            "id, imei, modelo, gb, color, bateria, sim, categoria, estado, ubicacion_id, tienda, fecha_ingreso",
           )
           .order("fecha_ingreso", { ascending: false })
           .order("id")
@@ -142,6 +143,7 @@ function StockPage() {
             gb: e.gb,
             color: e.color,
             bateria: e.bateria,
+            sim: e.sim,
             categoria: e.categoria,
             estado: (e.estado ?? "POR_REVISAR") as EquipoEstado,
             tienda: e.tienda,
@@ -372,7 +374,7 @@ function StockPage() {
 
       {stock.isLoading && (
         <div className="solid-panel mt-6 overflow-hidden p-4">
-          <SkeletonFilas filas={6} columnas={conCostos ? 9 : 8} />
+          <SkeletonFilas filas={6} columnas={conCostos ? 10 : 9} />
         </div>
       )}
 
@@ -404,6 +406,7 @@ function StockPage() {
                   <th className="px-4 py-3 font-medium">Color</th>
                   <th className="px-4 py-3 font-medium">Categoría</th>
                   <th className="px-4 py-3 text-right font-medium">Batería %</th>
+                  <th className="px-4 py-3 font-medium">SIM</th>
                   <th className="px-4 py-3 text-right font-medium">Precio de lista</th>
                   <th className="px-4 py-3 text-right font-medium">Días en stock</th>
                   <th className="px-4 py-3 font-medium">Estado</th>
@@ -433,6 +436,7 @@ function StockPage() {
                         {e.categoria ? CATEGORIA_ETIQUETA[e.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? e.categoria : "—"}
                       </td>
                       <td className="num px-4 py-2.5 text-right">{e.bateria ?? "—"}</td>
+                      <td className="px-4 py-2.5 whitespace-nowrap">{textoSim(e.sim) ?? "—"}</td>
                       <td className="num px-4 py-2.5 text-right">
                         {e.precio != null ? (
                           formatCLP(e.precio)
