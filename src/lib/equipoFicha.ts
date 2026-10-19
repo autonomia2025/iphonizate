@@ -1,3 +1,5 @@
+import { fechaLocal } from "@/lib/inventario";
+
 /**
  * Formulario de edición de la ficha de un equipo: qué cambió, qué se manda a la base
  * y cómo comprobar después que quedó guardado.
@@ -16,6 +18,8 @@ export type EditForm = {
   notas: string;
   ubicacion_id: string;
   costo: string;
+  /** Fecha de compra (se guarda como fecha de ingreso), "AAAA-MM-DD" */
+  fecha_ingreso: string;
 };
 
 export type DatosFicha = {
@@ -31,6 +35,7 @@ export type DatosFicha = {
   notas?: string | null;
   ubicacion_id?: string | null;
   costo?: number | null;
+  fecha_ingreso?: string | null;
 };
 
 export const formDesde = (e: DatosFicha): EditForm => ({
@@ -46,6 +51,7 @@ export const formDesde = (e: DatosFicha): EditForm => ({
   notas: e.notas ?? "",
   ubicacion_id: e.ubicacion_id ?? "",
   costo: e.costo == null ? "" : String(e.costo),
+  fecha_ingreso: e.fecha_ingreso ? fechaLocal(e.fecha_ingreso) : "",
 });
 
 /** Valor que se guarda en la base para cada campo del formulario. */
@@ -59,6 +65,9 @@ export const valorDe = (campo: keyof EditForm, f: EditForm): string | number | n
       return f.bateria ? Math.min(100, Number(f.bateria)) : null;
     case "costo":
       return f.costo ? Number(f.costo) : 0;
+    case "fecha_ingreso":
+      /* A mediodía local: así ningún huso horario lo cambia de día */
+      return f.fecha_ingreso ? new Date(`${f.fecha_ingreso}T12:00:00`).toISOString() : null;
     case "categoria":
     case "ubicacion_id":
       return f[campo];
@@ -80,6 +89,7 @@ export const ETIQUETA_CAMPO: Record<keyof EditForm, string> = {
   notas: "notas",
   ubicacion_id: "ubicación",
   costo: "costo",
+  fecha_ingreso: "fecha de compra",
 };
 
 /** Campos que el usuario cambió: solo esos se mandan, así nunca se pisa un dato que no tocó. */

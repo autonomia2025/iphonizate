@@ -27,13 +27,15 @@ export type Asignacion =
   | "iphonizate"
   | "black-pink-phone"
   | "riffstore"
-  | "pro-iphone";
+  | "pro-iphone"
+  | "markt-store";
 
 export const MARCAS: { valor: Asignacion; label: string }[] = [
   { valor: "iphonizate", label: "iPhonizate" },
   { valor: "black-pink-phone", label: "Black Pink Phone" },
   { valor: "riffstore", label: "Riffstore" },
-  { valor: "pro-iphone", label: "Pro iPhone" },
+  { valor: "pro-iphone", label: "Pro Phone" },
+  { valor: "markt-store", label: "Markt Store" },
 ];
 
 export const ASIGNACIONES: { valor: Asignacion; label: string }[] = [

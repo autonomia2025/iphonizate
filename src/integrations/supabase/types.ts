@@ -3063,6 +3063,7 @@ export type Database = {
           lista_negra: boolean | null
           modelo: string | null
           pais_compra: string | null
+          proveedor: string | null
           reemplazado_apple: boolean | null
           serie: string | null
           sim: string | null
@@ -3636,6 +3637,17 @@ export type Database = {
       unir_proveedores: {
         Args: { _destino: string; _origen: string }
         Returns: number
+      }
+      usuario_crear: {
+        Args: {
+          _auth: string
+          _nombre: string
+          _pin: string
+          _rol: Database["public"]["Enums"]["app_rol"]
+          _tienda: string | null
+          _usuario: string
+        }
+        Returns: string
       }
       ve_costos: { Args: { _tienda?: string }; Returns: boolean }
       ve_finanzas: { Args: never; Returns: boolean }

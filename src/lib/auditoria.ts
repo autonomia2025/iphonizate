@@ -81,6 +81,8 @@ const ACCION_ESPECIAL: Record<string, string> = {
   lista_negra_ingreso: "Ingresó un equipo a lista negra",
   lista_negra_vendido: "Vendió un equipo de lista negra",
   lista_negra_cambiado: "Cambió un equipo de lista negra",
+  persona_creada: "Agregó una persona al sistema",
+  correccion_manual: "Corrección manual de datos",
 };
 
 /** Filtro especial de Auditoría: todo lo que se borró a mano. */

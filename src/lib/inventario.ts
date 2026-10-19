@@ -113,6 +113,18 @@ export const diasEnStock = (fecha?: string | null) => {
   return Math.max(0, Math.floor(ms / 86_400_000));
 };
 
+/** Fecha local "AAAA-MM-DD" (para inputs de tipo date). */
+export const fechaLocal = (fecha: Date | string = new Date()) => {
+  const d = typeof fecha === "string" ? new Date(fecha) : fecha;
+  const dos = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
+};
+
+/** Fecha de compra elegida → fecha de ingreso del equipo. Hoy queda con la hora real;
+ *  un día anterior queda a mediodía para que ningún huso horario lo cambie de día. */
+export const fechaCompraAIso = (dia: string) =>
+  !dia || dia === fechaLocal() ? new Date().toISOString() : new Date(`${dia}T12:00:00`).toISOString();
+
 export const fechaLarga = (fecha?: string | null) =>
   fecha
     ? new Date(fecha).toLocaleString("es-CL", {

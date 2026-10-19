@@ -133,7 +133,7 @@ function Dashboard() {
     () => (tiendas.data ?? []).find((t) => t.slug === store.id) ?? null,
     [tiendas.data, store.id],
   );
-  /* En Oficina Central el panel pasa a modo cadena: suma las 3 tiendas */
+  /* En Oficina Central el panel pasa a modo cadena: suma todas las tiendas */
   const esCadena = !!tienda?.es_bodega;
   const tiendasVenta = useMemo(
     () => (tiendas.data ?? []).filter((t) => !t.es_bodega),
@@ -491,20 +491,20 @@ function Dashboard() {
       ) : (
         <Cascada className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Metrica
-            label={esCadena ? "Ventas de hoy · 3 tiendas" : "Ventas hoy"}
+            label={esCadena ? "Ventas de hoy · todas las tiendas" : "Ventas hoy"}
             valor={itemsHoy.length}
             formato={formatNumero}
             sub={`${ventasHoy.length} boletas emitidas hoy`}
           />
           <Metrica
-            label={esCadena ? "Ingresos de hoy · 3 tiendas" : "Ingresos hoy"}
+            label={esCadena ? "Ingresos de hoy · todas las tiendas" : "Ingresos hoy"}
             valor={ingresosHoy}
             formato={formatCLP}
             sub={`${formatCLP(ingresosMes)} en el mes`}
           />
           {verGanancias ? (
             <Metrica
-              label={esCadena ? "Ganancia de hoy · 3 tiendas" : "Ganancia hoy"}
+              label={esCadena ? "Ganancia de hoy · todas las tiendas" : "Ganancia hoy"}
               valor={gananciaHoy}
               formato={formatCLP}
               sub={`${formatCLP(gananciaMes)} en el mes`}
@@ -530,20 +530,20 @@ function Dashboard() {
       <section className="glass grid gap-4 p-5 sm:grid-cols-3">
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Ventas del mes{esCadena ? " · 3 tiendas" : ""}
+            Ventas del mes{esCadena ? " · todas las tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold">{formatNumero(equiposMes)} equipos</p>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Ingresos del mes{esCadena ? " · 3 tiendas" : ""}
+            Ingresos del mes{esCadena ? " · todas las tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold">{formatCLP(ingresosMes)}</p>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             {verGanancias ? "Ganancia del mes" : "Ticket promedio del mes"}
-            {esCadena ? " · 3 tiendas" : ""}
+            {esCadena ? " · todas las tiendas" : ""}
           </p>
           <p className="num mt-1 text-lg font-semibold text-positive">
             {verGanancias

@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/components/AuthContext";
 import { PanelLectores } from "@/components/configuracion/PanelLectores";
 import { PanelProveedores } from "@/components/configuracion/PanelProveedores";
+import { PanelPersonas } from "@/components/configuracion/PanelPersonas";
 
 const DESC = "Configuración de los Mac lectores que leen los equipos por USB.";
 
@@ -29,10 +30,14 @@ function ConfiguracionPage() {
       <header>
         <h1 className="font-display text-2xl">Configuración</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Los Mac que leen los equipos por USB y la lista de proveedores.
+          Las personas que entran al sistema, los Mac que leen los equipos por USB y la lista de
+          proveedores.
         </p>
       </header>
 
+      {(usuario?.rol === "direccion" || usuario?.rol === "administracion") && (
+        <PanelPersonas rolPropio={usuario.rol} />
+      )}
       <PanelLectores puedeEditar={puedeEditar} />
       <PanelProveedores puedeEditar={puedeEditar || usuario?.rol === "administracion"} />
     </div>

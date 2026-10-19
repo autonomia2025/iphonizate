@@ -29,6 +29,8 @@ import {
   SERVICIOS,
   type EquipoEstado,
   type ServicioTipo,
+  fechaCompraAIso,
+  fechaLocal,
   type TipoSim,
 } from "@/lib/inventario";
 
@@ -51,6 +53,7 @@ const vacio = {
   color: "",
   bateria: "",
   sim: "",
+  fecha_compra: "",
   email_vinculado: "",
   categoria: "seminuevo",
   costo: "",
@@ -147,7 +150,11 @@ export function IngresarEquipoModal({
   useEffect(() => {
     if (!abierto) return;
     const bodega = tiendas.find((t) => t.es_bodega);
-    setForm((f) => ({ ...f, ubicacion_id: f.ubicacion_id || bodega?.id || tiendaPorDefecto || tiendas[0]?.id || "" }));
+    setForm((f) => ({
+      ...f,
+      ubicacion_id: f.ubicacion_id || bodega?.id || tiendaPorDefecto || tiendas[0]?.id || "",
+      fecha_compra: f.fecha_compra || fechaLocal(),
+    }));
     const t = setTimeout(() => imeiRef.current?.focus(), 60);
     return () => clearTimeout(t);
   }, [abierto, tiendaPorDefecto, tiendas]);
@@ -222,7 +229,8 @@ export function IngresarEquipoModal({
     });
 
   const reiniciar = () => {
-    setForm((f) => ({ ...vacio, ubicacion_id: f.ubicacion_id, categoria: f.categoria }));
+    /* Ubicación, categoría y fecha de compra se mantienen: suelen ingresarse lotes de la misma compra */
+    setForm((f) => ({ ...vacio, ubicacion_id: f.ubicacion_id, categoria: f.categoria, fecha_compra: f.fecha_compra }));
     setServicios({});
     setDuplicado(null);
     setReingreso(null);
@@ -257,6 +265,10 @@ export function IngresarEquipoModal({
     }
     if (!form.sim) {
       fallar("Indica si el equipo es SIM física o eSIM.");
+      return;
+    }
+    if (!form.fecha_compra || form.fecha_compra > fechaLocal()) {
+      fallar("Indica la fecha de compra del equipo (no puede ser futura).");
       return;
     }
     if (!form.proveedor.trim()) {
@@ -303,6 +315,7 @@ export function IngresarEquipoModal({
         color: form.color.trim() || null,
         bateria: form.bateria === "" ? null : Number(form.bateria),
         sim: form.sim || null,
+        fecha_ingreso: fechaCompraAIso(form.fecha_compra),
         email_vinculado: form.email_vinculado.trim() || null,
         categoria: form.categoria as (typeof CATEGORIAS)[number],
         costo: puedeCostos && form.costo ? Number(form.costo) : 0,
@@ -608,7 +621,7 @@ export function IngresarEquipoModal({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-4">
             <div>
               <Label>
                 SIM <span className="text-amber-300">obligatorio</span>
@@ -617,6 +630,17 @@ export function IngresarEquipoModal({
                 className="mt-1"
                 value={form.sim as TipoSim | ""}
                 onChange={(v) => set("sim", v)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="fecha_compra">Fecha de compra</Label>
+              <Input
+                id="fecha_compra"
+                type="date"
+                className="num mt-1 [color-scheme:dark]"
+                max={fechaLocal()}
+                value={form.fecha_compra}
+                onChange={(e) => set("fecha_compra", e.target.value)}
               />
             </div>
             <div>

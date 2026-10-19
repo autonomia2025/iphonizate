@@ -25,6 +25,7 @@ import {
   SERVICIO_ETIQUETA,
   diasEnStock,
   fechaLarga,
+  fechaLocal,
   textoSim,
   type EquipoEstado,
   type ServicioTipo,
@@ -118,7 +119,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
       const [base, conCosto] = await Promise.all([
         supabase
           .from("equipos")
-          .select("modelo, gb, color, bateria, sim, categoria, email_vinculado, proveedor, lote, notas, ubicacion_id")
+          .select("modelo, gb, color, bateria, sim, categoria, email_vinculado, proveedor, lote, notas, ubicacion_id, fecha_ingreso")
           .eq("id", id!)
           .maybeSingle(),
         puedeCostos
@@ -190,6 +191,10 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
   const guardarCambios = async () => {
     if (!equipo || !form || !form.modelo.trim() || !form.ubicacion_id) {
       toast.error("Completa el modelo y la ubicación");
+      return;
+    }
+    if (!form.fecha_ingreso || form.fecha_ingreso > fechaLocal()) {
+      toast.error("Indica la fecha de compra (no puede ser futura)");
       return;
     }
     if (!ficha.data) {
@@ -307,6 +312,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
                   <div><Label>Batería %</Label><Input className="num mt-1" inputMode="numeric" value={form.bateria} onChange={(e) => setForm({ ...form, bateria: e.target.value.replace(/\D/g, "").slice(0, 3) })} /></div>
                   <div><Label>SIM</Label><SelectorSim className="mt-1" value={form.sim as TipoSim | ""} onChange={(v) => setForm({ ...form, sim: v })} /></div>
                   <div><Label>Categoría</Label><select className={`${campo} mt-1`} value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })}>{CATEGORIAS.map((c) => <option key={c} value={c}>{CATEGORIA_ETIQUETA[c]}</option>)}</select></div>
+                  <div><Label>Fecha de compra</Label><Input type="date" className="num mt-1 [color-scheme:dark]" max={fechaLocal()} value={form.fecha_ingreso} onChange={(e) => setForm({ ...form, fecha_ingreso: e.target.value })} /></div>
                   <div><Label>Ubicación</Label><select className={`${campo} mt-1`} value={form.ubicacion_id} onChange={(e) => setForm({ ...form, ubicacion_id: e.target.value })}>{(tiendas.data ?? []).map((t) => <option key={t.id} value={t.id}>{t.nombre}</option>)}</select></div>
                   <div><Label>Email vinculado</Label><Input className="mt-1" value={form.email_vinculado} onChange={(e) => setForm({ ...form, email_vinculado: e.target.value })} /></div>
                   {puedeCostos && <div><Label>Costo</Label><Input className="num mt-1" inputMode="numeric" value={form.costo} onChange={(e) => setForm({ ...form, costo: e.target.value.replace(/\D/g, "") })} /></div>}
@@ -321,7 +327,7 @@ export function EquipoDetalle({ equipo: equipoLista, onCerrar, puedeCostos, onCa
             {(puedeMarcarDisponible || puedeDevolverBodega) && <div className="mt-4 flex flex-wrap gap-2">{puedeMarcarDisponible && <Button size="sm" className="accent-glow gap-2" disabled={accion !== null} onClick={() => void marcarDisponible()}><PackageCheck className="size-4" />{accion === "disponible" ? "Marcando…" : "Marcar como disponible"}</Button>}{puedeDevolverBodega && <Button size="sm" variant="secondary" className="gap-2" disabled={accion !== null} onClick={() => void devolverBodega()}><Warehouse className="size-4" />{accion === "bodega" ? "Devolviendo…" : "Devolver a bodega"}</Button>}</div>}
             {rolPuedeOperar && ["POR_REVISAR", "EN_TECNICO"].includes(equipo.estado) && pendientes > 0 && <p className="mt-3 text-xs text-amber-300">Tiene {pendientes} arreglo{pendientes === 1 ? "" : "s"} sin terminar.</p>}
 
-            <div className="mt-5 grid grid-cols-2 gap-2"><Dato etiqueta="Capacidad" valor={equipo.gb ? `${equipo.gb} GB` : "—"} /><Dato etiqueta="Color" valor={equipo.color} /><Dato etiqueta="Batería" valor={equipo.bateria != null ? `${equipo.bateria}%` : "—"} /><Dato etiqueta="SIM" valor={textoSim(equipo.sim) ?? "—"} /><Dato etiqueta="Categoría" valor={equipo.categoria ? (CATEGORIA_ETIQUETA[equipo.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? equipo.categoria) : "—"} /><Dato etiqueta="Ubicación" valor={equipo.tienda} /><Dato etiqueta="Días en stock" valor={diasEnStock(equipo.fecha_ingreso)} /><Dato etiqueta="Ingreso" valor={fechaLarga(equipo.fecha_ingreso)} />{puedeCostos && <Dato etiqueta="Costo" valor={equipo.costo != null ? <span className="num">{formatCLP(equipo.costo)}</span> : "—"} />}<Dato etiqueta="Email vinculado" valor={equipo.email_vinculado} /><Dato etiqueta="Proveedor" valor={equipo.proveedor} /><Dato etiqueta="Lote" valor={equipo.lote} /></div>
+            <div className="mt-5 grid grid-cols-2 gap-2"><Dato etiqueta="Capacidad" valor={equipo.gb ? `${equipo.gb} GB` : "—"} /><Dato etiqueta="Color" valor={equipo.color} /><Dato etiqueta="Batería" valor={equipo.bateria != null ? `${equipo.bateria}%` : "—"} /><Dato etiqueta="SIM" valor={textoSim(equipo.sim) ?? "—"} /><Dato etiqueta="Categoría" valor={equipo.categoria ? (CATEGORIA_ETIQUETA[equipo.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? equipo.categoria) : "—"} /><Dato etiqueta="Ubicación" valor={equipo.tienda} /><Dato etiqueta="Días en stock" valor={diasEnStock(equipo.fecha_ingreso)} /><Dato etiqueta="Fecha de compra" valor={equipo.fecha_ingreso ? new Date(equipo.fecha_ingreso).toLocaleDateString("es-CL") : "—"} />{puedeCostos && <Dato etiqueta="Costo" valor={equipo.costo != null ? <span className="num">{formatCLP(equipo.costo)}</span> : "—"} />}<Dato etiqueta="Email vinculado" valor={equipo.email_vinculado} /><Dato etiqueta="Proveedor" valor={equipo.proveedor} /><Dato etiqueta="Lote" valor={equipo.lote} /></div>
             {equipo.notas && <div className="mt-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Notas del estado físico</p><p className="mt-0.5 text-sm">{equipo.notas}</p></div>}
             <VerificacionEquipo equipo={equipo} />
             <section className="mt-6"><h3 className="text-sm font-semibold">Servicios</h3>{servicios.data && servicios.data.length > 0 ? <ul className="mt-2 space-y-2">{servicios.data.map((s) => <li key={s.id} className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-sm"><span>{SERVICIO_ETIQUETA[s.tipo as ServicioTipo] ?? s.tipo}</span><span className="flex items-center gap-3">{puedeCostos && s.costo != null && <span className="num text-xs text-muted-foreground">{formatCLP(s.costo)}</span>}<span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-xs text-muted-foreground">{s.estado}</span></span></li>)}</ul> : <p className="mt-2 text-sm text-muted-foreground">{servicios.isLoading ? "Cargando…" : "Sin servicios registrados."}</p>}</section>

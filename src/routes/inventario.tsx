@@ -44,6 +44,9 @@ import {
 
 const DESC = "Equipos de la cadena por IMEI, estado, ubicación y días en stock.";
 
+/** Valor del filtro para los equipos que no tienen proveedor anotado */
+const SIN_PROVEEDOR = "__sin_proveedor__";
+
 export const Route = createFileRoute("/inventario")({
   head: () => ({
     meta: [
@@ -92,6 +95,7 @@ function InventarioPage() {
   const [estado, setEstado] = useState<EquipoEstado | null>(null);
   const [soloAlertas, setSoloAlertas] = useState(false);
   const [soloSinCosto, setSoloSinCosto] = useState(false);
+  const [proveedor, setProveedor] = useState<string | null>(null);
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [importAbierto, setImportAbierto] = useState(false);
@@ -124,7 +128,7 @@ function InventarioPage() {
         supabase
           .from("v_stock")
           .select(
-            "id, imei, modelo, gb, color, bateria, sim, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at",
+            "id, imei, modelo, gb, color, bateria, sim, categoria, estado, ubicacion_id, tienda, fecha_ingreso, serie, imei2, icloud_activo, lista_negra, bloqueo_operador, reemplazado_apple, garantia_estado, pais_compra, fecha_compra_estimada, bloqueo_usa, verificado_at, proveedor",
           )
           .order("fecha_ingreso", { ascending: false })
           .order("id")
@@ -178,7 +182,7 @@ function InventarioPage() {
           verificado_at: e.verificado_at,
           costo: ex?.costo ?? null,
           email_vinculado: ex?.email_vinculado ?? null,
-          proveedor: ex?.proveedor ?? null,
+          proveedor: e.proveedor ?? ex?.proveedor ?? null,
           lote: ex?.lote ?? null,
           notas: ex?.notas ?? null,
         } as EquipoFila & { ubicacion_id: string | null };
@@ -189,6 +193,8 @@ function InventarioPage() {
         if (estado && e.estado !== estado) return false;
         if (soloAlertas && !tieneAlertaImei(e)) return false;
         if (soloSinCosto && !sinCosto(e.id)) return false;
+        if (proveedor === SIN_PROVEEDOR ? !!e.proveedor : proveedor && e.proveedor !== proveedor)
+          return false;
         if (!q) return true;
         return (
           e.imei.toLowerCase().includes(q) ||
@@ -196,7 +202,21 @@ function InventarioPage() {
           (e.color ?? "").toLowerCase().includes(q)
         );
       });
-  }, [stock.data, extras, busqueda, ubicacion, estado, soloAlertas, soloSinCosto]);
+  }, [stock.data, extras, busqueda, ubicacion, estado, soloAlertas, soloSinCosto, proveedor]);
+
+  /* Proveedores con equipos en el inventario, con cuántos tiene cada uno */
+  const proveedores = useMemo(() => {
+    const mapa = new Map<string, number>();
+    let sinProveedor = 0;
+    (stock.data ?? []).forEach((e) => {
+      if (e.proveedor) mapa.set(e.proveedor, (mapa.get(e.proveedor) ?? 0) + 1);
+      else sinProveedor += 1;
+    });
+    return {
+      lista: [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0], "es")),
+      sinProveedor,
+    };
+  }, [stock.data]);
 
 
   const { enVivo, destellos } = useEquiposEnVivo((ids) => {
@@ -374,6 +394,41 @@ function InventarioPage() {
               }`}
             >
               Sin costo {sinCostoTotal}
+            </button>
+          )}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <label htmlFor="filtro-proveedor" className="mr-1 text-xs uppercase tracking-wide text-muted-foreground">
+            Proveedor
+          </label>
+          <select
+            id="filtro-proveedor"
+            value={proveedor ?? ""}
+            onChange={(ev) => setProveedor(ev.target.value || null)}
+            className={`h-8 min-w-56 rounded-full border px-3 text-xs outline-none transition-all duration-200 focus:ring-2 focus:ring-[var(--accent-store)]/25 ${
+              proveedor
+                ? "border-[var(--accent-store)]/50 bg-[var(--accent-store-soft)] text-foreground"
+                : "border-white/10 bg-[#16131F] text-muted-foreground"
+            }`}
+          >
+            <option value="">Todos los proveedores</option>
+            {proveedores.lista.map(([nombre, n]) => (
+              <option key={nombre} value={nombre}>
+                {nombre} ({n})
+              </option>
+            ))}
+            {proveedores.sinProveedor > 0 && (
+              <option value={SIN_PROVEEDOR}>Sin proveedor ({proveedores.sinProveedor})</option>
+            )}
+          </select>
+          {proveedor && (
+            <button
+              type="button"
+              onClick={() => setProveedor(null)}
+              className="text-xs text-muted-foreground underline-offset-4 transition-colors duration-200 hover:text-foreground hover:underline"
+            >
+              Quitar filtro
             </button>
           )}
         </div>
