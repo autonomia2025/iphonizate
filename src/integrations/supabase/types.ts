@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -86,6 +86,298 @@ export type Database = {
           },
           {
             foreignKeyName: "accesorios_stock_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arqueo_escaneos: {
+        Row: {
+          arqueo_id: string
+          equipo_id: string
+          fecha: string
+          id: string
+          usuario_id: string | null
+        }
+        Insert: {
+          arqueo_id: string
+          equipo_id: string
+          fecha?: string
+          id?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          arqueo_id?: string
+          equipo_id?: string
+          fecha?: string
+          id?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arqueo_escaneos_arqueo_id_fkey"
+            columns: ["arqueo_id"]
+            isOneToOne: false
+            referencedRelation: "arqueos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_escaneos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_escaneos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_escaneos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_escaneos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "arqueo_escaneos_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "arqueo_escaneos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arqueo_items: {
+        Row: {
+          arqueo_id: string
+          equipo_id: string
+        }
+        Insert: {
+          arqueo_id: string
+          equipo_id: string
+        }
+        Update: {
+          arqueo_id?: string
+          equipo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arqueo_items_arqueo_id_fkey"
+            columns: ["arqueo_id"]
+            isOneToOne: false
+            referencedRelation: "arqueos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "arqueo_items_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+        ]
+      }
+      arqueo_pendientes: {
+        Row: {
+          aparecio_at: string | null
+          aparecio_por: string | null
+          arqueo_id: string
+          equipo_id: string
+          estado: string
+          id: string
+          marcado_at: string | null
+          marcado_por: string | null
+          nota: string | null
+        }
+        Insert: {
+          aparecio_at?: string | null
+          aparecio_por?: string | null
+          arqueo_id: string
+          equipo_id: string
+          estado?: string
+          id?: string
+          marcado_at?: string | null
+          marcado_por?: string | null
+          nota?: string | null
+        }
+        Update: {
+          aparecio_at?: string | null
+          aparecio_por?: string | null
+          arqueo_id?: string
+          equipo_id?: string
+          estado?: string
+          id?: string
+          marcado_at?: string | null
+          marcado_por?: string | null
+          nota?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arqueo_pendientes_aparecio_por_fkey"
+            columns: ["aparecio_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_arqueo_id_fkey"
+            columns: ["arqueo_id"]
+            isOneToOne: false
+            referencedRelation: "arqueos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_equipo_id_fkey"
+            columns: ["equipo_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_marcado_por_fkey"
+            columns: ["marcado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arqueos: {
+        Row: {
+          abierto_at: string
+          abierto_por: string | null
+          cerrado_at: string | null
+          cerrado_por: string | null
+          contados_en_otro: number | null
+          escaneados: number | null
+          esperados: number
+          estado: string
+          faltantes: number | null
+          id: string
+          salieron: number | null
+          tienda_id: string
+        }
+        Insert: {
+          abierto_at?: string
+          abierto_por?: string | null
+          cerrado_at?: string | null
+          cerrado_por?: string | null
+          contados_en_otro?: number | null
+          escaneados?: number | null
+          esperados?: number
+          estado?: string
+          faltantes?: number | null
+          id?: string
+          salieron?: number | null
+          tienda_id: string
+        }
+        Update: {
+          abierto_at?: string
+          abierto_por?: string | null
+          cerrado_at?: string | null
+          cerrado_por?: string | null
+          contados_en_otro?: number | null
+          escaneados?: number | null
+          esperados?: number
+          estado?: string
+          faltantes?: number | null
+          id?: string
+          salieron?: number | null
+          tienda_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arqueos_abierto_por_fkey"
+            columns: ["abierto_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueos_cerrado_por_fkey"
+            columns: ["cerrado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueos_tienda_id_fkey"
             columns: ["tienda_id"]
             isOneToOne: false
             referencedRelation: "tiendas"
@@ -248,12 +540,6 @@ export type Database = {
           },
         ]
       }
-      colores_modelo: {
-        Row: { color: string; created_at: string; id: string; modelo: string; orden: number }
-        Insert: { color: string; created_at?: string; id?: string; modelo: string; orden?: number }
-        Update: { color?: string; created_at?: string; id?: string; modelo?: string; orden?: number }
-        Relationships: []
-      }
       colores_apple: {
         Row: {
           color_comercial: string
@@ -291,6 +577,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      colores_modelo: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          modelo: string
+          orden: number
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          id?: string
+          modelo: string
+          orden?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          modelo?: string
+          orden?: number
+        }
+        Relationships: []
       }
       costos_arreglo: {
         Row: {
@@ -1166,6 +1476,129 @@ export type Database = {
           },
         ]
       }
+      lista_negra: {
+        Row: {
+          bateria: number | null
+          cerrado_at: string | null
+          cerrado_por: string | null
+          color: string | null
+          costo: number
+          equipo_cambio_id: string | null
+          estado: string
+          fecha_ingreso: string
+          gb: number | null
+          id: string
+          imei: string
+          ingresado_por: string | null
+          lote: string | null
+          modelo: string
+          notas: string | null
+          proveedor: string | null
+          sim: string | null
+          ubicacion_id: string | null
+          valor_venta: number | null
+        }
+        Insert: {
+          bateria?: number | null
+          cerrado_at?: string | null
+          cerrado_por?: string | null
+          color?: string | null
+          costo?: number
+          equipo_cambio_id?: string | null
+          estado?: string
+          fecha_ingreso?: string
+          gb?: number | null
+          id?: string
+          imei: string
+          ingresado_por?: string | null
+          lote?: string | null
+          modelo: string
+          notas?: string | null
+          proveedor?: string | null
+          sim?: string | null
+          ubicacion_id?: string | null
+          valor_venta?: number | null
+        }
+        Update: {
+          bateria?: number | null
+          cerrado_at?: string | null
+          cerrado_por?: string | null
+          color?: string | null
+          costo?: number
+          equipo_cambio_id?: string | null
+          estado?: string
+          fecha_ingreso?: string
+          gb?: number | null
+          id?: string
+          imei?: string
+          ingresado_por?: string | null
+          lote?: string | null
+          modelo?: string
+          notas?: string | null
+          proveedor?: string | null
+          sim?: string | null
+          ubicacion_id?: string | null
+          valor_venta?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lista_negra_cerrado_por_fkey"
+            columns: ["cerrado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "lista_negra_ingresado_por_fkey"
+            columns: ["ingresado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_ubicacion_id_fkey"
+            columns: ["ubicacion_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metas: {
         Row: {
           equipos_objetivo: number
@@ -1633,7 +2066,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean
-          clave?: never
+          clave?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1641,7 +2074,7 @@ export type Database = {
         }
         Update: {
           activo?: boolean
-          clave?: never
+          clave?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -2433,6 +2866,76 @@ export type Database = {
           },
         ]
       }
+      v_lista_negra: {
+        Row: {
+          bateria: number | null
+          cerrado_at: string | null
+          cerrado_por: string | null
+          color: string | null
+          costo: number | null
+          equipo_cambio_id: string | null
+          estado: string | null
+          fecha_ingreso: string | null
+          gb: number | null
+          id: string | null
+          imei: string | null
+          imei_cambio: string | null
+          ingresado_por: string | null
+          lote: string | null
+          modelo: string | null
+          modelo_cambio: string | null
+          notas: string | null
+          proveedor: string | null
+          sim: string | null
+          tienda: string | null
+          ubicacion_id: string | null
+          valor_venta: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "equipos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipos_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_taller"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "lista_negra_equipo_cambio_id_fkey"
+            columns: ["equipo_cambio_id"]
+            isOneToOne: false
+            referencedRelation: "v_tecnico_historial"
+            referencedColumns: ["equipo_id"]
+          },
+          {
+            foreignKeyName: "lista_negra_ubicacion_id_fkey"
+            columns: ["ubicacion_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_movimientos: {
         Row: {
           desde: string | null
@@ -2540,33 +3043,6 @@ export type Database = {
             referencedColumns: ["tecnico_id"]
           },
         ]
-      }
-      v_lista_negra: {
-        Row: {
-          bateria: number | null
-          cerrado_at: string | null
-          cerrado_por: string | null
-          color: string | null
-          costo: number | null
-          equipo_cambio_id: string | null
-          estado: string | null
-          fecha_ingreso: string | null
-          gb: number | null
-          id: string | null
-          imei: string | null
-          imei_cambio: string | null
-          ingresado_por: string | null
-          lote: string | null
-          modelo: string | null
-          modelo_cambio: string | null
-          notas: string | null
-          proveedor: string | null
-          sim: string | null
-          tienda: string | null
-          ubicacion_id: string | null
-          valor_venta: number | null
-        }
-        Relationships: []
       }
       v_stock: {
         Row: {
@@ -2825,11 +3301,11 @@ export type Database = {
         Args: { _activo: boolean; _id: string }
         Returns: undefined
       }
-      agregar_proveedor: { Args: { _nombre: string }; Returns: string }
       agregar_comentario_equipo: {
         Args: { _equipo: string; _texto: string }
         Returns: string
       }
+      agregar_proveedor: { Args: { _nombre: string }; Returns: string }
       agregar_servicios_equipo: {
         Args: { _equipo: string; _servicios: Json }
         Returns: number
@@ -2843,10 +3319,18 @@ export type Database = {
         }
         Returns: number
       }
+      ajustar_venta_por_servicio: {
+        Args: { _delta: number; _item: string; _motivo: Json }
+        Returns: undefined
+      }
       anular_venta: { Args: { _venta: string }; Returns: undefined }
       arqueo_abrir: { Args: never; Returns: string }
       arqueo_cancelar: { Args: { _arqueo: string }; Returns: undefined }
-      arqueo_escanear: { Args: { _arqueo: string; _imei: string }; Returns: Json }
+      arqueo_escanear: {
+        Args: { _arqueo: string; _imei: string }
+        Returns: Json
+      }
+      arqueo_faltan: { Args: { _arqueo: string }; Returns: string[] }
       arqueo_lista: {
         Args: { _arqueo: string }
         Returns: {
@@ -2948,23 +3432,6 @@ export type Database = {
         Returns: string
       }
       eliminar_equipo: { Args: { _equipo: string }; Returns: undefined }
-      equipos_con_venta_activa: {
-        Args: never
-        Returns: {
-          comprobante: string | null
-          equipo_id: string
-          estado: string
-          imei: string
-          modelo: string
-          ubicacion: string | null
-          ultimo_evento: string | null
-          ultimo_evento_fecha: string | null
-          ultimo_evento_por: string | null
-          venta_fecha: string
-          venta_id: string
-          vendida_en: string | null
-        }[]
-      }
       eliminar_equipo_sin_control: {
         Args: { _equipo: string }
         Returns: undefined
@@ -2974,6 +3441,23 @@ export type Database = {
         | { Args: { _motivo: string; _venta: string }; Returns: undefined }
       equipo_aparecio: { Args: { _equipo: string }; Returns: undefined }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
+      equipos_con_venta_activa: {
+        Args: never
+        Returns: {
+          comprobante: string
+          equipo_id: string
+          estado: string
+          imei: string
+          modelo: string
+          ubicacion: string
+          ultimo_evento: string
+          ultimo_evento_fecha: string
+          ultimo_evento_por: string
+          vendida_en: string
+          venta_fecha: string
+          venta_id: string
+        }[]
+      }
       fn_sin_sensibles: { Args: { _fila: Json }; Returns: Json }
       garantia_agregar_equipo: {
         Args: { _equipo: Json; _garantia: string }
@@ -3053,7 +3537,12 @@ export type Database = {
       }
       listar_proveedores: {
         Args: never
-        Returns: { activo: boolean; equipos: number; id: string; nombre: string }[]
+        Returns: {
+          activo: boolean
+          equipos: number
+          id: string
+          nombre: string
+        }[]
       }
       login_lookup: {
         Args: { _pin: string; _usuario: string }
@@ -3077,6 +3566,7 @@ export type Database = {
       mi_rol: { Args: never; Returns: Database["public"]["Enums"]["app_rol"] }
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
+      normalizar_proveedor: { Args: { _t: string }; Returns: string }
       perdidos_lista: {
         Args: never
         Returns: {
@@ -3098,10 +3588,6 @@ export type Database = {
       puede_corregir_ventas: { Args: never; Returns: boolean }
       puede_operar_garantias: { Args: never; Returns: boolean }
       puede_ver_tienda: { Args: { _tienda: string }; Returns: boolean }
-      renombrar_proveedor: {
-        Args: { _id: string; _nombre: string }
-        Returns: undefined
-      }
       reemplazar_pagos_venta: {
         Args: { _pagos: Json; _venta: string }
         Returns: undefined
@@ -3123,6 +3609,10 @@ export type Database = {
           _tienda: string
         }
         Returns: string
+      }
+      renombrar_proveedor: {
+        Args: { _id: string; _nombre: string }
+        Returns: undefined
       }
       resolver_garantia_cambio: {
         Args: {
@@ -3151,6 +3641,10 @@ export type Database = {
       ve_finanzas: { Args: never; Returns: boolean }
       ve_ganancias: { Args: { _tienda?: string }; Returns: boolean }
       ve_todas_tiendas: { Args: never; Returns: boolean }
+      venta_item_de_servicio: {
+        Args: { _desde: string; _equipo: string }
+        Returns: string
+      }
     }
     Enums: {
       app_rol:
