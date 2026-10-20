@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, PackageX, Play, ScanBarcode, SearchCheck } from "lucide-react";
+import { ClipboardList, History, PackageX, Play, ScanBarcode, SearchCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,8 @@ import { useAuth } from "@/components/AuthContext";
 import { Button } from "@/components/ui/button";
 import { EstadoVacio } from "@/components/motion";
 import { ArqueoActivo } from "@/components/arqueo/ArqueoActivo";
+import { HistorialEquipoModal, type EquipoMinimo } from "@/components/arqueo/HistorialEquipoModal";
+import { ResolverPendienteModal } from "@/components/arqueo/ResolverPendienteModal";
 import { fechaLarga, textoSim } from "@/lib/inventario";
 import {
   ESTADO_ARQUEO_CLASE,
@@ -52,6 +54,8 @@ function ArqueoPage() {
   const [marcando, setMarcando] = useState<string | null>(null);
   const [nota, setNota] = useState("");
   const [ocupado, setOcupado] = useState<string | null>(null);
+  const [resolviendo, setResolviendo] = useState<EquipoMinimo | null>(null);
+  const [viendo, setViendo] = useState<EquipoMinimo | null>(null);
 
   const arqueos = useQuery({
     queryKey: ["arqueos"],
@@ -406,8 +410,8 @@ function ArqueoPage() {
           {pestana === "pendientes" && (
             <section className="solid-panel mt-4 overflow-hidden">
               <div className="border-b border-white/8 px-4 py-2.5 text-xs text-muted-foreground">
-                Equipos que faltaron en un arqueo y siguen sin aparecer. Si se escanean en un arqueo
-                nuevo, salen solos de aquí.
+                Equipos que faltaron en un arqueo. Están fuera del stock y no se pueden vender, reservar
+                ni mover hasta resolverlos.
               </div>
               {(pendientes.data ?? []).length === 0 ? (
                 <EstadoVacio
@@ -417,65 +421,84 @@ function ArqueoPage() {
                 />
               ) : (
                 <ul>
-                  {(pendientes.data ?? []).map((p) => (
-                    <li
-                      key={p.pendiente_id}
-                      className="border-b border-white/5 px-4 py-3 last:border-0"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm">
-                            {textoEquipo(p)}
-                            {textoSim(p.sim) ? (
-                              <span className="text-muted-foreground"> · {textoSim(p.sim)}</span>
-                            ) : null}
-                          </p>
-                          <p className="num text-xs tracking-[0.04em] text-muted-foreground">
-                            {p.imei} · faltó en el arqueo del {fechaLarga(p.arqueo_fecha)}
-                          </p>
+                  {(pendientes.data ?? []).map((p) => {
+                    const equipo = { id: p.equipo_id, imei: p.imei, modelo: p.modelo, gb: p.gb, color: p.color };
+                    return (
+                      <li key={p.equipo_id} className="border-b border-white/5 px-4 py-3 last:border-0">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm">
+                              {textoEquipo(p)}
+                              {textoSim(p.sim) ? (
+                                <span className="text-muted-foreground"> · {textoSim(p.sim)}</span>
+                              ) : null}
+                            </p>
+                            <p className="num text-xs tracking-[0.04em] text-muted-foreground">
+                              {p.imei} · faltó el {p.desde ? fechaLarga(p.desde) : "—"}
+                              {p.ubicacion ? ` · ${p.ubicacion}` : ""}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={cn(
+                                "num rounded-full border px-2 py-0.5 text-xs",
+                                (p.dias ?? 0) >= 7
+                                  ? "border-red-400/40 bg-red-500/15 text-red-200"
+                                  : "border-orange-400/40 bg-orange-500/15 text-orange-200",
+                              )}
+                            >
+                              {p.dias ?? 0} día{p.dias === 1 ? "" : "s"} pendiente
+                            </span>
+                            <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setViendo(equipo)}>
+                              <History className="size-3.5" /> Ver historial
+                            </Button>
+                            <Button size="sm" onClick={() => setResolviendo(equipo)}>
+                              Resolver
+                            </Button>
+                            {marcando !== p.pendiente_id && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1.5 text-red-300"
+                                onClick={() => {
+                                  setMarcando(p.pendiente_id);
+                                  setNota("");
+                                }}
+                              >
+                                <PackageX className="size-3.5" /> Marcar como perdido
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        {marcando !== p.pendiente_id && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-1.5 text-red-300"
-                            onClick={() => {
-                              setMarcando(p.pendiente_id);
-                              setNota("");
-                            }}
-                          >
-                            <PackageX className="size-3.5" /> Marcar perdido
-                          </Button>
+                        {marcando === p.pendiente_id && (
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <input
+                              autoFocus
+                              value={nota}
+                              onChange={(e) => setNota(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") void marcarPerdido(p.pendiente_id);
+                                if (e.key === "Escape") setMarcando(null);
+                              }}
+                              placeholder="Nota (opcional): dónde se buscó, quién lo vio por última vez…"
+                              className="h-9 min-w-0 flex-1 rounded-md border border-white/12 bg-white/5 px-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)] focus:ring-2 focus:ring-[var(--accent-store)]/30"
+                            />
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={ocupado === p.pendiente_id}
+                              onClick={() => void marcarPerdido(p.pendiente_id)}
+                            >
+                              {ocupado === p.pendiente_id ? "Guardando…" : "Confirmar perdido"}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => setMarcando(null)}>
+                              Cancelar
+                            </Button>
+                          </div>
                         )}
-                      </div>
-                      {marcando === p.pendiente_id && (
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <input
-                            autoFocus
-                            value={nota}
-                            onChange={(e) => setNota(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") void marcarPerdido(p.pendiente_id);
-                              if (e.key === "Escape") setMarcando(null);
-                            }}
-                            placeholder="Nota (opcional): dónde se buscó, quién lo vio por última vez…"
-                            className="h-9 min-w-0 flex-1 rounded-md border border-white/12 bg-white/5 px-3 text-sm outline-none transition-all duration-200 focus:border-[var(--accent-store)] focus:ring-2 focus:ring-[var(--accent-store)]/30"
-                          />
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={ocupado === p.pendiente_id}
-                            onClick={() => void marcarPerdido(p.pendiente_id)}
-                          >
-                            {ocupado === p.pendiente_id ? "Guardando…" : "Confirmar perdido"}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setMarcando(null)}>
-                            Cancelar
-                          </Button>
-                        </div>
-                      )}
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </section>
@@ -518,7 +541,17 @@ function ArqueoPage() {
                             ) : null}
                           </td>
                           <td className="px-4 py-2.5 text-muted-foreground">{p.nota ?? "—"}</td>
-                          <td className="px-4 py-2.5 text-right">
+                          <td className="space-x-2 whitespace-nowrap px-4 py-2.5 text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="gap-1.5"
+                              onClick={() =>
+                                setViendo({ id: p.equipo_id, imei: p.imei, modelo: p.modelo, gb: p.gb, color: p.color })
+                              }
+                            >
+                              <History className="size-3.5" /> Ver historial
+                            </Button>
                             <Button
                               size="sm"
                               variant="outline"
@@ -540,6 +573,18 @@ function ArqueoPage() {
           )}
         </>
       )}
+
+      {resolviendo && (
+        <ResolverPendienteModal
+          equipo={resolviendo}
+          onCerrar={() => setResolviendo(null)}
+          onResuelto={() => {
+            void pendientes.refetch();
+            void perdidos.refetch();
+          }}
+        />
+      )}
+      {viendo && <HistorialEquipoModal equipo={viendo} onCerrar={() => setViendo(null)} />}
     </div>
   );
 }

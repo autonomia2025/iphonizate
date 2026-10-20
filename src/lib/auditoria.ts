@@ -82,6 +82,7 @@ const ACCION_ESPECIAL: Record<string, string> = {
   lista_negra_vendido: "Vendió un equipo de lista negra",
   lista_negra_cambiado: "Cambió un equipo de lista negra",
   persona_creada: "Agregó una persona al sistema",
+  pendiente_resuelto: "Resolvió un equipo pendiente del arqueo",
   correccion_manual: "Corrección manual de datos",
 };
 

@@ -30,6 +30,8 @@ interface Props {
   lineas?: Linea[];
   pagos?: { metodo?: string; monto?: number }[];
   url?: string;
+  /** Meses de garantía de la tienda (Riffstore 12, el resto 6) */
+  garantiaMeses?: number;
 }
 
 const clp = (n?: number) =>
@@ -45,6 +47,7 @@ const Email = ({
   lineas = [],
   pagos = [],
   url,
+  garantiaMeses = 6,
 }: Props) => (
   <Html lang="es" dir="ltr">
     <Head />
@@ -93,8 +96,8 @@ const Email = ({
         ) : null}
 
         <Text style={pie}>
-          Gracias por tu compra en {tienda}. Tu equipo tiene garantía de 6 meses por fallas de
-          fábrica. No cubre golpes, humedad ni equipos abiertos por terceros. Guarda este
+          Gracias por tu compra en {tienda}. Tu equipo tiene garantía de {garantiaMeses} meses por
+          fallas de funcionamiento. No cubre golpes, humedad ni equipos abiertos por terceros. Guarda este
           comprobante para cualquier gestión de garantía.
         </Text>
       </Container>

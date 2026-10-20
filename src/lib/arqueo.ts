@@ -39,6 +39,15 @@ export type ResultadoEscaneo =
       mismo_arqueo: boolean;
     }
   | {
+      resultado: "pendiente";
+      equipo_id: string;
+      imei: string;
+      modelo: string;
+      gb: number | null;
+      color: string | null;
+      desde: string | null;
+    }
+  | {
       resultado: "no_en_lista";
       motivo: "no_existe" | "fuera";
       imei: string;

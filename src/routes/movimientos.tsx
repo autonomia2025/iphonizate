@@ -19,7 +19,7 @@ import {
 } from "@/lib/inventario";
 
 const DESC = "Traslados entre tiendas y bodega, con trazabilidad por equipo.";
-const NO_TRASLADABLES: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO", "PERDIDO"];
+const NO_TRASLADABLES: EquipoEstado[] = ["VENDIDO", "ENTREGADO", "RESERVADO", "PERDIDO", "PENDIENTE"];
 
 export const Route = createFileRoute("/movimientos")({
   head: () => ({

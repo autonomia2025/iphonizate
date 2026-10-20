@@ -7,10 +7,14 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf
 
 import {
   CONTACTO_TIENDA,
-  GARANTIA_CONDICIONES,
-  GARANTIA_TITULO,
+  GARANTIA_CUBRE,
+  GARANTIA_NO_CUBRE,
+  HORARIO_ATENCION,
   STORES,
+  garantiaMeses,
+  garantiaTerminos,
 } from "@/lib/stores";
+import { CATEGORIA_ETIQUETA } from "@/lib/inventario";
 import { METODO_ETIQUETA, type MetodoPago } from "@/lib/pos";
 
 const BUCKET = "comprobantes";
@@ -18,22 +22,10 @@ const BUCKET = "comprobantes";
 const clp = (valor: number) =>
   `$${new Intl.NumberFormat("es-CL").format(Math.round(valor || 0))}`;
 
-const fechaLarga = (iso: string) =>
-  new Date(iso).toLocaleString("es-CL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
 const hexARgb = (hex: string) => {
   const n = parseInt(hex.replace("#", ""), 16);
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
 };
-
-const acentoTienda = (slug?: string | null) =>
-  hexARgb(STORES.find((s) => s.id === slug)?.hex ?? "#F59E0B");
 
 /** Quita lo que WinAnsi no sabe dibujar (emojis, comillas raras). */
 const limpio = (t: string) =>
@@ -52,9 +44,16 @@ export type DatosComprobante = {
   recargo: number;
   total: number;
   tienda: { nombre: string; slug: string | null };
-  cliente: { nombre: string; telefono: string | null; correo: string | null } | null;
+  cliente: {
+    nombre: string;
+    telefono: string | null;
+    correo: string | null;
+    instagram: string | null;
+  } | null;
   vendedor: string | null;
   lineas: { descripcion: string; detalle: string; monto: number }[];
+  equipos: { modelo: string; condicion: string | null; imei: string; precio: number }[];
+  accesorios: { nombre: string; precio: number }[];
   pagos: { metodo: string; nombre: string | null; monto: number }[];
 };
 
@@ -86,7 +85,7 @@ export async function armarDatos(
     venta.cliente_id
       ? supabaseAdmin
           .from("clientes")
-          .select("nombre, telefono, correo")
+          .select("nombre, telefono, correo, instagram")
           .eq("id", venta.cliente_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
@@ -114,7 +113,7 @@ export async function armarDatos(
     ? (
         await supabaseAdmin
           .from("equipos")
-          .select("id, imei, modelo, gb, color")
+          .select("id, imei, modelo, gb, color, categoria")
           .in("id", idsEquipos)
       ).data ?? []
     : [];
@@ -157,10 +156,34 @@ export async function armarDatos(
           nombre: cliente.data.nombre,
           telefono: cliente.data.telefono ?? null,
           correo: cliente.data.correo ?? null,
+          instagram: cliente.data.instagram ?? null,
         }
       : null,
     vendedor: vendedor.data?.nombre ?? null,
     lineas,
+    equipos: (items.data ?? [])
+      .filter((i) => i.equipo_id)
+      .map((i) => {
+        const e = equipos.find((x) => x.id === i.equipo_id);
+        return {
+          modelo: e
+            ? [e.modelo, e.gb ? `${e.gb} GB` : null, e.color].filter(Boolean).join(" ")
+            : "Equipo",
+          condicion: e?.categoria
+            ? e.categoria === "sellado"
+              ? "Nuevo sellado"
+              : (CATEGORIA_ETIQUETA[e.categoria as keyof typeof CATEGORIA_ETIQUETA] ?? e.categoria)
+            : null,
+          imei: e?.imei ?? "",
+          precio: Number(i.precio ?? 0),
+        };
+      }),
+    accesorios: (items.data ?? [])
+      .filter((i) => i.accesorio_id)
+      .map((i) => ({
+        nombre: accesorios.find((x) => x.id === i.accesorio_id)?.nombre ?? "Accesorio",
+        precio: Number(i.precio ?? 0),
+      })),
     pagos: (pagos.data ?? []).map((p) => ({
       metodo: METODO_ETIQUETA[p.metodo as MetodoPago] ?? String(p.metodo),
       nombre: p.nombre_pagador ?? null,
@@ -169,7 +192,46 @@ export async function armarDatos(
   };
 }
 
-/** Dibuja el comprobante en A4 y devuelve los bytes del PDF. */
+/* ---------------------------------------------------------------- Fechas */
+
+const MESES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+type Dia = { y: number; m: number; d: number };
+
+/** Día calendario en Chile de una fecha ISO. */
+const diaChile = (iso: string): Dia => {
+  const [y, m, d] = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Santiago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(new Date(iso))
+    .split("-")
+    .map(Number);
+  return { y: y!, m: m!, d: d! };
+};
+
+const diaTexto = ({ y, m, d }: Dia) => `${d} de ${MESES[m - 1]} de ${y}`;
+
+/** Último día cubierto: misma fecha `meses` después, menos un día. */
+const finGarantia = ({ y, m, d }: Dia, meses: number): Dia => {
+  const f = new Date(Date.UTC(y, m - 1 + meses, d));
+  f.setUTCDate(f.getUTCDate() - 1);
+  return { y: f.getUTCFullYear(), m: f.getUTCMonth() + 1, d: f.getUTCDate() };
+};
+
+/** Mezcla un color con blanco: t=0 el color, t=1 blanco. */
+const aclarar = (hex: string, t: number) => {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const c = (v: number) => (v + (255 - v) * t) / 255;
+  return rgb(c((n >> 16) & 255), c((n >> 8) & 255), c(n & 255));
+};
+
+/** Comprobante de garantía en una hoja A4, con el color y los meses de garantía de la tienda. */
 export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(`Comprobante ${d.numero}`);
@@ -179,33 +241,43 @@ export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const normal = await doc.embedFont(StandardFonts.Helvetica);
 
-  const acento = acentoTienda(d.tienda.slug);
-  const tinta = rgb(0.09, 0.09, 0.13);
-  const gris = rgb(0.45, 0.45, 0.5);
-  const linea = rgb(0.87, 0.87, 0.9);
-  const zebra = rgb(0.972, 0.972, 0.98);
+  const hex = STORES.find((s) => s.id === d.tienda.slug)?.hex ?? "#F59E0B";
+  const acento = hexARgb(hex);
+  const acentoTenue = aclarar(hex, 0.93);
+  const acentoBorde = aclarar(hex, 0.55);
+  const acentoTexto = aclarar(hex, 0.7);
+  const tinta = rgb(0.05, 0.05, 0.05);
+  const gris = rgb(0.42, 0.4, 0.47);
+  const grisClaro = rgb(0.61, 0.64, 0.69);
+  const linea = rgb(0.89, 0.88, 0.95);
+  const fondoCampo = rgb(0.98, 0.98, 0.995);
   const blanco = rgb(1, 1, 1);
 
-  const M = 46;
-  const ancho = pagina.getWidth();
-  const alto = pagina.getHeight();
-  const derecha = ancho - M;
-  const colMonto = derecha;
+  const meses = garantiaMeses(d.tienda.slug);
+  const contacto = CONTACTO_TIENDA[d.tienda.slug ?? ""] ?? {};
+  const desde = diaChile(d.fecha);
+  const hasta = finGarantia(desde, meses);
+
+  const W = pagina.getWidth();
+  const H = pagina.getHeight();
+  const M = 30;
+  const anchoUtil = W - 2 * M;
+  const gap = 8;
+  const col = (anchoUtil - gap) / 2;
 
   const texto = (t: string, x: number, y: number, size: number, font: PDFFont, color = tinta) =>
     pagina.drawText(limpio(t), { x, y, size, font, color });
+  const ancho = (t: string, size: number, font: PDFFont) => font.widthOfTextAtSize(limpio(t), size);
+  const aDerecha = (t: string, xDer: number, y: number, size: number, font: PDFFont, color = tinta) =>
+    texto(t, xDer - ancho(t, size, font), y, size, font, color);
+  const centrado = (t: string, xCentro: number, y: number, size: number, font: PDFFont, color = tinta) =>
+    texto(t, xCentro - ancho(t, size, font) / 2, y, size, font, color);
 
-  const aDerecha = (t: string, y: number, size: number, font: PDFFont, color = tinta, x = colMonto) => {
-    const s = limpio(t);
-    texto(s, x - font.widthOfTextAtSize(s, size), y, size, font, color);
-  };
-
-  /** Parte un texto largo en líneas que caben en `max` puntos. */
+  /** Parte un texto en líneas que caben en `max` puntos. */
   const envolver = (t: string, font: PDFFont, size: number, max: number) => {
-    const palabras = limpio(t).split(/\s+/).filter(Boolean);
     const out: string[] = [];
     let actual = "";
-    for (const p of palabras) {
+    for (const p of limpio(t).split(/\s+/).filter(Boolean)) {
       const prueba = actual ? `${actual} ${p}` : p;
       if (actual && font.widthOfTextAtSize(prueba, size) > max) {
         out.push(actual);
@@ -216,140 +288,234 @@ export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
     return out;
   };
 
-  const contacto = CONTACTO_TIENDA[d.tienda.slug ?? ""] ?? {};
-  const lineasContacto = [
-    contacto.direccion,
-    [contacto.telefono, contacto.instagram].filter(Boolean).join("  ·  ") || undefined,
-    contacto.rut ? `RUT ${contacto.rut}` : undefined,
-  ].filter(Boolean) as string[];
+  /** Corta con "..." lo que no cabe en una sola línea. */
+  const recortar = (t: string, size: number, font: PDFFont, max: number) => {
+    let s = limpio(t);
+    if (font.widthOfTextAtSize(s, size) <= max) return s;
+    while (s.length > 1 && font.widthOfTextAtSize(`${s}...`, size) > max) s = s.slice(0, -1);
+    return `${s.trimEnd()}...`;
+  };
 
   /* ---------------- Encabezado ---------------- */
-  const altoBanda = 96 + lineasContacto.length * 11;
-  pagina.drawRectangle({ x: 0, y: alto - altoBanda, width: ancho, height: altoBanda, color: acento });
+  const altoCabeza = 72;
+  pagina.drawRectangle({ x: 0, y: H - altoCabeza, width: W, height: altoCabeza, color: acento });
+  texto(d.tienda.nombre, M, H - 36, 22, bold, blanco);
+  if (contacto.lema) texto(contacto.lema, M, H - 52, 9, normal, acentoTexto);
+  aDerecha("Comprobante de garantía", W - M, H - 30, 11.5, bold, blanco);
+  const contactoCabeza = [contacto.whatsapp && `WhatsApp ${contacto.whatsapp}`, contacto.correo]
+    .filter(Boolean)
+    .join("  ·  ");
+  if (contactoCabeza) aDerecha(contactoCabeza, W - M, H - 44, 8.5, normal, acentoTexto);
+  aDerecha(`N° ${d.numero}`, W - M, H - 57, 8.5, normal, acentoTexto);
 
-  let y = alto - 44;
-  texto(d.tienda.nombre, M, y, 22, bold, blanco);
-  aDerecha(`N° ${d.numero}`, y, 14, bold, blanco);
-  y -= 16;
-  texto("Comprobante de venta", M, y, 9.5, normal, blanco);
-  aDerecha(fechaLarga(d.fecha), y, 9, normal, blanco);
-  y -= 16;
-  for (const l of lineasContacto) {
-    texto(l, M, y, 8.5, normal, blanco);
-    y -= 11;
+  /* ---------------- Franja de vigencia ---------------- */
+  const altoFranja = 36;
+  const yFranja = H - altoCabeza - altoFranja;
+  pagina.drawRectangle({ x: 0, y: yFranja, width: W, height: altoFranja, color: acentoTenue });
+  pagina.drawLine({ start: { x: 0, y: yFranja }, end: { x: W, y: yFranja }, thickness: 0.8, color: linea });
+
+  const sello = `Garantía activa · ${meses} meses`;
+  const anchoSello = ancho(sello, 9.5, bold) + 22;
+  const ySello = yFranja + altoFranja / 2;
+  const r = 9.5;
+  pagina.drawCircle({ x: M + r, y: ySello, size: r, color: acento });
+  pagina.drawCircle({ x: M + anchoSello - r, y: ySello, size: r, color: acento });
+  pagina.drawRectangle({ x: M + r, y: ySello - r, width: anchoSello - 2 * r, height: 2 * r, color: acento });
+  texto(sello, M + 11, ySello - 3.3, 9.5, bold, blanco);
+
+  let x = M + anchoSello + 14;
+  for (const [t, f] of [
+    ["Desde ", normal],
+    [diaTexto(desde), bold],
+    [" hasta ", normal],
+    [diaTexto(hasta), bold],
+  ] as const) {
+    texto(t, x, ySello - 3.3, 9.5, f, f === bold ? tinta : gris);
+    x += ancho(t, 9.5, f);
   }
+  if (d.anulada) aDerecha("VENTA ANULADA", W - M, ySello - 3.5, 11, bold, rgb(0.75, 0.12, 0.12));
 
-  y = alto - altoBanda - 34;
+  let y = yFranja - 20;
 
-  if (d.anulada) {
+  /* ---------------- Piezas ---------------- */
+  const seccion = (titulo: string) => {
+    texto(titulo, M, y, 10, bold, acento);
+    pagina.drawLine({ start: { x: M, y: y - 6 }, end: { x: W - M, y: y - 6 }, thickness: 1.4, color: linea });
+    y -= 20;
+  };
+
+  const altoCampo = 29;
+  const campo = (cx: number, w: number, etiqueta: string, valor: string, destacado = false) => {
     pagina.drawRectangle({
-      x: M,
-      y: y - 6,
-      width: derecha - M,
-      height: 24,
-      color: rgb(0.99, 0.9, 0.9),
+      x: cx,
+      y: y - altoCampo,
+      width: w,
+      height: altoCampo,
+      color: destacado ? acentoTenue : fondoCampo,
+      borderColor: destacado ? acentoBorde : linea,
+      borderWidth: 0.8,
     });
-    texto("VENTA ANULADA", M + 10, y + 1, 12, bold, rgb(0.75, 0.12, 0.12));
-    y -= 40;
+    texto(etiqueta, cx + 9, y - 10, 6.8, normal, grisClaro);
+    texto(recortar(valor || "-", 10.5, bold, w - 18), cx + 9, y - 23, 10.5, bold);
+  };
+  const fila = (izq: [string, string, boolean?], der?: [string, string, boolean?]) => {
+    if (der) {
+      campo(M, col, izq[0], izq[1], izq[2]);
+      campo(M + col + gap, col, der[0], der[1], der[2]);
+    } else campo(M, anchoUtil, izq[0], izq[1], izq[2]);
+    y -= altoCampo + 6;
+  };
+
+  const tamLista = 8.3;
+  const altoLinea = 10.5;
+  const medirCaja = (items: string[], w: number) =>
+    items.reduce((h, it) => h + envolver(it, normal, tamLista, w - 30).length * altoLinea + 3, 26);
+  const caja = (cx: number, w: number, h: number, titulo: string, items: string[], cubre: boolean) => {
+    pagina.drawRectangle({
+      x: cx,
+      y: y - h,
+      width: w,
+      height: h,
+      color: cubre ? acentoTenue : rgb(0.98, 0.98, 0.98),
+      borderColor: cubre ? acentoBorde : linea,
+      borderWidth: 0.8,
+    });
+    texto(titulo, cx + 11, y - 15, 8.8, bold, cubre ? acento : gris);
+    let yy = y - 29;
+    for (const it of items) {
+      pagina.drawCircle({ x: cx + 15, y: yy + 2.6, size: 1.4, color: cubre ? acento : gris });
+      for (const l of envolver(it, normal, tamLista, w - 30)) {
+        texto(l, cx + 21, yy, tamLista, normal, tinta);
+        yy -= altoLinea;
+      }
+      yy -= 3;
+    }
+  };
+  const parCajas = (
+    a: { titulo: string; items: string[]; cubre: boolean },
+    b: { titulo: string; items: string[]; cubre: boolean },
+  ) => {
+    const h = Math.max(medirCaja(a.items, col), medirCaja(b.items, col));
+    caja(M, col, h, a.titulo, a.items, a.cubre);
+    caja(M + col + gap, col, h, b.titulo, b.items, b.cubre);
+    y -= h + 14;
+  };
+
+  /* ---------------- Cliente ---------------- */
+  seccion("Cliente");
+  const c = d.cliente;
+  const ig = c?.instagram ? `@${c.instagram.replace(/^@+/, "")}` : null;
+  if (ig) fila(["Nombre completo", c?.nombre ?? "Sin cliente registrado"], ["Instagram", ig]);
+  else fila(["Nombre completo", c?.nombre ?? "Sin cliente registrado"]);
+  if (c?.correo) fila(["Teléfono", c?.telefono ?? "-"], ["Correo", c.correo]);
+  else fila(["Teléfono", c?.telefono ?? "-"]);
+  y -= 6;
+
+  /* ---------------- Equipo ---------------- */
+  seccion(d.equipos.length > 1 ? "Equipos" : "Equipo");
+  if (d.equipos.length === 1) {
+    const e = d.equipos[0]!;
+    fila(["Modelo", e.modelo, true], ["Condición", e.condicion ?? "-", true]);
+    fila(["IMEI", e.imei], ["Precio de venta", clp(e.precio)]);
+  } else {
+    d.equipos.forEach((e, i) => {
+      fila(
+        [`Equipo ${i + 1} · ${e.condicion ?? ""}`, e.modelo, true],
+        ["IMEI · precio", `${e.imei} · ${clp(e.precio)}`],
+      );
+    });
   }
-
-  /* ---------------- Cliente / vendedor ---------------- */
-  texto("CLIENTE", M, y, 8, bold, gris);
-  aDerecha("ATENDIDO POR", y, 8, bold, gris);
-  y -= 15;
-  texto(d.cliente?.nombre ?? "Sin cliente asignado", M, y, 12, bold);
-  aDerecha(d.vendedor ?? "—", y, 11, normal);
-  y -= 14;
-  const datosCliente = [d.cliente?.telefono, d.cliente?.correo].filter(Boolean).join("  ·  ");
-  if (datosCliente) {
-    texto(datosCliente, M, y, 9, normal, gris);
-    y -= 14;
+  if (d.accesorios.length) {
+    fila(["Accesorios", d.accesorios.map((a) => `${a.nombre} (${clp(a.precio)})`).join(" · ")]);
   }
+  const formaPago = [...new Set(d.pagos.map((p) => p.metodo))].join(" + ") || "-";
+  const conTotal = d.equipos.length + d.accesorios.length > 1 || (d.conBoleta && d.recargo > 0);
+  if (conTotal) {
+    fila(
+      ["Forma de pago", formaPago],
+      ["Total pagado", `${clp(d.total)}${d.conBoleta && d.recargo > 0 ? " (con boleta)" : ""}`],
+    );
+  } else fila(["Forma de pago", formaPago]);
+  y -= 6;
 
-  y -= 12;
+  /* ---------------- Cobertura ---------------- */
+  seccion("Qué cubre esta garantía");
+  parCajas(
+    { titulo: `Cubierto durante ${meses} meses`, items: GARANTIA_CUBRE, cubre: true },
+    { titulo: "Fuera de cobertura", items: GARANTIA_NO_CUBRE, cubre: false },
+  );
 
-  /* ---------------- Detalle en tabla ---------------- */
-  pagina.drawRectangle({ x: M, y: y - 5, width: derecha - M, height: 20, color: zebra });
-  texto("DETALLE", M + 8, y, 8, bold, gris);
-  aDerecha("MONTO", y, 8, bold, gris, derecha - 8);
-  y -= 24;
+  seccion("Cómo hacerla efectiva");
+  parCajas(
+    {
+      titulo: "En tienda",
+      items: [
+        "Acércate a la tienda con este comprobante.",
+        HORARIO_ATENCION,
+        "La revisión toma al menos un día hábil, salvo que se resuelva en el momento.",
+      ],
+      cubre: true,
+    },
+    {
+      titulo: "Desde otra ciudad",
+      items: [
+        "Escríbenos primero por WhatsApp para coordinar el envío.",
+        contacto.envio
+          ? `Despacha por courier por pagar a ${contacto.envio}.`
+          : "Despacha por courier por pagar a los datos que te indiquemos.",
+        "La tienda cubre el flete de vuelta una vez revisado el equipo.",
+      ],
+      cubre: true,
+    },
+  );
 
-  const anchoDesc = derecha - M - 110;
-  d.lineas.forEach((l, i) => {
-    const detalle = l.detalle ? envolver(l.detalle, normal, 8.5, anchoDesc) : [];
-    const altoFila = 18 + detalle.length * 11;
-    if (i % 2 === 1) {
-      pagina.drawRectangle({
-        x: M,
-        y: y - altoFila + 13,
-        width: derecha - M,
-        height: altoFila,
-        color: zebra,
-      });
+  /* ---------------- Términos ---------------- */
+  seccion("Términos y condiciones");
+  const consultas = [contacto.whatsapp && `WhatsApp ${contacto.whatsapp}`, contacto.correo, contacto.web]
+    .filter(Boolean)
+    .join(" · ");
+  const terminos = [...garantiaTerminos(meses), ...(consultas ? [`Consultas: ${consultas}`] : [])];
+  const tamTerm = 6.9;
+  const altoTerm = 8.6;
+  const lineasTerm = terminos.map((t, i) => envolver(`${i + 1}. ${t}`, normal, tamTerm, col - 4));
+  const mitad = Math.ceil(terminos.length / 2);
+  const altoCol = (desdeI: number, hastaI: number) =>
+    lineasTerm.slice(desdeI, hastaI).reduce((h, ls) => h + ls.length * altoTerm + 3, 0);
+  const altoTerminos = Math.max(altoCol(0, mitad), altoCol(mitad, terminos.length));
+  [lineasTerm.slice(0, mitad), lineasTerm.slice(mitad)].forEach((grupo, ci) => {
+    let yy = y;
+    const cx = M + ci * (col + gap);
+    for (const ls of grupo) {
+      for (const l of ls) {
+        texto(l, cx, yy, tamTerm, normal, gris);
+        yy -= altoTerm;
+      }
+      yy -= 3;
     }
-    for (const t of envolver(l.descripcion, bold, 10.5, anchoDesc)) {
-      texto(t, M + 8, y, 10.5, bold);
-      y -= 13;
-    }
-    aDerecha(clp(l.monto), y + 13, 10.5, normal, tinta, derecha - 8);
-    for (const t of detalle) {
-      texto(t, M + 8, y, 8.5, normal, gris);
-      y -= 11;
-    }
-    y -= 7;
-    if (y < 260) return;
+  });
+  y -= altoTerminos + 26;
+
+  /* ---------------- Firmas ---------------- */
+  const yFirma = Math.max(y, 72);
+  [
+    [d.vendedor ?? "", `Vendedor · ${d.tienda.nombre}`],
+    [c?.nombre ?? "", "Firma del cliente"],
+  ].forEach(([nombre, rotulo], i) => {
+    const cx = M + i * (col + gap);
+    pagina.drawLine({ start: { x: cx + 10, y: yFirma }, end: { x: cx + col - 10, y: yFirma }, thickness: 0.8, color: grisClaro });
+    if (nombre) centrado(nombre, cx + col / 2, yFirma - 12, 9.5, bold);
+    centrado(rotulo!, cx + col / 2, yFirma - 23, 7.5, normal, gris);
   });
 
-  pagina.drawLine({ start: { x: M, y }, end: { x: derecha, y }, thickness: 1, color: linea });
-  y -= 22;
-
-  if (d.conBoleta && d.recargo > 0) {
-    texto("Recargo boleta (9%)", M + 8, y, 10, normal, gris);
-    aDerecha(clp(d.recargo), y, 10, normal, gris, derecha - 8);
-    y -= 22;
-  }
-
-  /* ---------------- Total ---------------- */
-  const altoTotal = 44;
-  pagina.drawRectangle({
-    x: M,
-    y: y - altoTotal + 18,
-    width: derecha - M,
-    height: altoTotal,
-    color: acento,
-  });
-  texto("TOTAL", M + 14, y, 12, bold, blanco);
-  aDerecha(clp(d.total), y - 3, 20, bold, blanco, derecha - 14);
-  y -= altoTotal + 18;
-
-  /* ---------------- Pagos ---------------- */
-  texto("FORMAS DE PAGO", M, y, 8, bold, gris);
-  y -= 16;
-  for (const p of d.pagos) {
-    texto(p.nombre ? `${p.metodo} · ${p.nombre}` : p.metodo, M + 8, y, 10, normal);
-    aDerecha(clp(p.monto), y, 10, normal, tinta, derecha - 8);
-    y -= 15;
-  }
-
-  /* ---------------- Pie con garantía ---------------- */
-  const altoPie = 34 + GARANTIA_CONDICIONES.length * 11;
-  let yPie = 40 + altoPie;
-  pagina.drawLine({
-    start: { x: M, y: yPie + 12 },
-    end: { x: derecha, y: yPie + 12 },
-    thickness: 1,
-    color: linea,
-  });
-  texto(GARANTIA_TITULO, M, yPie - 4, 10, bold, acento);
-  yPie -= 20;
-  for (const c of GARANTIA_CONDICIONES) {
-    for (const t of envolver(`· ${c}`, normal, 8, derecha - M)) {
-      texto(t, M, yPie, 8, normal, gris);
-      yPie -= 11;
-    }
-  }
-  texto(`${d.tienda.nombre} · iPhonizate OS`, M, 30, 8.5, normal, gris);
-  aDerecha(`Comprobante N° ${d.numero}`, 30, 8.5, normal, gris);
+  /* ---------------- Pie ---------------- */
+  const altoPie = 32;
+  pagina.drawRectangle({ x: 0, y: 0, width: W, height: altoPie, color: tinta });
+  const pie = [contacto.whatsapp && `WhatsApp ${contacto.whatsapp}`, contacto.correo, contacto.web, contacto.instagram]
+    .filter(Boolean)
+    .join("  ·  ");
+  texto(pie || d.tienda.nombre, M, 13, 8, normal, blanco);
+  aDerecha(`Emitido ${diaTexto(desde)} · N° ${d.numero}`, W - M, 18, 7.5, normal, grisClaro);
+  aDerecha("Documento generado electrónicamente", W - M, 8, 7.5, normal, grisClaro);
 
   return await doc.save();
 }

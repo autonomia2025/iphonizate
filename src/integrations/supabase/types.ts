@@ -3352,15 +3352,17 @@ export type Database = {
       arqueo_pendientes_lista: {
         Args: never
         Returns: {
-          arqueo_fecha: string
           arqueo_id: string
           color: string
+          desde: string
+          dias: number
           equipo_id: string
           gb: number
           imei: string
           modelo: string
           pendiente_id: string
           sim: string
+          ubicacion: string
         }[]
       }
       arqueo_terminar: { Args: { _arqueo: string }; Returns: Json }
@@ -3440,6 +3442,17 @@ export type Database = {
       eliminar_venta:
         | { Args: { _venta: string }; Returns: undefined }
         | { Args: { _motivo: string; _venta: string }; Returns: undefined }
+      equipo_historia: {
+        Args: { _equipo: string }
+        Returns: {
+          detalle: string
+          fecha: string
+          fisico: boolean
+          tipo: string
+          titulo: string
+          usuario: string
+        }[]
+      }
       equipo_aparecio: { Args: { _equipo: string }; Returns: undefined }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
       equipos_con_venta_activa: {
@@ -3568,6 +3581,10 @@ export type Database = {
       mi_tienda: { Args: never; Returns: string }
       mi_usuario_id: { Args: never; Returns: string }
       normalizar_proveedor: { Args: { _t: string }; Returns: string }
+      pendiente_resolver: {
+        Args: { _causa: string; _datos?: Json; _equipo: string; _nota?: string }
+        Returns: Json
+      }
       perdidos_lista: {
         Args: never
         Returns: {
@@ -3681,6 +3698,7 @@ export type Database = {
         | "ENTREGADO"
         | "GARANTIA"
         | "PERDIDO"
+        | "PENDIENTE"
       estado_personal: "activo" | "inactivo"
       metodo_pago: "efectivo" | "transferencia" | "credito" | "partePago"
       tipo_gasto: "fijo" | "variable" | "operativo"
@@ -3845,6 +3863,7 @@ export const Constants = {
         "ENTREGADO",
         "GARANTIA",
         "PERDIDO",
+        "PENDIENTE",
       ],
       estado_personal: ["activo", "inactivo"],
       metodo_pago: ["efectivo", "transferencia", "credito", "partePago"],

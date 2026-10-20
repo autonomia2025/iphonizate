@@ -4,6 +4,7 @@
  */
 
 import { EmailAPIError } from "@lovable.dev/email-js";
+import { garantiaMeses } from "@/lib/stores";
 
 import type { DatosComprobante } from "@/lib/comprobante.server";
 import { sendTemplateEmail } from "@/lib/email-templates/send-email";
@@ -38,6 +39,7 @@ export async function enviarComprobante(args: {
         })),
         pagos: datos.pagos.map((p) => ({ metodo: p.metodo, monto: p.monto })),
         url,
+        garantiaMeses: garantiaMeses(datos.tienda.slug),
       },
     });
 

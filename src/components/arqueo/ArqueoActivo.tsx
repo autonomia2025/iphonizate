@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, CircleAlert, CircleX, Pause, XCircle } from "lucide-react";
+import { CheckCircle2, CircleAlert, CircleX, History, Pause, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,13 +12,22 @@ import { ESTADO_ETIQUETA, textoSim, type EquipoEstado } from "@/lib/inventario";
 import { fechaLarga } from "@/lib/inventario";
 import { horaCorta, textoEquipo, type ResultadoEscaneo, type ResumenCierre } from "@/lib/arqueo";
 import { cn } from "@/lib/utils";
+import { HistorialEquipoModal, type EquipoMinimo } from "@/components/arqueo/HistorialEquipoModal";
+import { ResolverPendienteModal } from "@/components/arqueo/ResolverPendienteModal";
 
-type Aviso = { tipo: "ok" | "ya" | "no"; titulo: string; detalle: string };
+type Aviso = {
+  tipo: "ok" | "ya" | "no" | "pendiente";
+  titulo: string;
+  detalle: string;
+  /** Equipo pendiente escaneado: se ofrece resolverlo en el momento */
+  equipo?: EquipoMinimo;
+};
 
 const AVISO_CLASE: Record<Aviso["tipo"], string> = {
   ok: "border-emerald-400/30 bg-emerald-500/10 text-emerald-100",
   ya: "border-amber-400/30 bg-amber-500/10 text-amber-100",
   no: "border-red-400/40 bg-red-500/15 text-red-100",
+  pendiente: "border-orange-400/40 bg-orange-500/15 text-orange-100",
 };
 
 const sinPrefijo = (m: string) => m.replace(/^.*?:\s*/, "");
@@ -41,6 +50,8 @@ export function ArqueoActivo({
   const [accion, setAccion] = useState<null | "pausar" | "terminar" | "cancelar">(null);
   const scanRef = useRef<HTMLInputElement>(null);
   const flash = useFlashEscaneo();
+  const [resolviendo, setResolviendo] = useState<EquipoMinimo | null>(null);
+  const [viendo, setViendo] = useState<EquipoMinimo | null>(null);
 
   const arqueos = useQuery({
     queryKey: ["arqueos"],
@@ -139,6 +150,19 @@ export function ArqueoActivo({
         return s;
       });
     flash.error();
+
+    if (r.resultado === "pendiente") {
+      const dias = r.desde ? Math.floor((Date.now() - new Date(r.desde).getTime()) / 86_400_000) : null;
+      setAviso({
+        tipo: "pendiente",
+        titulo: "Este equipo estaba pendiente",
+        detalle: `${textoEquipo(r)} · ${imei}${
+          dias != null ? ` · faltó hace ${dias} día${dias === 1 ? "" : "s"}` : ""
+        }. Si está aquí en la bodega, resuélvelo ahora.`,
+        equipo: { id: r.equipo_id, imei: r.imei, modelo: r.modelo, gb: r.gb, color: r.color },
+      });
+      return;
+    }
 
     if (r.resultado === "ya_escaneado") {
       setAviso({
@@ -294,7 +318,7 @@ export function ArqueoActivo({
           >
             {aviso.tipo === "ok" ? (
               <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
-            ) : aviso.tipo === "ya" ? (
+            ) : aviso.tipo === "ya" || aviso.tipo === "pendiente" ? (
               <CircleAlert className="mt-0.5 size-5 shrink-0" />
             ) : (
               <CircleX className="mt-0.5 size-5 shrink-0" />
@@ -302,6 +326,21 @@ export function ArqueoActivo({
             <div>
               <p className="text-sm font-semibold">{aviso.titulo}</p>
               <p className="num text-sm opacity-90">{aviso.detalle}</p>
+              {aviso.equipo && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setResolviendo(aviso.equipo ?? null)}>
+                    Resolver ahora
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1.5"
+                    onClick={() => setViendo(aviso.equipo ?? null)}
+                  >
+                    <History className="size-3.5" /> Ver historial
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -392,6 +431,19 @@ export function ArqueoActivo({
           </div>
         )}
       </section>
+
+      {resolviendo && (
+        <ResolverPendienteModal
+          equipo={resolviendo}
+          causaInicial="encontrado_bodega"
+          onCerrar={() => {
+            setResolviendo(null);
+            scanRef.current?.focus();
+          }}
+          onResuelto={() => setAviso(null)}
+        />
+      )}
+      {viendo && <HistorialEquipoModal equipo={viendo} onCerrar={() => setViendo(null)} />}
     </div>
   );
 }

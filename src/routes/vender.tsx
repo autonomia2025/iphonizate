@@ -40,6 +40,9 @@ export const Route = createFileRoute("/vender")({
       { property: "og:description", content: DESC },
     ],
   }),
+  /* ?imei=… abre Vender con ese equipo en el carrito (p. ej. al resolver un pendiente vendido) */
+  validateSearch: (s: Record<string, unknown>): { imei?: string } =>
+    typeof s["imei"] === "string" && /^\d{15}$/.test(s["imei"]) ? { imei: s["imei"] } : {},
   component: VenderPage,
 });
 
@@ -300,6 +303,19 @@ function VenderPage() {
       return [...c, item];
     });
   };
+
+  /* Equipo que llega por la URL: se agrega una sola vez, con la lista recién cargada */
+  const { imei: imeiInicial } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const imeiCargado = useRef(false);
+  useEffect(() => {
+    if (!imeiInicial || imeiCargado.current) return;
+    if (!stock.isFetchedAfterMount || stock.isFetching || !tiendaActiva) return;
+    imeiCargado.current = true;
+    void escanear(imeiInicial);
+    void navigate({ search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imeiInicial, stock.isFetchedAfterMount, stock.isFetching, tiendaActiva?.id]);
 
   const escanear = async (valor: string) => {
     const imei = valor.replace(/\D/g, "");
