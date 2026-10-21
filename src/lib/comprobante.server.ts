@@ -429,14 +429,44 @@ export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
   if (d.accesorios.length) {
     fila(["Accesorios", d.accesorios.map((a) => `${a.nombre} (${clp(a.precio)})`).join(" · ")]);
   }
-  const formaPago = [...new Set(d.pagos.map((p) => p.metodo))].join(" + ") || "-";
-  const conTotal = d.equipos.length + d.accesorios.length > 1 || (d.conBoleta && d.recargo > 0);
-  if (conTotal) {
-    fila(
-      ["Forma de pago", formaPago],
-      ["Total pagado", `${clp(d.total)}${d.conBoleta && d.recargo > 0 ? " (con boleta)" : ""}`],
-    );
-  } else fila(["Forma de pago", formaPago]);
+  /* Pago desglosado: cada método con su monto, y el total pagado al lado */
+  const nombreMetodo = (m: string) => (m === "Crédito" ? "Tarjeta de crédito" : m);
+  const pagos = d.pagos.length ? d.pagos : [{ metodo: "Sin registrar", nombre: null, monto: d.total }];
+  const altoPago = Math.max(altoCampo, 17 + pagos.length * 13);
+  pagina.drawRectangle({
+    x: M,
+    y: y - altoPago,
+    width: col,
+    height: altoPago,
+    color: fondoCampo,
+    borderColor: linea,
+    borderWidth: 0.8,
+  });
+  texto(pagos.length > 1 ? "Forma de pago (desglose)" : "Forma de pago", M + 9, y - 10, 6.8, normal, grisClaro);
+  pagos.forEach((pg, i) => {
+    const yy = y - 23 - i * 13;
+    texto(recortar(nombreMetodo(pg.metodo), 10, bold, col - 100), M + 9, yy, 10, bold);
+    aDerecha(clp(pg.monto), M + col - 9, yy, 10, bold);
+  });
+  pagina.drawRectangle({
+    x: M + col + gap,
+    y: y - altoPago,
+    width: col,
+    height: altoPago,
+    color: acentoTenue,
+    borderColor: acentoBorde,
+    borderWidth: 0.8,
+  });
+  texto(
+    d.conBoleta && d.recargo > 0 ? "Total pagado (incluye boleta)" : "Total pagado",
+    M + col + gap + 9,
+    y - 10,
+    6.8,
+    normal,
+    grisClaro,
+  );
+  texto(clp(d.total), M + col + gap + 9, y - 25, 14, bold);
+  y -= altoPago + 6;
   y -= 6;
 
   /* ---------------- Cobertura ---------------- */

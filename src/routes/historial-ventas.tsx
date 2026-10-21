@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useVerGanancias } from "@/lib/permisos";
 import { traerTodo } from "@/lib/traerTodo";
+import { desdeISO, hastaISO } from "@/lib/reportes";
 import { marcarEnvio } from "@/lib/envios";
 import { useAuth } from "@/components/AuthContext";
 import { BotonComprobante } from "@/components/vender/BotonComprobante";
@@ -103,8 +104,8 @@ function HistorialVentasPage() {
           .select(
             "id, fecha, total, anulada, con_boleta, tienda_id, clientes(nombre), usuarios!ventas_vendedor_id_fkey(nombre), pagos(id, metodo, monto, nombre_pagador), venta_items(id, precio, equipos(imei, modelo, gb, color), accesorios(nombre))",
           )
-          .gte("fecha", `${desde}T00:00:00`)
-          .lte("fecha", `${hasta}T23:59:59.999`)
+          .gte("fecha", desdeISO(desde))
+          .lte("fecha", hastaISO(hasta))
           .order("fecha", { ascending: false })
           .order("id")
           .range(filaIni, filaFin),
@@ -121,8 +122,8 @@ function HistorialVentasPage() {
         supabase
           .from("v_ventas_full")
           .select("id, ganancia")
-          .gte("fecha", `${desde}T00:00:00`)
-          .lte("fecha", `${hasta}T23:59:59.999`)
+          .gte("fecha", desdeISO(desde))
+          .lte("fecha", hastaISO(hasta))
           .order("id")
           .range(filaIni, filaFin),
       );
@@ -139,8 +140,8 @@ function HistorialVentasPage() {
         supabase
           .from("v_venta_items")
           .select("id, costo_snapshot")
-          .gte("fecha", `${desde}T00:00:00`)
-          .lte("fecha", `${hasta}T23:59:59.999`)
+          .gte("fecha", desdeISO(desde))
+          .lte("fecha", hastaISO(hasta))
           .order("id")
           .range(filaIni, filaFin),
       );
@@ -158,8 +159,8 @@ function HistorialVentasPage() {
         supabase
           .from("v_comprobantes")
           .select("id, comprobante_numero")
-          .gte("fecha", `${desde}T00:00:00`)
-          .lte("fecha", `${hasta}T23:59:59.999`)
+          .gte("fecha", desdeISO(desde))
+          .lte("fecha", hastaISO(hasta))
           .order("id")
           .range(filaIni, filaFin),
       );
@@ -176,8 +177,8 @@ function HistorialVentasPage() {
           .from("ventas")
           .select(columnas)
           .eq("modalidad", "envio")
-          .gte("fecha", `${desde}T00:00:00`)
-          .lte("fecha", `${hasta}T23:59:59.999`)
+          .gte("fecha", desdeISO(desde))
+          .lte("fecha", hastaISO(hasta))
           .limit(1000);
       /* Si la base aún no tiene el estado del envío, se muestra al menos que es envío */
       let { data, error } = await armar("id, envio_detalle, envio_estado, enviado_at");
@@ -343,8 +344,8 @@ function HistorialVentasPage() {
         .from("v_venta_items")
         .select("id, equipo_id, fecha")
         .not("equipo_id", "is", null)
-        .gte("fecha", `${desde}T00:00:00`)
-        .lte("fecha", `${hasta}T23:59:59.999`)
+        .gte("fecha", desdeISO(desde))
+        .lte("fecha", hastaISO(hasta))
         .order("id")
         .range(filaIni, filaFin),
     );
