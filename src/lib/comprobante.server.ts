@@ -235,7 +235,8 @@ const aclarar = (hex: string, t: number) => {
 /** Comprobante de garantía en una hoja A4, con el color y los meses de garantía de la tienda. */
 export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  doc.setTitle(`Comprobante ${d.numero}`);
+  /* El número de venta no se muestra al cliente: solo se guarda en el sistema */
+  doc.setTitle(`Comprobante de garantía · ${d.tienda.nombre}`);
   doc.setAuthor(d.tienda.nombre);
 
   const pagina = doc.addPage([595.28, 841.89]); // A4
@@ -307,7 +308,6 @@ export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
     .filter(Boolean)
     .join("  ·  ");
   if (contactoCabeza) aDerecha(contactoCabeza, W - M, H - 44, 8.5, normal, acentoTexto);
-  aDerecha(`N° ${d.numero}`, W - M, H - 57, 8.5, normal, acentoTexto);
 
   /* ---------------- Franja de vigencia ---------------- */
   const altoFranja = 36;
@@ -513,7 +513,7 @@ export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
     .filter(Boolean)
     .join("  ·  ");
   texto(pie || d.tienda.nombre, M, 13, 8, normal, blanco);
-  aDerecha(`Emitido ${diaTexto(desde)} · N° ${d.numero}`, W - M, 18, 7.5, normal, grisClaro);
+  aDerecha(`Emitido ${diaTexto(desde)}`, W - M, 18, 7.5, normal, grisClaro);
   aDerecha("Documento generado electrónicamente", W - M, 8, 7.5, normal, grisClaro);
 
   return await doc.save();

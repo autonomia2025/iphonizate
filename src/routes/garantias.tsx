@@ -31,6 +31,7 @@ import {
   EQUIPO_PREVIO_VACIO,
   EquipoPrevioCampos,
   equipoPrevioJson,
+  faltaEnPrevio,
   type EquipoPrevio,
 } from "@/components/garantias/EquipoPrevioCampos";
 
@@ -203,9 +204,10 @@ function GarantiasPage() {
       toast.error("Describe la falla del equipo");
       return;
     }
-    if (sinEquipo && !equipoPrevio.modelo.trim()) {
-      toast.error("Indica el modelo del equipo", {
-        description: "Así queda en el inventario y se puede mandar a técnico o cambiar.",
+    const faltaEquipo = sinEquipo ? faltaEnPrevio(equipoPrevio, verCostos) : null;
+    if (faltaEquipo) {
+      toast.error(faltaEquipo, {
+        description: "Son los mismos datos que al ingresar un equipo al inventario.",
       });
       return;
     }
@@ -316,7 +318,7 @@ function GarantiasPage() {
                         datos: entra al inventario en garantía y se puede mandar a técnico o cambiar.
                       </p>
                       <div className="mt-3">
-                        <EquipoPrevioCampos valor={equipoPrevio} onCambio={setEquipoPrevio} />
+                        <EquipoPrevioCampos valor={equipoPrevio} onCambio={setEquipoPrevio} puedeCostos={verCostos} />
                       </div>
                     </>
                   ) : sinVenta ? (
@@ -620,6 +622,7 @@ function GarantiasPage() {
       )}
       {aAgregar && (
         <AgregarEquipoGarantiaModal
+          puedeCostos={verCostos}
           garantia={aAgregar}
           onCerrar={() => setAAgregar(null)}
           onHecho={() => void garantias.refetch()}

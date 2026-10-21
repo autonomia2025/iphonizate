@@ -653,6 +653,7 @@ function HistorialVentasPage() {
               <thead>
                 <tr className="border-b border-white/8 text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3 font-medium">Fecha</th>
+                  <th className="px-4 py-3 font-medium">N° venta</th>
                   <th className="px-4 py-3 font-medium">Tienda</th>
                   <th className="px-4 py-3 font-medium">Detalle</th>
                   <th className="px-4 py-3 font-medium">Cliente</th>
@@ -675,6 +676,9 @@ function HistorialVentasPage() {
                   >
                     <td className="num px-4 py-2.5 align-top text-muted-foreground">
                       {fechaHora(v.fecha)}
+                    </td>
+                    <td className="num whitespace-nowrap px-4 py-2.5 align-top">
+                      {numeroDe(v.id) || <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="px-4 py-2.5 align-top text-muted-foreground">
                       {nombreTienda(v.tienda_id)}

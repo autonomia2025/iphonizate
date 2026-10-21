@@ -9,16 +9,19 @@ import {
   EQUIPO_PREVIO_VACIO,
   EquipoPrevioCampos,
   equipoPrevioJson,
+  faltaEnPrevio,
   type EquipoPrevio,
 } from "@/components/garantias/EquipoPrevioCampos";
 
 /** Garantía de un teléfono vendido antes del sistema: se agrega el equipo y el flujo sigue normal. */
 export function AgregarEquipoGarantiaModal({
   garantia,
+  puedeCostos,
   onCerrar,
   onHecho,
 }: {
   garantia: GarantiaMinima;
+  puedeCostos: boolean;
   onCerrar: () => void;
   onHecho: () => void;
 }) {
@@ -26,8 +29,9 @@ export function AgregarEquipoGarantiaModal({
   const [guardando, setGuardando] = useState(false);
 
   const guardar = async () => {
-    if (!equipo.modelo.trim()) {
-      toast.error("Indica el modelo del equipo");
+    const falta = faltaEnPrevio(equipo, puedeCostos);
+    if (falta) {
+      toast.error(falta);
       return;
     }
     setGuardando(true);
@@ -70,12 +74,12 @@ export function AgregarEquipoGarantiaModal({
         </div>
 
         <p className="mt-4 text-sm text-muted-foreground">
-          El equipo queda en el inventario como “En garantía”, sin costo de compra. Desde ahí se
-          manda a técnico o se resuelve como cualquier otro.
+          El equipo queda en el inventario como “En garantía”, con los mismos datos que un ingreso
+          normal. Desde ahí se manda a técnico o se resuelve como cualquier otro.
         </p>
 
         <div className="mt-5">
-          <EquipoPrevioCampos valor={equipo} onCambio={setEquipo} />
+          <EquipoPrevioCampos valor={equipo} onCambio={setEquipo} puedeCostos={puedeCostos} />
         </div>
 
         <div className="mt-6 flex justify-end gap-3">

@@ -38,7 +38,6 @@ const clp = (n?: number) =>
   "$" + new Intl.NumberFormat("es-CL", { maximumFractionDigits: 0 }).format(Math.round(n ?? 0));
 
 const Email = ({
-  numero = "—",
   fecha = "",
   tienda = "iPhonizate OS",
   cliente,
@@ -51,11 +50,11 @@ const Email = ({
 }: Props) => (
   <Html lang="es" dir="ltr">
     <Head />
-    <Preview>{`Comprobante ${numero} · ${tienda}`}</Preview>
+    <Preview>{`Comprobante de tu compra · ${tienda}`}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Text style={eyebrow}>{tienda}</Text>
-        <Heading style={h1}>Comprobante {numero}</Heading>
+        <Heading style={h1}>Comprobante de tu compra</Heading>
         <Text style={muted}>
           {fecha ? `Fecha: ${fecha}` : null}
           {cliente ? `${fecha ? " · " : ""}Cliente: ${cliente}` : null}
@@ -107,7 +106,7 @@ const Email = ({
 
 export const template = {
   component: Email,
-  subject: (d: Record<string, any>) => `Comprobante ${d?.["numero"] ?? ""} · ${d?.["tienda"] ?? "iPhonizate"}`,
+  subject: (d: Record<string, any>) => `Comprobante de tu compra · ${d?.["tienda"] ?? "iPhonizate"}`,
   displayName: "Comprobante de venta",
   previewData: {
     numero: "BPP-000124",
