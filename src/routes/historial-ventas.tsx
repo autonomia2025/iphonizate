@@ -332,9 +332,67 @@ function HistorialVentasPage() {
 
   const puedeEliminar = permisoBorrar.data === true;
 
+  /* Costo de los servicios (batería, pantalla…) que corresponden a cada equipo vendido: los
+     arreglos hechos después de su venta anterior y hasta esta venta. Solo al descargar. */
+  const costoServiciosPorItem = async () => {
+    const itemsRango = await traerTodo((filaIni, filaFin) =>
+      supabase
+        .from("v_venta_items")
+        .select("id, equipo_id, fecha")
+        .not("equipo_id", "is", null)
+        .gte("fecha", `${desde}T00:00:00`)
+        .lte("fecha", `${hasta}T23:59:59.999`)
+        .order("id")
+        .range(filaIni, filaFin),
+    );
+    const idsEquipos = [...new Set(itemsRango.map((i) => i.equipo_id).filter(Boolean))] as string[];
+    const ventasEquipo: { equipo_id: string | null; fecha: string | null; anulada: boolean | null }[] = [];
+    const servicios: { equipo_id: string | null; costo: number | null; created_at: string | null }[] = [];
+    for (let k = 0; k < idsEquipos.length; k += 100) {
+      const lote = idsEquipos.slice(k, k + 100);
+      const [v, s] = await Promise.all([
+        supabase.from("v_venta_items").select("equipo_id, fecha, anulada").in("equipo_id", lote),
+        supabase.from("v_servicios_equipo").select("equipo_id, costo, created_at").in("equipo_id", lote),
+      ]);
+      if (v.error) throw v.error;
+      if (s.error) throw s.error;
+      ventasEquipo.push(...(v.data ?? []));
+      servicios.push(...(s.data ?? []));
+    }
+    const resultado = new Map<string, number>();
+    for (const item of itemsRango) {
+      if (!item.id || !item.equipo_id || !item.fecha) continue;
+      const fecha = item.fecha;
+      const anterior = ventasEquipo
+        .filter((v) => v.equipo_id === item.equipo_id && !v.anulada && v.fecha && v.fecha < fecha)
+        .reduce<string | null>((max, v) => (!max || v.fecha! > max ? v.fecha! : max), null);
+      const total = servicios
+        .filter(
+          (s) =>
+            s.equipo_id === item.equipo_id &&
+            s.created_at &&
+            s.created_at <= fecha &&
+            (!anterior || s.created_at > anterior),
+        )
+        .reduce((a, s) => a + Number(s.costo ?? 0), 0);
+      resultado.set(item.id, total);
+    }
+    return resultado;
+  };
+
   /* Excel de lo que está en pantalla (respeta filtros): una fila por producto vendido */
   const descargarExcel = async () => {
     const XLSX = await import("xlsx");
+    let serviciosItem = new Map<string, number>();
+    if (conGanancias) {
+      try {
+        serviciosItem = await costoServiciosPorItem();
+      } catch {
+        toast.error("No se pudo calcular el costo de servicios", {
+          description: "El Excel se descarga igual, sin esa columna completa.",
+        });
+      }
+    }
     const entregaTexto = (id: string) => {
       const e = envioDe(id);
       if (!e) return "Presencial";
@@ -359,6 +417,7 @@ function HistorialVentasPage() {
           ...(conGanancias
             ? {
                 Costo: costo ?? "",
+                "Costo servicios": i?.equipos ? (serviciosItem.get(i.id) ?? 0) : "",
                 Ganancia: i && costo != null ? i.precio - costo : "",
                 "Sin costo": i?.equipos && costo === 0 ? "SÍ" : "",
               }

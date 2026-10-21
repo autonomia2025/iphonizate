@@ -21,6 +21,11 @@ import { formatCLP, formatNumero } from "@/lib/stores";
 import { puedeVerCostos, diasEnStock } from "@/lib/inventario";
 import { nivelSla } from "@/lib/garantias";
 import {
+  TablaDisponiblesPorModelo,
+  agruparPorModelo,
+  exportarExcelDisponibles,
+} from "@/components/reportes/DisponiblesPorModelo";
+import {
   ATAJOS,
   desdeISO,
   diaDeFecha,
@@ -61,11 +66,13 @@ function Bloque({
   titulo,
   descripcion,
   onExportar,
+  etiquetaExportar = "CSV",
   children,
 }: {
   titulo: string;
   descripcion?: string;
   onExportar?: () => void;
+  etiquetaExportar?: string;
   children: ReactNode;
 }) {
   return (
@@ -77,7 +84,7 @@ function Bloque({
         </div>
         {onExportar && (
           <Button variant="outline" size="sm" onClick={onExportar}>
-            <Download className="size-3.5" /> CSV
+            <Download className="size-3.5" /> {etiquetaExportar}
           </Button>
         )}
       </div>
@@ -400,6 +407,13 @@ function ReportesPage() {
       antiguos: [...filas].sort((a, b) => b.dias - a.dias).slice(0, 20),
     };
   }, [stock.data]);
+
+  /* 5b. Disponibles por modelo: colores × capacidades */
+  const disponiblesPorModelo = useMemo(() => agruparPorModelo(stock.data ?? []), [stock.data]);
+  const alcanceStock =
+    tiendaFiltro === "todas"
+      ? "Todas las tiendas"
+      : ((tiendas.data ?? []).find((t) => t.id === tiendaFiltro)?.nombre ?? "Tienda");
 
   /* 6. Gastos */
   const gastosResumen = useMemo(() => {
@@ -878,6 +892,16 @@ function ReportesPage() {
               </tbody>
             </table>
           </div>
+        </Bloque>
+
+        {/* 5b */}
+        <Bloque
+          titulo="Disponibles por modelo"
+          descripcion={`Equipos disponibles hoy por color y capacidad · ${alcanceStock}`}
+          etiquetaExportar="Excel"
+          onExportar={() => void exportarExcelDisponibles(disponiblesPorModelo, alcanceStock)}
+        >
+          <TablaDisponiblesPorModelo grupos={disponiblesPorModelo} />
         </Bloque>
 
         {/* 6 */}
