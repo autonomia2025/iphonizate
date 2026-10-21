@@ -23,6 +23,9 @@ const DESC = "Historial de ventas de cada tienda, con totales, métodos de pago 
 
 type Entrega = { detalle: string; estado: "pendiente" | "enviado" | null; enviadoAt: string | null };
 
+/** Columna "Costo servicios" del Excel: apagada por ahora a pedido del cliente (21-10). */
+const INCLUIR_COSTO_SERVICIOS = false;
+
 export const Route = createFileRoute("/historial-ventas")({
   head: () => ({
     meta: [
@@ -384,7 +387,7 @@ function HistorialVentasPage() {
   const descargarExcel = async () => {
     const XLSX = await import("xlsx");
     let serviciosItem = new Map<string, number>();
-    if (conGanancias) {
+    if (conGanancias && INCLUIR_COSTO_SERVICIOS) {
       try {
         serviciosItem = await costoServiciosPorItem();
       } catch {
@@ -417,7 +420,9 @@ function HistorialVentasPage() {
           ...(conGanancias
             ? {
                 Costo: costo ?? "",
-                "Costo servicios": i?.equipos ? (serviciosItem.get(i.id) ?? 0) : "",
+                ...(INCLUIR_COSTO_SERVICIOS
+                  ? { "Costo servicios": i?.equipos ? (serviciosItem.get(i.id) ?? 0) : "" }
+                  : {}),
                 Ganancia: i && costo != null ? i.precio - costo : "",
                 "Sin costo": i?.equipos && costo === 0 ? "SÍ" : "",
               }
