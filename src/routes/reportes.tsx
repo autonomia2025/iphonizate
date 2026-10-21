@@ -207,7 +207,8 @@ function ReportesPage() {
         let q = supabase
           .from("v_stock")
           .select("id, imei, modelo, gb, color, estado, tienda, ubicacion_id, fecha_ingreso")
-          .eq("estado", "DISPONIBLE");
+          /* Disponibles, en técnico y por revisar: el cuadro por modelo los cuenta todos */
+          .in("estado", ["DISPONIBLE", "EN_TECNICO", "POR_REVISAR"]);
         if (tiendaFiltro !== "todas") q = q.eq("ubicacion_id", tiendaFiltro);
         return q.order("id").range(filaIni, filaFin);
       });
@@ -395,7 +396,7 @@ function ReportesPage() {
 
   /* 5. Rotación */
   const rotacion = useMemo(() => {
-    const filas = (stock.data ?? []).map((e) => ({
+    const filas = (stock.data ?? []).filter((e) => e.estado === "DISPONIBLE").map((e) => ({
       imei: e.imei as string,
       modelo: `${e.modelo}${e.gb ? ` ${e.gb}GB` : ""}`,
       tienda: (e.tienda as string | null) ?? "—",
@@ -896,8 +897,8 @@ function ReportesPage() {
 
         {/* 5b */}
         <Bloque
-          titulo="Disponibles por modelo"
-          descripcion={`Equipos disponibles hoy por color y capacidad · ${alcanceStock}`}
+          titulo="Stock por modelo"
+          descripcion={`Disponibles, en técnico y por revisar, por color y capacidad · ${alcanceStock}`}
           etiquetaExportar="Excel"
           onExportar={() => void exportarExcelDisponibles(disponiblesPorModelo, alcanceStock)}
         >

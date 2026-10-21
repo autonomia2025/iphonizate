@@ -61,7 +61,7 @@ export function agruparPorModelo(equipos: EquipoDisponible[]): GrupoModelo[] {
 export async function exportarExcelDisponibles(grupos: GrupoModelo[], alcance: string) {
   const XLSX = await import("xlsx");
   const filas: (string | number)[][] = [
-    [`Disponibles por modelo · ${alcance} · ${new Date().toLocaleDateString("es-CL")}`],
+    [`Stock por modelo (disponibles, en técnico y por revisar) · ${alcance} · ${new Date().toLocaleDateString("es-CL")}`],
     [],
   ];
   let anchoMax = 2;
@@ -74,20 +74,20 @@ export async function exportarExcelDisponibles(grupos: GrupoModelo[], alcance: s
     filas.push([]);
     anchoMax = Math.max(anchoMax, g.capacidades.length + 2);
   }
-  filas.push(["Total disponibles", grupos.reduce((a, g) => a + g.total, 0)]);
+  filas.push(["Total en stock", grupos.reduce((a, g) => a + g.total, 0)]);
 
   const hoja = XLSX.utils.aoa_to_sheet(filas);
   hoja["!cols"] = [{ wch: 26 }, ...Array.from({ length: anchoMax - 1 }, () => ({ wch: 12 }))];
   const libro = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(libro, hoja, "Disponibles");
-  XLSX.writeFile(libro, `disponibles-por-modelo-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  XLSX.writeFile(libro, `stock-por-modelo-${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 /** Una tabla por modelo, como planilla: colores × capacidades con totales. */
 export function TablaDisponiblesPorModelo({ grupos }: { grupos: GrupoModelo[] }) {
   if (grupos.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-muted-foreground">Sin equipos disponibles</p>
+      <p className="py-8 text-center text-sm text-muted-foreground">Sin equipos en stock</p>
     );
   }
   return (
