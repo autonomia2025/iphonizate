@@ -79,6 +79,9 @@ export const CONTACTO_TIENDA: Record<string, ContactoTienda> = {
   bodega: {},
 };
 
+/** A dónde mandan los clientes de regiones sus equipos (igual para todas las tiendas) */
+export const ENVIO_REGIONES = "Chilexpress, sucursal Coyancura 2244";
+
 /** El mismo horario para todas las tiendas */
 export const HORARIO_ATENCION = "Lunes a viernes de 10:00 a 19:00 · sábado de 11:00 a 15:00";
 

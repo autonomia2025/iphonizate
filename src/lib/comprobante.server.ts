@@ -7,6 +7,7 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf
 
 import {
   CONTACTO_TIENDA,
+  ENVIO_REGIONES,
   GARANTIA_CUBRE,
   GARANTIA_NO_CUBRE,
   HORARIO_ATENCION,
@@ -460,9 +461,7 @@ export async function dibujarPdf(d: DatosComprobante): Promise<Uint8Array> {
       titulo: "Desde otra ciudad",
       items: [
         "Escríbenos primero por WhatsApp para coordinar el envío.",
-        contacto.envio
-          ? `Despacha por courier por pagar a ${contacto.envio}.`
-          : "Despacha por courier por pagar a los datos que te indiquemos.",
+        `Despacha por pagar vía ${contacto.envio ?? ENVIO_REGIONES}.`,
         "La tienda cubre el flete de vuelta una vez revisado el equipo.",
       ],
       cubre: true,
