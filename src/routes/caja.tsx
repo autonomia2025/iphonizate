@@ -19,6 +19,7 @@ import {
   finDia,
   hoyISO,
   inicioDia,
+  horaChile,
   puedeCerrarCaja,
 } from "@/lib/caja";
 
@@ -253,7 +254,7 @@ function CajaPage() {
         equipos_esperados: (equipos.data ?? []).length,
         equipos_contados: escaneados.length,
         imeis_faltantes: faltantes.map((e) => e.imei),
-        fecha: new Date(`${fecha}T20:00:00`).toISOString(),
+        fecha: horaChile(fecha, "20:00:00").toISOString(),
       });
       if (error) throw new Error(error.message.replace(/^.*?:\s*/, ""));
       toast.success("Caja cerrada");

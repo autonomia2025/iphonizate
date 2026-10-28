@@ -27,14 +27,40 @@ export const CATEGORIAS_GASTO = [
   "Otro",
 ] as const;
 
-export const hoyISO = () => {
-  const d = new Date();
-  const off = d.getTimezoneOffset() * 60_000;
-  return new Date(d.getTime() - off).toISOString().slice(0, 10);
+// Siempre en hora de Chile, sin importar la zona horaria del equipo.
+const ZONA = "America/Santiago";
+
+export const hoyISO = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: ZONA }).format(new Date());
+
+/** Diferencia (ms) entre la hora de Chile y UTC en un instante dado. */
+const offsetChile = (d: Date) => {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: ZONA,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .formatToParts(d)
+      .map((x) => [x.type, x.value]),
+  );
+  const comoUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  return comoUTC - Math.floor(d.getTime() / 1000) * 1000;
 };
 
-export const inicioDia = (fecha: string) => new Date(`${fecha}T00:00:00`);
-export const finDia = (fecha: string) => new Date(`${fecha}T23:59:59.999`);
+/** Convierte "AAAA-MM-DD" + hora de Chile a un Date real. */
+export const horaChile = (fecha: string, hora: string) => {
+  const ingenua = new Date(`${fecha}T${hora}Z`);
+  return new Date(ingenua.getTime() - offsetChile(ingenua));
+};
+
+export const inicioDia = (fecha: string) => horaChile(fecha, "00:00:00");
+export const finDia = (fecha: string) => new Date(horaChile(fecha, "23:59:59").getTime() + 999);
 
 export const fechaCorta = (f: string) =>
   new Date(f).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" });
