@@ -35,7 +35,7 @@ export const hoyISO = () =>
 
 /** Diferencia (ms) entre la hora de Chile y UTC en un instante dado. */
 const offsetChile = (d: Date) => {
-  const p = Object.fromEntries(
+  const p: { year: string; month: string; day: string; hour: string; minute: string; second: string } = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", {
       timeZone: ZONA,
       hourCycle: "h23",
@@ -48,7 +48,7 @@ const offsetChile = (d: Date) => {
     })
       .formatToParts(d)
       .map((x) => [x.type, x.value]),
-  );
+  ) as never;
   const comoUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
   return comoUTC - Math.floor(d.getTime() / 1000) * 1000;
 };
