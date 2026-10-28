@@ -230,34 +230,46 @@ export type Database = {
           aparecio_at: string | null
           aparecio_por: string | null
           arqueo_id: string
+          causa: string | null
           equipo_id: string
           estado: string
           id: string
           marcado_at: string | null
           marcado_por: string | null
           nota: string | null
+          nota_resolucion: string | null
+          resuelto_at: string | null
+          resuelto_por: string | null
         }
         Insert: {
           aparecio_at?: string | null
           aparecio_por?: string | null
           arqueo_id: string
+          causa?: string | null
           equipo_id: string
           estado?: string
           id?: string
           marcado_at?: string | null
           marcado_por?: string | null
           nota?: string | null
+          nota_resolucion?: string | null
+          resuelto_at?: string | null
+          resuelto_por?: string | null
         }
         Update: {
           aparecio_at?: string | null
           aparecio_por?: string | null
           arqueo_id?: string
+          causa?: string | null
           equipo_id?: string
           estado?: string
           id?: string
           marcado_at?: string | null
           marcado_por?: string | null
           nota?: string | null
+          nota_resolucion?: string | null
+          resuelto_at?: string | null
+          resuelto_por?: string | null
         }
         Relationships: [
           {
@@ -312,6 +324,13 @@ export type Database = {
           {
             foreignKeyName: "arqueo_pendientes_marcado_por_fkey"
             columns: ["marcado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arqueo_pendientes_resuelto_por_fkey"
+            columns: ["resuelto_por"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -3442,6 +3461,7 @@ export type Database = {
       eliminar_venta:
         | { Args: { _venta: string }; Returns: undefined }
         | { Args: { _motivo: string; _venta: string }; Returns: undefined }
+      equipo_aparecio: { Args: { _equipo: string }; Returns: undefined }
       equipo_historia: {
         Args: { _equipo: string }
         Returns: {
@@ -3453,7 +3473,6 @@ export type Database = {
           usuario: string
         }[]
       }
-      equipo_aparecio: { Args: { _equipo: string }; Returns: undefined }
       equipo_servicios_listos: { Args: { _equipo_id: string }; Returns: number }
       equipos_con_venta_activa: {
         Args: never
@@ -3661,7 +3680,7 @@ export type Database = {
           _nombre: string
           _pin: string
           _rol: Database["public"]["Enums"]["app_rol"]
-          _tienda: string | null
+          _tienda: string
           _usuario: string
         }
         Returns: string
