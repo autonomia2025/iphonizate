@@ -94,7 +94,8 @@ export const crearPersona = createServerFn({ method: "POST" })
       _nombre: data.nombre,
       _usuario: data.usuario,
       _rol: data.rol,
-      _tienda: data.tiendaId,
+      // La función acepta null (personas sin tienda fija); los tipos generados no lo reflejan.
+      _tienda: data.tiendaId as string,
       _pin: data.pin,
       _auth: cuenta.user.id,
     });
