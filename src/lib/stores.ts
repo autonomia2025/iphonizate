@@ -44,6 +44,13 @@ export const STORES: Store[] = [
     accentSoft: "oklch(0.577 0.245 27.325 / 0.18)",
   },
   {
+    id: "ousiphone",
+    nombre: "OusiPhone",
+    hex: "#2563EB",
+    accent: "oklch(0.546 0.245 262.881)",
+    accentSoft: "oklch(0.546 0.245 262.881 / 0.18)",
+  },
+  {
     id: "bodega",
     nombre: "Oficina Central",
     hex: "#7DD3FC",
@@ -76,6 +83,7 @@ export const CONTACTO_TIENDA: Record<string, ContactoTienda> = {
   iphonizate: {},
   "pro-iphone": {},
   "markt-store": {},
+  ousiphone: {},
   bodega: {},
 };
 
@@ -90,6 +98,7 @@ export const GARANTIA_MESES_TIENDA: Record<string, number> = {
   riffstore: 12,
   iphonizate: 6,
   "markt-store": 6,
+  ousiphone: 6,
   "pro-iphone": 6,
   "black-pink-phone": 6,
 };
