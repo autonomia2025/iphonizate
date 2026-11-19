@@ -72,6 +72,7 @@ const ACCION_ESPECIAL: Record<string, string> = {
   envio_pendiente: "Devolvió un envío a pendiente",
   garantia_cambio_revertido: "Deshizo un cambio por garantía",
   costo_venta_corregido: "Cargó el costo de un equipo vendido",
+  costo_revisado: "Corrigió un costo en la revisión de costos",
   arqueo_abierto: "Abrió un arqueo de bodega",
   arqueo_escaneo: "Escaneó un equipo en el arqueo",
   arqueo_terminado: "Terminó un arqueo de bodega",

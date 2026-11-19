@@ -3659,6 +3659,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      revision_costos_aplicar: { Args: { _cambios: Json }; Returns: Json }
+      revision_costos_datos: { Args: never; Returns: Json }
       resolver_garantia_reparado: {
         Args: { _garantia: string }
         Returns: undefined

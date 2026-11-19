@@ -31,6 +31,7 @@ import { Route as PreciosRouteImport } from './routes/precios'
 import { Route as ReportesRouteImport } from './routes/reportes'
 import { Route as ReservasRouteImport } from './routes/reservas'
 import { Route as RevisionRouteImport } from './routes/revision'
+import { Route as RevisionCostosRouteImport } from './routes/revision-costos'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as TareasRouteImport } from './routes/tareas'
 import { Route as TecnicoRouteImport } from './routes/tecnico'
@@ -160,6 +161,11 @@ const RevisionRoute = RevisionRouteImport.update({
   path: '/revision',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RevisionCostosRoute = RevisionCostosRouteImport.update({
+  id: '/revision-costos',
+  path: '/revision-costos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StockRoute = StockRouteImport.update({
   id: '/stock',
   path: '/stock',
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/reportes': typeof ReportesRoute
   '/reservas': typeof ReservasRoute
   '/revision': typeof RevisionRoute
+  '/revision-costos': typeof RevisionCostosRoute
   '/stock': typeof StockRoute
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/reportes': typeof ReportesRoute
   '/reservas': typeof ReservasRoute
   '/revision': typeof RevisionRoute
+  '/revision-costos': typeof RevisionCostosRoute
   '/stock': typeof StockRoute
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
@@ -363,6 +371,7 @@ export interface FileRoutesById {
   '/reportes': typeof ReportesRoute
   '/reservas': typeof ReservasRoute
   '/revision': typeof RevisionRoute
+  '/revision-costos': typeof RevisionCostosRoute
   '/stock': typeof StockRoute
   '/tareas': typeof TareasRoute
   '/tecnico': typeof TecnicoRoute
@@ -407,6 +416,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/reservas'
     | '/revision'
+    | '/revision-costos'
     | '/stock'
     | '/tareas'
     | '/tecnico'
@@ -449,6 +459,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/reservas'
     | '/revision'
+    | '/revision-costos'
     | '/stock'
     | '/tareas'
     | '/tecnico'
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/reservas'
     | '/revision'
+    | '/revision-costos'
     | '/stock'
     | '/tareas'
     | '/tecnico'
@@ -534,6 +546,7 @@ export interface RootRouteChildren {
   ReportesRoute: typeof ReportesRoute
   ReservasRoute: typeof ReservasRoute
   RevisionRoute: typeof RevisionRoute
+  RevisionCostosRoute: typeof RevisionCostosRoute
   StockRoute: typeof StockRoute
   TareasRoute: typeof TareasRoute
   TecnicoRoute: typeof TecnicoRoute
@@ -710,6 +723,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RevisionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/revision-costos': {
+      id: '/revision-costos'
+      path: '/revision-costos'
+      fullPath: '/revision-costos'
+      preLoaderRoute: typeof RevisionCostosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stock': {
       id: '/stock'
       path: '/stock'
@@ -862,6 +882,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportesRoute: ReportesRoute,
   ReservasRoute: ReservasRoute,
   RevisionRoute: RevisionRoute,
+  RevisionCostosRoute: RevisionCostosRoute,
   StockRoute: StockRoute,
   TareasRoute: TareasRoute,
   TecnicoRoute: TecnicoRoute,
