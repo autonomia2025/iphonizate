@@ -2339,6 +2339,117 @@ export type Database = {
           },
         ]
       }
+      shopify_conexiones: {
+        Row: {
+          access_expira: string | null
+          access_token: string | null
+          conectada_en: string | null
+          estado: string
+          link_instalacion: string | null
+          oauth_state: string | null
+          oauth_state_expira: string | null
+          refresh_expira: string | null
+          refresh_token: string | null
+          scopes: string | null
+          shop: string
+          tienda: string
+          ultima_lectura: string | null
+          ultimo_error: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_expira?: string | null
+          access_token?: string | null
+          conectada_en?: string | null
+          estado?: string
+          link_instalacion?: string | null
+          oauth_state?: string | null
+          oauth_state_expira?: string | null
+          refresh_expira?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          shop: string
+          tienda: string
+          ultima_lectura?: string | null
+          ultimo_error?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_expira?: string | null
+          access_token?: string | null
+          conectada_en?: string | null
+          estado?: string
+          link_instalacion?: string | null
+          oauth_state?: string | null
+          oauth_state_expira?: string | null
+          refresh_expira?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          shop?: string
+          tienda?: string
+          ultima_lectura?: string | null
+          ultimo_error?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+        ]
+      }
+      shopify_variantes: {
+        Row: {
+          codigo_barras: string | null
+          controla_stock: boolean | null
+          estado_producto: string | null
+          leido_en: string
+          precio: number | null
+          producto: string
+          producto_id: string
+          sku: string | null
+          stock: number | null
+          stock_por_ubicacion: Json
+          tienda: string
+          variante: string | null
+          variante_id: string
+        }
+        Insert: {
+          codigo_barras?: string | null
+          controla_stock?: boolean | null
+          estado_producto?: string | null
+          leido_en?: string
+          precio?: number | null
+          producto: string
+          producto_id: string
+          sku?: string | null
+          stock?: number | null
+          stock_por_ubicacion?: Json
+          tienda: string
+          variante?: string | null
+          variante_id: string
+        }
+        Update: {
+          codigo_barras?: string | null
+          controla_stock?: boolean | null
+          estado_producto?: string | null
+          leido_en?: string
+          precio?: number | null
+          producto?: string
+          producto_id?: string
+          sku?: string | null
+          stock?: number | null
+          stock_por_ubicacion?: Json
+          tienda?: string
+          variante?: string | null
+          variante_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_variantes_tienda_fkey"
+            columns: ["tienda"]
+            isOneToOne: false
+            referencedRelation: "shopify_conexiones"
+            referencedColumns: ["tienda"]
+          },
+        ]
+      }
       tareas: {
         Row: {
           asignado_id: string | null

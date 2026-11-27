@@ -49,6 +49,8 @@ import { Route as ApiPublicLectorLecturaRouteImport } from './routes/api/public/
 import { Route as ApiPublicLectorRuntimeRouteImport } from './routes/api/public/lector/runtime'
 import { Route as ApiPublicLectorVerificarRouteImport } from './routes/api/public/lector/verificar'
 import { Route as ApiPublicLectorVersionRouteImport } from './routes/api/public/lector/version'
+import { Route as ApiPublicShopifyCallbackRouteImport } from './routes/api/public/shopify/callback'
+import { Route as ApiPublicShopifyInstalarRouteImport } from './routes/api/public/shopify/instalar'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
 const IndexRoute = IndexRouteImport.update({
@@ -254,6 +256,18 @@ const ApiPublicLectorVersionRoute = ApiPublicLectorVersionRouteImport.update({
   path: '/api/public/lector/version',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicShopifyCallbackRoute =
+  ApiPublicShopifyCallbackRouteImport.update({
+    id: '/api/public/shopify/callback',
+    path: '/api/public/shopify/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicShopifyInstalarRoute =
+  ApiPublicShopifyInstalarRouteImport.update({
+    id: '/api/public/shopify/instalar',
+    path: '/api/public/shopify/instalar',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -302,6 +316,8 @@ export interface FileRoutesByFullPath {
   '/api/public/lector/runtime': typeof ApiPublicLectorRuntimeRoute
   '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
+  '/api/public/shopify/callback': typeof ApiPublicShopifyCallbackRoute
+  '/api/public/shopify/instalar': typeof ApiPublicShopifyInstalarRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -345,6 +361,8 @@ export interface FileRoutesByTo {
   '/api/public/lector/runtime': typeof ApiPublicLectorRuntimeRoute
   '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
+  '/api/public/shopify/callback': typeof ApiPublicShopifyCallbackRoute
+  '/api/public/shopify/instalar': typeof ApiPublicShopifyInstalarRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -389,6 +407,8 @@ export interface FileRoutesById {
   '/api/public/lector/runtime': typeof ApiPublicLectorRuntimeRoute
   '/api/public/lector/verificar': typeof ApiPublicLectorVerificarRoute
   '/api/public/lector/version': typeof ApiPublicLectorVersionRoute
+  '/api/public/shopify/callback': typeof ApiPublicShopifyCallbackRoute
+  '/api/public/shopify/instalar': typeof ApiPublicShopifyInstalarRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -434,6 +454,8 @@ export interface FileRouteTypes {
     | '/api/public/lector/runtime'
     | '/api/public/lector/verificar'
     | '/api/public/lector/version'
+    | '/api/public/shopify/callback'
+    | '/api/public/shopify/instalar'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -477,6 +499,8 @@ export interface FileRouteTypes {
     | '/api/public/lector/runtime'
     | '/api/public/lector/verificar'
     | '/api/public/lector/version'
+    | '/api/public/shopify/callback'
+    | '/api/public/shopify/instalar'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -520,6 +544,8 @@ export interface FileRouteTypes {
     | '/api/public/lector/runtime'
     | '/api/public/lector/verificar'
     | '/api/public/lector/version'
+    | '/api/public/shopify/callback'
+    | '/api/public/shopify/instalar'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -564,6 +590,8 @@ export interface RootRouteChildren {
   ApiPublicLectorRuntimeRoute: typeof ApiPublicLectorRuntimeRoute
   ApiPublicLectorVerificarRoute: typeof ApiPublicLectorVerificarRoute
   ApiPublicLectorVersionRoute: typeof ApiPublicLectorVersionRoute
+  ApiPublicShopifyCallbackRoute: typeof ApiPublicShopifyCallbackRoute
+  ApiPublicShopifyInstalarRoute: typeof ApiPublicShopifyInstalarRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -849,6 +877,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLectorVersionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/shopify/callback': {
+      id: '/api/public/shopify/callback'
+      path: '/api/public/shopify/callback'
+      fullPath: '/api/public/shopify/callback'
+      preLoaderRoute: typeof ApiPublicShopifyCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shopify/instalar': {
+      id: '/api/public/shopify/instalar'
+      path: '/api/public/shopify/instalar'
+      fullPath: '/api/public/shopify/instalar'
+      preLoaderRoute: typeof ApiPublicShopifyInstalarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
@@ -900,6 +942,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLectorRuntimeRoute: ApiPublicLectorRuntimeRoute,
   ApiPublicLectorVerificarRoute: ApiPublicLectorVerificarRoute,
   ApiPublicLectorVersionRoute: ApiPublicLectorVersionRoute,
+  ApiPublicShopifyCallbackRoute: ApiPublicShopifyCallbackRoute,
+  ApiPublicShopifyInstalarRoute: ApiPublicShopifyInstalarRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
