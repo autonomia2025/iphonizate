@@ -9,7 +9,9 @@ import {
   TIENDAS_SHOPIFY,
   esTiendaShopify,
   linkInstalacionValido,
+  stockWeb,
   type ConexionShopify,
+  type StockUbicacion,
 } from "@/lib/shopify";
 
 type Contexto = { supabase: SupabaseClient<Database>; userId: string };
@@ -40,7 +42,10 @@ export const estadoShopify = createServerFn({ method: "GET" })
         .select(
           "tienda, shop, link_instalacion, estado, conectada_en, ultima_lectura, ultimo_error",
         ),
-      supabaseAdmin.from("shopify_variantes").select("tienda, stock").limit(20000),
+      supabaseAdmin
+        .from("shopify_variantes")
+        .select("tienda, stock, stock_por_ubicacion")
+        .limit(20000),
     ]);
     if (error) return { ok: false as const, mensaje: "No se pudo leer el estado de Shopify." };
 
@@ -59,6 +64,10 @@ export const estadoShopify = createServerFn({ method: "GET" })
         secreto_configurado: !!secreto(t.id),
         variantes: propias.length,
         stock: propias.reduce((s, v) => s + Math.max(0, v.stock ?? 0), 0),
+        stock_web: propias.reduce(
+          (s, v) => s + stockWeb(v.stock_por_ubicacion as StockUbicacion[] | null),
+          0,
+        ),
       };
     });
     return { ok: true as const, conexiones };

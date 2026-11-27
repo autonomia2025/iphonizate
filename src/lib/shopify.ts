@@ -62,6 +62,17 @@ export function venceLink(link: string | null): Date | null {
   }
 }
 
+/** Stock de una variante en cada ubicación de Shopify. online = la ubicación vende por la web. */
+export type StockUbicacion = { ubicacion: string; stock: number; online?: boolean };
+
+/**
+ * Lo que la página web muestra como disponible: solo cuenta las ubicaciones que venden online
+ * (por ejemplo, "Reserva tienda — no vende online" no cuenta). Lecturas antiguas sin la marca
+ * se cuentan completas hasta la próxima lectura.
+ */
+export const stockWeb = (ubicaciones: StockUbicacion[] | null | undefined) =>
+  (ubicaciones ?? []).reduce((s, u) => s + (u.online === false ? 0 : Math.max(0, u.stock)), 0);
+
 export type ConexionShopify = {
   tienda: TiendaShopify;
   nombre: string;
@@ -74,4 +85,5 @@ export type ConexionShopify = {
   secreto_configurado: boolean;
   variantes: number;
   stock: number;
+  stock_web: number;
 };

@@ -15,8 +15,10 @@ import {
 import {
   TIENDAS_SHOPIFY,
   linkInstalacionValido,
+  stockWeb,
   venceLink,
   type ConexionShopify,
+  type StockUbicacion,
   type TiendaShopify,
 } from "@/lib/shopify";
 
@@ -197,8 +199,11 @@ export function PanelShopify() {
                 </p>
                 <p>
                   <span className="text-foreground">{c.variantes}</span> productos y variantes ·{" "}
-                  <span className="text-foreground">{c.stock.toLocaleString("es-CL")}</span>{" "}
-                  unidades en stock
+                  <span className="text-foreground">{c.stock_web.toLocaleString("es-CL")}</span>{" "}
+                  unidades a la venta en la web
+                  {c.stock !== c.stock_web && (
+                    <> · {c.stock.toLocaleString("es-CL")} en total, contando reservas</>
+                  )}
                 </p>
                 {c.ultimo_error && <p className="text-destructive">{c.ultimo_error}</p>}
                 <div className="flex gap-2 pt-1">
@@ -279,7 +284,9 @@ function TablaProductos({ tienda }: { tienda: TiendaShopify }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shopify_variantes")
-        .select("variante_id, producto, variante, sku, precio, stock, estado_producto")
+        .select(
+          "variante_id, producto, variante, sku, precio, stock, estado_producto, stock_por_ubicacion",
+        )
         .eq("tienda", tienda)
         .order("producto")
         .limit(1000);
@@ -297,7 +304,8 @@ function TablaProductos({ tienda }: { tienda: TiendaShopify }) {
             <th className="px-3 py-2 font-medium">Variante</th>
             <th className="px-3 py-2 font-medium">SKU</th>
             <th className="px-3 py-2 text-right font-medium">Precio</th>
-            <th className="px-3 py-2 text-right font-medium">Stock</th>
+            <th className="px-3 py-2 text-right font-medium">En la web</th>
+            <th className="px-3 py-2 text-right font-medium">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -312,7 +320,17 @@ function TablaProductos({ tienda }: { tienda: TiendaShopify }) {
               <td className="px-3 py-2 text-muted-foreground">{p.variante ?? "—"}</td>
               <td className="px-3 py-2 text-muted-foreground">{p.sku ?? "—"}</td>
               <td className="px-3 py-2 text-right">{clp(p.precio)}</td>
-              <td className="px-3 py-2 text-right">{p.stock ?? "—"}</td>
+              <td className="px-3 py-2 text-right">
+                {stockWeb(p.stock_por_ubicacion as StockUbicacion[] | null)}
+              </td>
+              <td
+                className="px-3 py-2 text-right text-muted-foreground"
+                title={((p.stock_por_ubicacion ?? []) as StockUbicacion[])
+                  .map((u) => `${u.ubicacion}: ${u.stock}`)
+                  .join("\n")}
+              >
+                {p.stock ?? "—"}
+              </td>
             </tr>
           ))}
         </tbody>

@@ -261,6 +261,7 @@ const QUERY_VARIANTES = /* GraphQL */ `
               location {
                 id
                 name
+                fulfillsOnlineOrders
               }
               quantities(names: ["available"]) {
                 name
@@ -286,7 +287,7 @@ type Variante = {
     tracked: boolean;
     inventoryLevels: {
       nodes: {
-        location: { id: string; name: string };
+        location: { id: string; name: string; fulfillsOnlineOrders: boolean };
         quantities: { name: string; quantity: number }[];
       }[];
     };
@@ -316,6 +317,7 @@ export async function leerTienda(tienda: TiendaShopify) {
       for (const v of data.productVariants.nodes) {
         const ubicaciones = (v.inventoryItem?.inventoryLevels.nodes ?? []).map((n) => ({
           ubicacion: n.location.name,
+          online: n.location.fulfillsOnlineOrders,
           stock: n.quantities.find((q) => q.name === "available")?.quantity ?? 0,
         }));
         filas.push({
