@@ -2391,8 +2391,7 @@ export type Database = {
           ultimo_error?: string | null
           updated_at?: string
         }
-        Relationships: [
-        ]
+        Relationships: []
       }
       shopify_variantes: {
         Row: {
@@ -3770,12 +3769,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      revision_costos_aplicar: { Args: { _cambios: Json }; Returns: Json }
-      revision_costos_datos: { Args: never; Returns: Json }
       resolver_garantia_reparado: {
         Args: { _garantia: string }
         Returns: undefined
       }
+      revision_costos_aplicar: { Args: { _cambios: Json }; Returns: Json }
+      revision_costos_datos: { Args: never; Returns: Json }
       servicio_listo: { Args: { _servicio_id: string }; Returns: string }
       siguiente_comprobante: { Args: never; Returns: string }
       tiene_permiso: { Args: { _permiso: string }; Returns: boolean }
