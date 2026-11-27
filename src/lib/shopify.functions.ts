@@ -51,7 +51,7 @@ export const estadoShopify = createServerFn({ method: "GET" })
         tienda: t.id,
         nombre: t.nombre,
         shop: f?.shop ?? t.shop,
-        link_instalacion: f?.link_instalacion ?? null,
+        link_instalacion: f?.link_instalacion ?? t.link,
         estado: (f?.estado as ConexionShopify["estado"]) ?? "pendiente",
         conectada_en: f?.conectada_en ?? null,
         ultima_lectura: f?.ultima_lectura ?? null,

@@ -15,6 +15,7 @@ import {
 import {
   TIENDAS_SHOPIFY,
   linkInstalacionValido,
+  venceLink,
   type ConexionShopify,
   type TiendaShopify,
 } from "@/lib/shopify";
@@ -185,6 +186,7 @@ export function PanelShopify() {
                 >
                   {c.link_instalacion ? "Cambiar link" : "Pegar link"}
                 </button>
+                {c.estado !== "conectada" && <VenceLink link={c.link_instalacion} />}
               </div>
             )}
 
@@ -254,6 +256,20 @@ export function PanelShopify() {
         </div>
       </details>
     </section>
+  );
+}
+
+/** Los links de Shopify vencen: se avisa la fecha, y si ya venció, que hay que generar otro. */
+function VenceLink({ link }: { link: string | null }) {
+  const vence = venceLink(link);
+  if (!vence) return null;
+  const vencido = vence.getTime() < Date.now();
+  return (
+    <span className={`basis-full text-xs ${vencido ? "text-amber-300" : "text-muted-foreground"}`}>
+      {vencido
+        ? "El link venció: genera uno nuevo en Shopify (Distribution) y pégalo con Cambiar link."
+        : `El link sirve hasta el ${vence.toLocaleDateString("es-CL", { dateStyle: "long" })}.`}
+    </span>
   );
 }
 
