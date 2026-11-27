@@ -191,6 +191,20 @@ async function tokenVigente(tienda: TiendaShopify) {
   }
 }
 
+/** IP y red (ASN) con que el servidor sale a internet, según ipinfo.io. */
+export async function redDeSalida() {
+  try {
+    const res = await fetch("https://ipinfo.io/json", {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(5000),
+    });
+    const j = (await res.json()) as { ip?: string; org?: string; country?: string };
+    return [j.ip, j.org, j.country].filter(Boolean).join(" · ") || "desconocida";
+  } catch {
+    return "desconocida";
+  }
+}
+
 async function graphql<T>(
   tienda: TiendaShopify,
   query: string,
@@ -207,8 +221,11 @@ async function graphql<T>(
     throw new Error(MENSAJE_RECONECTAR);
   }
   if (res.status === 403) {
+    /* Se guarda el motivo que da Shopify y desde qué red salió la llamada, para ajustar la lista */
+    const motivo = (await res.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 300);
+    const salida = await redDeSalida();
     throw new Error(
-      "Shopify rechazó la conexión (403). Lo más probable es que falte agregar la red del sistema a la lista de IP permitidas de la app.",
+      `Shopify rechazó la conexión (403): ${motivo || "sin detalle"}. Salida: ${salida}`,
     );
   }
   if (!res.ok) throw new Error(`Shopify respondió ${res.status}`);
